@@ -12,9 +12,7 @@ from agents import uct_agent
 from agents import eroot_uct_agent
 from agents import sparse_sampling_agent
 from agents import rollout_agent
-from bandits import e_bandit_alg
 import os
-# from xml.dom import minidom
 
 simulation_count = 10
 players_count = 2
@@ -41,8 +39,6 @@ ss_d3_n7 = sparse_sampling_agent.SparseSamplingAgentClass(depth = 3, pulls_per_n
 uct1000 = uct_agent.UCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, c = 1)
 
 eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, c = 1)
-
-test_agent = rollout_agent.RolloutAgentClass(e_bandit_alg.EBanditAlgClass.__init__(self, 100))
 
 agents_list = [u_ro_d100_n1000, uct1000]
 
