@@ -27,10 +27,11 @@ h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy = rand_agent1, width
 
 h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy = rand_agent1, width = 10, depth = 10)
 
-# Increasing num_pulls to 10,000 doesn't do much, but 100 craters performance.
-u_ro_d100_n1000 = uniform_rollout_agent.UniformRolloutAgentClass(depth = 100, num_pulls = 1000, policy = rand_agent1)
+u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 50, policy = rand_agent1)
 
-e_ro_d10_n10 = e_rollout_agent.ERolloutAgentClass(depth = 10, num_pulls = 10, epsilon = 0.5, policy = rand_agent1)
+nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 50, policy = u_ro)
+
+e_ro_d10_n100 = e_rollout_agent.ERolloutAgentClass(depth = 10, num_pulls = 100, epsilon = 0.5, policy = rand_agent1)
 
 ucb_ro_d100_n100_c1 = ucb_rollout_agent.UCBRolloutAgentClass(depth = 100, num_pulls = 100, c = 1.0, policy = rand_agent1)
 
@@ -40,7 +41,7 @@ uct1000 = uct_agent.UCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, 
 
 eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, c = 1)
 
-agents_list = [u_ro_d100_n1000, uct1000]
+agents_list = [nested_u_ro, u_ro]
 
 output_file = open("output.txt", "w")
 output_file.write("PLAYING " + "\n")
