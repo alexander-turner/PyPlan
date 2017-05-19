@@ -100,7 +100,7 @@ class DealerClass:
             time_values = []
 
             print(current_state)
-            while current_state.is_terminal() == False and h < self.simulation_horizon:
+            while current_state.is_terminal() is False and h < self.simulation_horizon:
                 actual_agent_id = current_state.get_current_player() - 1
 
                 # ASK FOR AN ACTION FROM THE AGENT. MOVE TIME CALCULATION.

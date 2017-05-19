@@ -41,7 +41,7 @@ uct1000 = uct_agent.UCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, 
 
 eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, c = 1)
 
-agents_list = [nested_u_ro, u_ro]
+agents_list = [e_ro_d10_n100, u_ro]
 
 output_file = open("output.txt", "w")
 output_file.write("PLAYING " + "\n")
@@ -61,7 +61,7 @@ winner_list = dealer_object.simulation_stats()[1]
 overall_reward = []
 for game in range(len(results)):
     game_reward_sum = [0] * players_count
-    
+
     for move in range(len(results[game])):
         game_reward_sum = [x + y for x, y in zip(game_reward_sum, results[game][move][0])]
     print("REWARD OF PLAYERS IN GAME {0} : ".format(game))
