@@ -15,13 +15,13 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         self.num_nodes = 1
         self.depth = depth
         self.pulls_per_node = pulls_per_node
-        if heuristic is not None:
+        if heuristic is None:
             self.heuristic = zero_heuristic.ZeroHeuristicClass()
         else:
             self.heuristic = heuristic
 
-        if BanditClass is not None:
-            self.BanditClass = uniform_bandit.UniformBanditClass
+        if BanditClass is None:
+            self.BanditClass = uniform_bandit_alg.UniformBanditAlgClass
         else:
             self.BanditClass = BanditClass
 
