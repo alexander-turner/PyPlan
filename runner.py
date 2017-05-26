@@ -1,23 +1,24 @@
 import dealer
+from simulators import connect4, pacman_sim
+from heuristics import rollout_heuristic, switching_heuristic
 from agents import random_agent
-from simulators import connect4
-from heuristics import rollout_heuristic
 from agents import recursive_bandit_agent
 from agents import mcts_agent
 from agents import rollout_agent
+from agents import policy_switch_agent
 from agents import uniform_rollout_agent
 from agents import e_rollout_agent
 from agents import ucb_rollout_agent
 from agents import uct_agent
 from agents import eroot_uct_agent
 from agents import sparse_sampling_agent
-from agents import rollout_agent
 import os
 
 simulation_count = 10
 players_count = 2
 
 initial_state = connect4.Connect4StateClass()
+#initial_state = pacman_sim.PacmanStateClass()
 
 rand_agent1 = random_agent.RandomAgentClass()
 
@@ -41,7 +42,10 @@ uct1000 = uct_agent.UCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, 
 
 eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, c = 1)
 
-agents_list = [e_ro_d10_n100, u_ro]
+switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth = 10, num_pulls = 50, policies = [u_ro, e_ro_d10_n100])
+
+
+agents_list = [switch_agent, u_ro]
 
 output_file = open("output.txt", "w")
 output_file.write("PLAYING " + "\n")

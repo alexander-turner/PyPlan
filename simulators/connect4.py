@@ -21,7 +21,7 @@ class Connect4StateClass(absstate.AbstractState):
     def number_of_players(self):
         return Connect4StateClass.numplayers
 
-    def set(self,state):
+    def set(self, state):
         self.state_val[0] = state.state_val[0]
         self.state_val[1] = state.state_val[1]
         self.current_player = state.current_player
@@ -76,7 +76,7 @@ class Connect4StateClass(absstate.AbstractState):
         return actions_list
 
     def is_terminal(self):
-        return self.game_outcome != None
+        return self.game_outcome is not None
 
     def get_current_player(self):
         return self.current_player
@@ -144,7 +144,7 @@ class Connect4StateClass(absstate.AbstractState):
                         is_printed = True
                     player_num += 1
 
-                if (is_printed == False):
+                if is_printed is False:
                     output += "0"
 
                 curr_col += 1

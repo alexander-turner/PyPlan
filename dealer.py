@@ -30,7 +30,7 @@ class DealerClass:
 #            current_rollout = self.playerlist[count].rollout_policy
 
             while current_rollout is not None:
-                print_output += "\nIt's Rollout policy is : " + current_rollout.agentname
+                print_output += "\nIts Rollout policy is : " + current_rollout.agentname
 #                current_rollout = current_rollout.rollout_policy
 
                 if "UCT" in self.playerlist[count].agentname:
