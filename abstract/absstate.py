@@ -94,7 +94,7 @@ class AbstractState:
         """
 
         Returns the index of the current player.
-        Index values are in the rangle {1,...,num_players}.
+        Index values are in the range {1,...,num_players}.
 
         It is important to note that the first player is 1 rather than 0. It may be advised to change this,
         but the current planners are using the 1,... range.

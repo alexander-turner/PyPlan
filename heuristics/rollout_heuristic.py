@@ -19,7 +19,8 @@ class RolloutHeuristicClass(absheuristic.AbstractHeuristic):
 
         for sim_num in range(self.width):
             h = 0
-            sim_state.set(state)
+            sim_state = state.clone()
+            #sim_state.set(state)
             while sim_state.is_terminal() is False and h <= self.depth:
                 action_to_take = self.rollout_policy.select_action(sim_state)
                 reward = sim_state.take_action(action_to_take)

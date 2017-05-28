@@ -13,7 +13,6 @@ class SwitchingHeuristicClass(absheuristic.AbstractHeuristic):
     def get_heuristic_name(self):
         return self.agentname
 
-    # assumes is first player
     def evaluate(self, state):
         sim_state = state.clone()
         total_reward = [0]*sim_state.number_of_players()
@@ -32,7 +31,7 @@ class SwitchingHeuristicClass(absheuristic.AbstractHeuristic):
                     if action_to_take is None:
                         continue
                     reward = sim_state.take_action(action_to_take)
-                    if reward[0] > best_reward[0]:
+                    if reward[0] > best_reward[0]: # If our reward is better than previous best
                         best_reward = reward
                         best_action = action_to_take
                 reward = best_reward

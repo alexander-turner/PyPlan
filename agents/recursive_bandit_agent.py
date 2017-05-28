@@ -41,7 +41,7 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
     """
     Returns the expected reward and action list for the current bandit.
     
-    Walkthrough of structure for 2-action, 4-budget, 1-player, 2-depth uniform bandit
+    ~Walkthrough of structure for 2-action, 4-budget, 1-player, 2-depth uniform bandit
     estimateV(s0, 2):
         increment number of nodes <- ?
         inherit bandit parameters, current player
@@ -50,10 +50,10 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
             select pull arm uniformly - 2 pulls per arm total
             take action denoted by arm and record immediate reward
             estimate future reward for depth=1 of this state (best action found by given bandit for horizon=depth-1=1)
-            add feuture and immediate reward
+            add future and immediate reward
             update current mean reward
         record best arm index
-        return [q values for best arm, actions for best arm] - why are the two elements not singletons?
+        return [q values for best arm, actions for best arm] 
     """
     def estimateV(self, state, depth):
         self.num_nodes += 1
@@ -69,15 +69,14 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         else:
             bandit = self.BanditClass(num_actions, self.bandit_parameters)
 
-        current_state = state.clone()
-
         Qvalues = [[0]*state.number_of_players()]*num_actions
 
         # Use pull budget
+
         for i in range(self.pulls_per_node):
             chosen_arm = bandit.select_pull_arm()
-
-            current_state.set(state)
+            current_state = state.clone()
+            #current_state.set(state)
             immediate_reward = current_state.take_action(action_list[chosen_arm])
             future_reward = self.estimateV(current_state, depth-1)[0] # best arm's Q-value
             total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]

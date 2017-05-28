@@ -17,8 +17,7 @@ import os
 simulation_count = 10
 players_count = 2
 
-initial_state = connect4.Connect4StateClass()
-#initial_state = pacman_sim.PacmanStateClass()
+#initial_state = connect4.Connect4StateClass()
 
 rand_agent1 = random_agent.RandomAgentClass()
 
@@ -44,6 +43,8 @@ eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, nu
 
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth = 10, num_pulls = 50, policies = [u_ro, e_ro_d10_n100])
 
+initial_state = pacman_sim.PacmanStateClass('tinySearch', eroot_uct1000)
+initial_state.game.run()
 
 agents_list = [switch_agent, u_ro]
 
