@@ -18,14 +18,15 @@ class SwitchingHeuristicClass(absheuristic.AbstractHeuristic):
         total_reward = [0]*sim_state.number_of_players()
 
         for sim_num in range(self.width):
-            h=0
+            h = 0 # depth counter
             sim_state.set(state)
             while sim_state.is_terminal() is False and h <= self.depth:
-                # Find the best action out of the available policies
+                # Construct reward array for all agents for the best action
                 best_reward = [float("-inf")]
                 for i in range(1, sim_state.number_of_players()-1):
                     best_reward[i] = float("inf")
 
+                # Find the best action out of the available policies
                 for policy in self.switch_policies:
                     action_to_take = policy.select_action(sim_state)
                     if action_to_take is None:
@@ -33,7 +34,6 @@ class SwitchingHeuristicClass(absheuristic.AbstractHeuristic):
                     reward = sim_state.take_action(action_to_take)
                     if reward[0] > best_reward[0]: # If our reward is better than previous best
                         best_reward = reward
-                        best_action = action_to_take
                 reward = best_reward
                 total_reward = [sum(r) for r in zip(total_reward, reward)]
                 h += 1
