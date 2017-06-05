@@ -17,8 +17,6 @@ import os
 simulation_count = 10
 players_count = 2
 
-#initial_state = connect4.Connect4StateClass()
-
 rand_agent1 = random_agent.RandomAgentClass()
 
 rand_agent2 = random_agent.RandomAgentClass()
@@ -27,15 +25,16 @@ h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy = rand_agent1, width
 
 h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy = rand_agent1, width = 10, depth = 10)
 
-u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 50, policy = rand_agent1)
+u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 10, policy = rand_agent1)
 
-nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 50, policy = u_ro)
+nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 10, policy = u_ro)
 
 e_ro_d10_n100 = e_rollout_agent.ERolloutAgentClass(depth = 10, num_pulls = 100, epsilon = 0.5, policy = rand_agent1)
 
 ucb_ro_d100_n100_c1 = ucb_rollout_agent.UCBRolloutAgentClass(depth = 100, num_pulls = 100, c = 1.0, policy = rand_agent1)
 
 ss_d3_n7 = sparse_sampling_agent.SparseSamplingAgentClass(depth = 3, pulls_per_node = 7, heuristic = h1)
+ss_d5_n5 = sparse_sampling_agent.SparseSamplingAgentClass(depth = 5, pulls_per_node = 5, heuristic = h1)
 
 uct1000 = uct_agent.UCTAgentClass(depth = 10, max_width = 1, num_trials = 1000, c = 1)
 
@@ -43,8 +42,11 @@ eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, nu
 
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth = 10, num_pulls = 50, policies = [u_ro, e_ro_d10_n100])
 
-initial_state = pacman_sim.PacmanStateClass('tinySearch', eroot_uct1000)
+initial_state = pacman_sim.PacmanStateClass('testClassic', e_ro_d10_n100)
 initial_state.game.run()
+
+#initial_state = connect4.Connect4StateClass()
+
 
 agents_list = [switch_agent, u_ro]
 

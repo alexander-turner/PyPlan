@@ -68,23 +68,25 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
             bandit = self.BanditClass(num_actions)
         else:
             bandit = self.BanditClass(num_actions, self.bandit_parameters)
+        #bandit.actions = action_list # only allow actions at given indices?
 
         Qvalues = [[0]*state.number_of_players()]*num_actions
 
         # Use pull budget
 
         for i in range(self.pulls_per_node):
-            chosen_arm = bandit.select_pull_arm()
+            chosen_arm = bandit.select_pull_arm() # change to only select from legal actions?
             current_state = state.clone()
-            #current_state.set(state)
             immediate_reward = current_state.take_action(action_list[chosen_arm])
-            future_reward = self.estimateV(current_state, depth-1)[0] # best arm's Q-value
-            total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
-            # append total rewards for arm to current Qvalues, for all players
-            Qvalues[chosen_arm] = [sum(r) for r in zip(Qvalues[chosen_arm], total_reward)]
-            # Update the current mean reward for the given arm
-            bandit.update(chosen_arm, total_reward[current_player-1])
+            if immediate_reward:  # if a valid action (take_action returns nothing if invalid)
+                future_reward = self.estimateV(current_state, depth-1)[0] # best arm's Q-
+                total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
+                # append total rewards for arm to current Qvalues, for all players
+                Qvalues[chosen_arm] = [sum(r) for r in zip(Qvalues[chosen_arm], total_reward)]
+                # Update the current mean reward for the given arm
+                bandit.update(chosen_arm, total_reward[current_player-1])
 
         # We've calculated Qvalues, so now we store best arm index
         best_arm_index = bandit.select_best_arm()
+
         return [q / bandit.get_num_pulls(best_arm_index) for q in Qvalues[best_arm_index]], action_list[best_arm_index]

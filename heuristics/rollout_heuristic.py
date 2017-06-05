@@ -20,11 +20,13 @@ class RolloutHeuristicClass(absheuristic.AbstractHeuristic):
         for sim_num in range(self.width):
             h = 0
             sim_state = state.clone()
-            #sim_state.set(state)
             while sim_state.is_terminal() is False and h <= self.depth:
                 action_to_take = self.rollout_policy.select_action(sim_state)
                 reward = sim_state.take_action(action_to_take)
-                total_reward = [sum(r) for r in zip(total_reward, reward)]
-                h += 1
+                if reward:
+                    total_reward = [sum(r) for r in zip(total_reward, reward)]
+                    h += 1
+                else:
+                    break  # no longer a viable state; reset
 
         return [r / self.width for r in total_reward]

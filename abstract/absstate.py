@@ -72,7 +72,7 @@ class AbstractState:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def set(self,state):
+    def set(self, state):
         """
 
         Makes the object equivalent to state by copying the critical information from state

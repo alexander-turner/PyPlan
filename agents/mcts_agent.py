@@ -42,7 +42,7 @@ class MCTSAgentClass(absagent.AbstractAgent):
         self.bandit_parameters = bandit_parameters
 
         if BanditAlgClass == None:
-            self.BanditAlgClass = uniform_bandi_alg.UniformBanditAlgClass
+            self.BanditAlgClass = uniform_bandit_alg.UniformBanditAlgClass
         else:
             self.BanditAlgClass = BanditAlgClass
 

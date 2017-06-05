@@ -19,7 +19,7 @@ class SwitchingHeuristicClass(absheuristic.AbstractHeuristic):
 
         for sim_num in range(self.width):
             h = 0 # depth counter
-            sim_state.set(state)
+            sim_state = state # For compatability with pacman, don't use .set() method
             while sim_state.is_terminal() is False and h <= self.depth:
                 # Construct reward array for all agents for the best action
                 best_reward = [float("-inf")]
