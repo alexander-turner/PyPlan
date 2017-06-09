@@ -8,22 +8,21 @@ import textDisplay
 import ghostAgents
 import copy
 
-
 class PacmanStateClass(pacman.GameState):
 
-    def __init__(self, layoutName, agent):
-        self.state_val = [0, 0]
-        self.game_outcome = None
-
+    def __init__(self, layoutName, agent, silent=False):
         self.layoutName = layoutName
         self.layout = layout.getLayout(self.layoutName)
-        self.display = textDisplay.PacmanGraphics()
+        if silent:  # TODO: Add this feature
+            self.display = 0
+        else:
+            self.display = textDisplay.PacmanGraphics()
 
-        self.current_player = 0
         self.ghostAgents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts()+1)]
         self.agent = PolicyAgent(agent, self.ghostAgents)
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.agent, ghostAgents=self.ghostAgents, display=self.display)
+        self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
 
     def clone(self):
@@ -33,19 +32,11 @@ class PacmanStateClass(pacman.GameState):
         return self.num_players
 
     def set(self, state):
-        self.state_val[0] = state.state_val[0]
-        self.state_val[1] = state.state_val[1]
-        self.current_player = state.current_player
-        self.game_outcome = state.game_outcome
+        self.current_state = state.clone()
 
+    # Reinitialize using the given layout, Pacman agent, and ghost agents.
     def initialize(self):
-        self.state_val = [0, 0]
-        self.current_player = 0
-        self.game = pacman.ClassicGameRules.newGame(self.layout, self.agent, self.ghostAgents, 1)
-        self.game_outcome = None
-
-    def get_current_player(self):
-        return self.current_player
+        self.game = pacman.ClassicGameRules.newGame(self.layout, self.agent, self.ghostAgents, self.display)
 
     def current_game_outcome(self):
         if self.game.isWin():
@@ -55,29 +46,23 @@ class PacmanStateClass(pacman.GameState):
         else:
             return 0
 
+    # Wrapper to help with ending the game
     def process(self, state, game):
-        """
-        Checks to see whether it is time to end the game.
-        """
-        if state.isWin(): pacman.ClassicGameRules.win(self, state=state, game=game)
-        if state.isLose(): pacman.ClassicGameRules.lose(self, state=state, game=game)
-
-    def __eq__(self, other):
-        return hasattr(other, 'data') and self.data == other.data
-
-    def __hash__(self):
-        return hash(self.data)
+        if state.isWin():
+            pacman.ClassicGameRules.win(self, state=state, game=game)
+        if state.isLose():
+            pacman.ClassicGameRules.lose(self, state=state, game=game)
 
 
 class PolicyAgent(game.Agent):
-    def __init__(self, policy, ghosts, index=0, current_state = 0):
+    def __init__(self, policy, ghosts, index=0, current_state=0):
         self.policy = policy
         self.ghosts = ghosts
         self.index = index
         self.current_state = current_state
 
     def getAction(self, state):
-        # Define functions so the policy can interface with pacman
+        # Define functions so the policy can interface with Pacman
         self.applyFunctionsToState(state)
         self.current_state = state
         return self.policy.select_action(state)
@@ -97,10 +82,11 @@ class PolicyAgent(game.Agent):
         state.get_current_player = self.returnIndex
         state.take_action = self.take_action
 
-        def isTerminal():
+        def is_terminal():
             return state.isWin() or state.isLose()
-        state.is_terminal = isTerminal
+        state.is_terminal = is_terminal
 
+    # Take the given action and update the state accordingly
     def take_action(self, action):
         state = self.current_state
         if action in state.getLegalActions():  # Bandit algorithms try each arm - sometimes illegal
@@ -113,6 +99,6 @@ class PolicyAgent(game.Agent):
             self.applyFunctionsToState(new_state)
             reward = new_state.getScore() - state.getScore()  # reward pacman gets
             rewards = [-1*reward]*state.number_of_players()  # reward ghosts get
-            rewards[0] *= -1 # correct pacman reward
-            self.current_state = new_state
+            rewards[0] *= -1  # correct pacman reward
+            self.current_state = new_state  # not really updating current state?
             return rewards  # how much our score increased because of this action

@@ -13,7 +13,6 @@ class RolloutHeuristicClass(absheuristic.AbstractHeuristic):
         return self.agentname
 
     def evaluate(self, state):
-
         sim_state = state.clone()
         total_reward = [0]*sim_state.number_of_players()
 
