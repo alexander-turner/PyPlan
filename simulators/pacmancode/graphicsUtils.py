@@ -356,7 +356,7 @@ def move_by(object, x, y=None,
 
     horiz = True
     newCoords = []
-    for coord in  _canvas.coords(object):
+    for coord in _canvas.coords(object):
         if horiz:
             inc = x
         else:

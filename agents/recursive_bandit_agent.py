@@ -1,9 +1,5 @@
 from abstract import absagent
-import math
-import sys
-import timeit
 from bandits import uniform_bandit_alg
-from bandits import e_bandit_alg
 from heuristics import zero_heuristic
 
 
@@ -43,7 +39,7 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
     
     ~Walkthrough of structure for 2-action, 4-budget, 1-player, 2-depth uniform bandit
     estimateV(s0, 2):
-        increment number of nodes <- ?
+        increment number of nodes 
         inherit bandit parameters, current player
         initialize Qvalues = [[0][0]] (2 actions)
         for i in [1,2,3,4] - pull budget
@@ -57,6 +53,7 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
     """
     def estimateV(self, state, depth):
         self.num_nodes += 1
+
         if depth == 0 or state.is_terminal():
             return self.heuristic.evaluate(state), None
 
@@ -73,11 +70,10 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
 
         # Use pull budget
         for i in range(self.pulls_per_node):
-            chosen_arm = bandit.select_pull_arm() # change to only select from legal actions?
+            chosen_arm = bandit.select_pull_arm()
             current_state = state.clone()
-            immediate_reward = current_state.take_action(action_list[chosen_arm])
-            # if immediate_reward:  # if a valid action (take_action returns nothing if invalid)
-            future_reward = self.estimateV(current_state, depth-1)[0] # best arm's Q-value
+            immediate_reward = current_state.take_action(action_list[chosen_arm])  # takes action on shared global state instead
+            future_reward = self.estimateV(current_state, depth-1)[0]  # best arm's Q-value
             total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
             # append total rewards for arm to current Qvalues, for all players
             Qvalues[chosen_arm] = [sum(r) for r in zip(Qvalues[chosen_arm], total_reward)]
