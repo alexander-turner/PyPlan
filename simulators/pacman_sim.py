@@ -1,6 +1,7 @@
 from abstract import absstate
 import sys
-sys.path.append('C:\\Users\\Alex\\OneDrive\\Documents\\Classes\\OSU\\Research\\PyPlan\\simulators\\pacmancode')
+import os
+sys.path.append(os.path.abspath('simulators\\pacmancode'))
 import pacman
 import game
 import layout
