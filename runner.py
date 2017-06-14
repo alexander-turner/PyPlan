@@ -29,7 +29,7 @@ u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 10
 
 nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth = 10, num_pulls = 10, policy = u_ro)
 
-e_ro_d10_n100 = e_rollout_agent.ERolloutAgentClass(depth = 10, num_pulls = 100, epsilon = 0.5, policy = rand_agent1)
+e_ro_d10_n100 = e_rollout_agent.ERolloutAgentClass(depth = 10, num_pulls = 10, epsilon = 0.5, policy = rand_agent1)
 
 ucb_ro_d100_n100_c1 = ucb_rollout_agent.UCBRolloutAgentClass(depth = 100, num_pulls = 100, c = 1.0, policy = rand_agent1)
 
@@ -42,7 +42,7 @@ eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth = 10, max_width = 1, nu
 
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth = 10, num_pulls = 50, policies = [u_ro, e_ro_d10_n100])
 
-initial_state = pacman_sim.PacmanStateClass('testClassic', e_ro_d10_n100)
+initial_state = pacman_sim.PacmanStateClass('originalClassic', e_ro_d10_n100)
 initial_state.game.run()
 
 #initial_state = connect4.Connect4StateClass()
