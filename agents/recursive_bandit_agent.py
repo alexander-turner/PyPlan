@@ -66,12 +66,13 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         else:
             bandit = self.BanditClass(num_actions, self.bandit_parameters)
 
+        current_state = state.clone()
         Qvalues = [[0]*state.number_of_players()]*num_actions
 
         # Use pull budget
         for i in range(self.pulls_per_node):
             chosen_arm = bandit.select_pull_arm()
-            current_state = state.clone()
+            current_state.set(state)
             immediate_reward = current_state.take_action(action_list[chosen_arm])  # takes action on shared global state instead
             future_reward = self.estimateV(current_state, depth-1)[0]  # best arm's Q-value
             total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]

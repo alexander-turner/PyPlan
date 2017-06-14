@@ -99,7 +99,7 @@ class OthelloSimulatorClass(abssimulator.AbstractSimulator):
         i = curr_posn[0]
         j = curr_posn[1]
 
-        if i >7 or i<0 or j>7 or j<0:
+        if i>7 or i<0 or j>7 or j<0:
             return False
         elif self.current_state.get_current_state()["state_val"][i][j] == 0:
             return False
@@ -125,7 +125,7 @@ class OthelloSimulatorClass(abssimulator.AbstractSimulator):
                 new_posn = [i+1, j-1]
 
             ret = self.color_coins(curr_turn, new_posn, direction, do_color)
-            if ret == True:
+            if ret:
                 if do_color:
                     self.current_state.get_current_state()["state_val"][i][j] = curr_turn
 

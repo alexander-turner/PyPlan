@@ -402,6 +402,9 @@ class GhostRules:
 
         legal = GhostRules.getLegalActions( state, ghostIndex )
         if action not in legal:
+            print(state)
+            print(ghostIndex)
+            print(action)
             raise Exception("Illegal ghost action " + str(action))
 
         ghostState = state.data.agentStates[ghostIndex]
