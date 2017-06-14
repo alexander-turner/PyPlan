@@ -98,6 +98,5 @@ class PolicyAgent(game.Agent):
         self.pacstate = pacstate  # pointer to parent pacstate structure
 
     def getAction(self, state):
-        #self.pacstate.applyFunctionsToState(state=state)
         self.pacstate.current_state = state
         return self.policy.select_action(self.pacstate)
