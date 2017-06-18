@@ -26,32 +26,14 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
     def get_agent_name(self):
         return self.agentname
 
-    """
-    Selects the highest-valued action for the given state.
-    """
     def select_action(self, state):
+        """Selects the highest-valued action for the given state."""
         self.num_nodes = 1
         (value, action) = self.estimateV(state, self.depth)
         return action
 
-    """
-    Returns the expected reward and action list for the current bandit.
-    
-    ~Walkthrough of structure for 2-action, 4-budget, 1-player, 2-depth uniform bandit
-    estimateV(s0, 2):
-        increment number of nodes 
-        inherit bandit parameters, current player
-        initialize Qvalues = [[0][0]] (2 actions)
-        for i in [1,2,3,4] - pull budget
-            select pull arm uniformly - 2 pulls per arm total
-            take action denoted by arm and record immediate reward
-            estimate future reward for depth=1 of this state (best action found by given bandit for horizon=depth-1=1)
-            add future and immediate reward
-            update current mean reward
-        record best arm index
-        return [q values for best arm, actions for best arm] 
-    """
     def estimateV(self, state, depth):
+        """Returns the expected reward and action list for the current bandit."""
         self.num_nodes += 1
 
         if depth == 0 or state.is_terminal():
@@ -69,11 +51,10 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         current_state = state.clone()
         Qvalues = [[0]*state.number_of_players()]*num_actions
 
-        # Use pull budget
-        for i in range(self.pulls_per_node):
+        for i in range(self.pulls_per_node):  # Use pull budget
             chosen_arm = bandit.select_pull_arm()
             current_state.set(state)
-            immediate_reward = current_state.take_action(action_list[chosen_arm])  # takes action on shared global state instead
+            immediate_reward = current_state.take_action(action_list[chosen_arm])
             future_reward = self.estimateV(current_state, depth-1)[0]  # best arm's Q-value
             total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
             # append total rewards for arm to current Qvalues, for all players

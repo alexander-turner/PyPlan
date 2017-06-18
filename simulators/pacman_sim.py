@@ -8,40 +8,52 @@ import textDisplay
 import graphicsDisplay
 import ghostAgents
 
-"""
-An interface to run bandit algorithms on the Pacman simulator provided by Berkeley. 
-The simulator can be found at http://ai.berkeley.edu/project_overview.html.
-"""
-class PacmanStateClass(pacman.GameState):
 
-    def __init__(self, layoutName, agentC, useGraphics=True):
-        self.layoutName = layoutName
+class PacmanStateClass(pacman.GameState):
+    """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
+
+    The simulator can be found at http://ai.berkeley.edu/project_overview.html.
+    """
+
+    def __init__(self, layout_name, agent_construct, use_random_ghost=False, use_graphics=True):
+        """Initialize an interface to the Pacman game simulator.
+
+        :param layout_name: the filename of the layout (located in layouts/).
+        :param agent_construct: the bandit to be used for Pacman.
+        :param use_random_ghost: whether to use the random or the directional ghost agent.
+        :param use_graphics: whether to use the graphics or the text display.
+        """
+        self.layoutName = layout_name
         self.layout = layout.getLayout(self.layoutName)
 
-        if useGraphics:
+        if use_graphics:
             self.display = graphicsDisplay.PacmanGraphics()
         else:
             self.display = textDisplay.PacmanGraphics()
 
-        self.ghostAgents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts()+1)]
-        self.agentConstruct = agentC
-        self.agent = PolicyAgent(agentC, self)
+        if use_random_ghost:
+            self.ghost_agents = [ghostAgents.RandomGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
+        else:
+            self.ghost_agents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
+
+        self.agent_construct = agent_construct
+        self.agent = PolicyAgent(agent_construct, self)
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.agent,
-                                                    ghostAgents=self.ghostAgents, display=self.display)
+                                                    ghostAgents=self.ghost_agents, display=self.display)
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
         self.current_player = 0
 
-    # Reinitialize using the defined layout, Pacman agent, ghost agents, and display.
     def initialize(self):
-        self.game = pacman.ClassicGameRules.newGame(self.layout, self.agent, self.ghostAgents, self.display)
+        """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
+        self.game = pacman.ClassicGameRules.newGame(self.layout, self.agent, self.ghost_agents, self.display)
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
         self.current_player = 0
 
     def clone(self):
-        new_sim_obj = PacmanStateClass(self.layoutName, self.agentConstruct)
+        new_sim_obj = PacmanStateClass(self.layoutName, self.agent_construct)
         new_sim_obj.current_state = self.current_state
         new_sim_obj.current_player = self.current_player
         return new_sim_obj
@@ -55,29 +67,29 @@ class PacmanStateClass(pacman.GameState):
     def is_terminal(self):
         return self.current_state.isWin() or self.current_state.isLose()
 
-    # Wrapper to help with ending the game
     def process(self, state, game):
+        """Wrapper to help with ending the game."""
         if state.isWin():
             pacman.ClassicGameRules.win(self, state=state, game=game)
         if state.isLose():
             pacman.ClassicGameRules.lose(self, state=state, game=game)
 
-    # Return index of current player
     def get_current_player(self):
+        """Returns one-indexed index of current player (for compatibility with existing bandit library)."""
         return self.current_player + 1
 
     def get_current_state(self):
         return self.current_state
 
-    # Take the given action and update the state accordingly
     def take_action(self, action):
+        """Take the action and update the current state accordingly."""
         new_state = self.current_state.generateSuccessor(self.get_current_player() - 1,
                                                          action)  # -1 since different indexing systems
-        for ghostInd, ghost in enumerate(self.ghostAgents):  # simulate ghost movements
+        for ghostInd, ghost in enumerate(self.ghost_agents):  # simulate ghost movements
             if new_state.isWin() or new_state.isLose():
                 break
-            ghostAction = ghost.getAction(new_state)
-            new_state = new_state.generateSuccessor(ghostInd + 1, ghostAction)
+            ghost_action = ghost.getAction(new_state)
+            new_state = new_state.generateSuccessor(ghostInd + 1, ghost_action)
 
         reward = new_state.getScore() - self.current_state.getScore()  # reward Pacman gets
         rewards = [-1 * reward] * self.number_of_players()  # reward ghosts get
@@ -92,11 +104,12 @@ class PacmanStateClass(pacman.GameState):
     def __hash__(self):
         return self.current_state.__hash__()
 
+
 class PolicyAgent(game.Agent):
-    def __init__(self, policy, pacstate):
+    def __init__(self, policy, pac_state):
         self.policy = policy
-        self.pacstate = pacstate  # pointer to parent pacstate structure
+        self.pac_state = pac_state  # pointer to parent pac_state structure
 
     def getAction(self, state):
-        self.pacstate.current_state = state
-        return self.policy.select_action(self.pacstate)
+        self.pac_state.current_state = state
+        return self.policy.select_action(self.pac_state)
