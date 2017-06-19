@@ -1,5 +1,6 @@
 from abstract import absheuristic
 
+
 class ZeroHeuristicClass(absheuristic.AbstractHeuristic):
     myname = "Zero Heuristic"
 
@@ -10,4 +11,5 @@ class ZeroHeuristicClass(absheuristic.AbstractHeuristic):
         return self.agentname
 
     def evaluate(self, state):
+        """Returns zero reward for all players, regardless of state."""
         return [0]*state.number_of_players()

@@ -106,9 +106,10 @@ class PacmanStateClass(pacman.GameState):
 
 
 class PolicyAgent(game.Agent):
+    """A wrapper to let the policy interface with the Pacman engine."""
     def __init__(self, policy, pac_state):
         self.policy = policy
-        self.pac_state = pac_state  # pointer to parent pac_state structure
+        self.pac_state = pac_state  # pointer to parent PacmanStateClass structure
 
     def getAction(self, state):
         self.pac_state.current_state = state
