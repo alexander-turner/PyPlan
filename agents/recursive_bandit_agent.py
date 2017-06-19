@@ -4,13 +4,16 @@ from heuristics import zero_heuristic
 
 
 class RecursiveBanditAgentClass(absagent.AbstractAgent):
+    """The agent blueprint."""
     myname = "Recursive Bandit"
 
     def __init__(self, depth, pulls_per_node, heuristic=None, BanditClass=None, bandit_parameters=None):
         self.agentname = self.myname
         self.num_nodes = 1
+
         self.depth = depth
         self.pulls_per_node = pulls_per_node
+
         if heuristic is None:
             self.heuristic = zero_heuristic.ZeroHeuristicClass()
         else:
@@ -33,36 +36,41 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         return action
 
     def estimateV(self, state, depth):
-        """Returns the expected reward and action list for the current bandit."""
+        """Returns the best expected reward and best action at the given state.
+
+        :param depth: indicates how many more states for which the bandit algorithm will be run.
+        """
         self.num_nodes += 1
 
         if depth == 0 or state.is_terminal():
-            return self.heuristic.evaluate(state), None
+            return self.heuristic.evaluate(state), None  # no more depth, so default to the heuristic
 
         current_player = state.get_current_player()
         action_list = state.get_actions()
         num_actions = len(action_list)
 
+        # create a bandit according to how many actions are available at the current state
         if self.bandit_parameters is None:
             bandit = self.BanditClass(num_actions)
         else:
             bandit = self.BanditClass(num_actions, self.bandit_parameters)
 
         current_state = state.clone()
-        Qvalues = [[0]*state.number_of_players()]*num_actions
+        q_values = [[0]*state.number_of_players()]*num_actions  # for each action, for each player, initialize a q value
 
-        for i in range(self.pulls_per_node):  # Use pull budget
+        for i in range(self.pulls_per_node):  # use pull budget
             chosen_arm = bandit.select_pull_arm()
-            current_state.set(state)
+            current_state.set(state)  # reset state
+            
             immediate_reward = current_state.take_action(action_list[chosen_arm])
-            future_reward = self.estimateV(current_state, depth-1)[0]  # best arm's Q-value
+            future_reward = self.estimateV(current_state, depth-1)[0]  # [0] references the q_values for best action
             total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
-            # append total rewards for arm to current Qvalues, for all players
-            Qvalues[chosen_arm] = [sum(r) for r in zip(Qvalues[chosen_arm], total_reward)]
-            # Update the current mean reward for the given arm
-            bandit.update(chosen_arm, total_reward[current_player-1])
 
-        # We've calculated Qvalues, so now we store best arm index
+            # integrate total reward with current q_values
+            q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
+
+            bandit.update(chosen_arm, total_reward[current_player-1])  # update the reward for the given arm
+
         best_arm_index = bandit.select_best_arm()
 
-        return [q / bandit.get_num_pulls(best_arm_index) for q in Qvalues[best_arm_index]], action_list[best_arm_index]
+        return [q / bandit.get_num_pulls(best_arm_index) for q in q_values[best_arm_index]], action_list[best_arm_index]

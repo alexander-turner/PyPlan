@@ -13,6 +13,9 @@ class PacmanStateClass(pacman.GameState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
 
     The simulator can be found at http://ai.berkeley.edu/project_overview.html.
+
+    Note that unlike other interfaces, this is not compatible with the dealer simulator due its reliance on the provided
+    Pacman engine.
     """
 
     def __init__(self, layout_name, agent_construct, use_random_ghost=False, use_graphics=True):
@@ -51,6 +54,9 @@ class PacmanStateClass(pacman.GameState):
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
         self.current_player = 0
+
+    def run(self):
+        self.game.run()
 
     def clone(self):
         new_sim_obj = PacmanStateClass(self.layoutName, self.agent_construct)

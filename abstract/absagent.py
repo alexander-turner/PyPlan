@@ -5,9 +5,10 @@ from abc import ABCMeta
 class AbstractAgent:
     """The main class for implementing agents.
 
-    Agents are essentially configured and instantiated bandit algorithms.
+    Agents act as the interface between the simulator object and the bandit algorithm.
 
-    For help making your own agent, reference the included examples."""
+    For help making your own agent, reference the included examples.
+    """
     __metaclass__ = ABCMeta
 
     @abc.abstractmethod
