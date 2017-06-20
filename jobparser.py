@@ -53,7 +53,7 @@ def parse_jobs_file(job_file, job_number):
     try:
         for job in jobs_list:
             if job_count == job_number:
-                players_count = int(job.attributes["playercount"].value)
+                players_count = int(job.attributes["player_count"].value)
                 simulation_count = int(job.attributes["sim_count"].value)
                 simulation_horizon = int(job.attributes["sim_horizon"].value)
                 output_file_name = job.attributes["output_file"].value

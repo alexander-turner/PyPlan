@@ -37,9 +37,9 @@ switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=1, num_pulls=10,
 #openai = openai_sim.OpenAIStateClass('FrozenLake-v0', ss_d3)
 #openai.run()
 
-pacman = pacman_sim.PacmanStateClass('testClassic', u_ro)
-pacman.run()
+#pacman = pacman_sim.PacmanStateClass('testClassic', u_ro)
+#pacman.run()
 
-#initial_state = connect4_sim.Connect4StateClass()
-#agents_list = [switch_agent, u_ro]
-#simulate.run(initial_state, agents_list)
+initial_state = connect4_sim.Connect4StateClass()
+agents_list = [switch_agent, u_ro]
+simulate.run(initial_state, agents_list)

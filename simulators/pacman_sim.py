@@ -47,13 +47,11 @@ class PacmanStateClass(absstate.AbstractState):
                                                     ghostAgents=self.ghost_agents, display=self.display)
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
-        self.current_player = 0
 
     def initialize(self):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
         self.game = pacman.ClassicGameRules.newGame(self.layout, self.agent, self.ghost_agents, self.display)
         self.current_state = self.game.state
-        self.current_player = 0
 
     def run(self):
         self.game.run()
@@ -61,7 +59,6 @@ class PacmanStateClass(absstate.AbstractState):
     def clone(self):
         new_sim = PacmanStateClass(self.layoutName, self.agent_construct)
         new_sim.current_state = self.current_state
-        new_sim.current_player = self.current_player
         return new_sim
 
     def number_of_players(self):
@@ -81,12 +78,12 @@ class PacmanStateClass(absstate.AbstractState):
             pacman.ClassicGameRules.lose(self, state=state, game=game)
 
     def get_current_player(self):
-        """Returns one-indexed index of current player (for compatibility with existing bandit library)."""
-        return self.current_player + 1
+        """Pacman is the only player."""
+        return 0
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
-        new_state = self.current_state.generateSuccessor(self.get_current_player() - 1,
+        new_state = self.current_state.generateSuccessor(self.get_current_player(),
                                                          action)  # -1 since different indexing systems
         for ghostInd, ghost in enumerate(self.ghost_agents):  # simulate ghost movements
             if new_state.isWin() or new_state.isLose():
@@ -104,8 +101,11 @@ class PacmanStateClass(absstate.AbstractState):
     def get_actions(self):
         return self.current_state.getLegalActions()
 
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
     def __hash__(self):
-        return self.current_state.__hash__()
+        return hash(self.current_state)
 
 
 class Agent(game.Agent):

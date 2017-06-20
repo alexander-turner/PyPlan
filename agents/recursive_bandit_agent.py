@@ -69,7 +69,7 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
             # integrate total reward with current q_values
             q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
 
-            bandit.update(chosen_arm, total_reward[current_player-1])  # update the reward for the given arm
+            bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm
 
         best_arm_index = bandit.select_best_arm()
 

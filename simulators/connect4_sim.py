@@ -2,14 +2,14 @@ from abstract import absstate
 
 
 class Connect4StateClass(absstate.AbstractState):
-    numplayers = 2
+    num_players = 2
     board_height = 6
     board_width = 7
 
     def __init__(self):
         self.state_val = [0, 0]
-        self.current_player = 1
-        self.game_outcome = None  # 1 - player1 is winner, 2 - player2 is winner, None - no winner
+        self.current_player = 0
+        self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
 
     def clone(self):
         new_state = Connect4StateClass()
@@ -20,7 +20,7 @@ class Connect4StateClass(absstate.AbstractState):
         return new_state
 
     def number_of_players(self):
-        return Connect4StateClass.numplayers
+        return Connect4StateClass.num_players
 
     def set(self, state):
         self.state_val[0] = state.state_val[0]
@@ -40,11 +40,11 @@ class Connect4StateClass(absstate.AbstractState):
         self.state_val[value - 1] |= 1 << position
         self.game_outcome = self.current_game_outcome()
 
-        self.current_player = 3 - self.current_player  # change turn
+        self.current_player = (self.current_player+1) % self.num_players  # change turn
 
-        if self.game_outcome == 1:
+        if self.game_outcome == 0:
             return [1.0, -1.0]
-        elif self.game_outcome == 2:
+        elif self.game_outcome == 1:
             return [-1.0, 1.0]
         else:
             return [0.0, 0.0]
@@ -53,7 +53,7 @@ class Connect4StateClass(absstate.AbstractState):
         actions_list = []
         current_board = 0
 
-        for player_board in range(Connect4StateClass.numplayers):
+        for player_board in range(Connect4StateClass.num_players):
             current_board |= self.state_val[player_board]
 
         board_size = ((Connect4StateClass.board_height + 1) * Connect4StateClass.board_width)
@@ -83,34 +83,34 @@ class Connect4StateClass(absstate.AbstractState):
         return self.current_player
 
     def current_game_outcome(self):
-        for player in range(Connect4StateClass.numplayers):
+        for player in range(Connect4StateClass.num_players):
             curr_board = self.state_val[player]
             temp = bin(curr_board)
 
             # LEFT DIAGONAL
             transform = curr_board & (curr_board >> Connect4StateClass.board_height)
             if transform & (transform >> (2 * Connect4StateClass.board_height)):
-                return player + 1
+                return player
 
             # RIGHT DIAGONAL
             transform = curr_board & (curr_board >> (Connect4StateClass.board_width + 1))
             if transform & (transform >> (2 * (Connect4StateClass.board_width + 1))):
-                return player + 1
+                return player
 
             # HORIZONTAL
             transform = curr_board & (curr_board >> Connect4StateClass.board_width)
             if transform & (transform >> (2 * Connect4StateClass.board_width)):
-                return player + 1
+                return player
 
             # VERTICAL
             transform = curr_board & (curr_board >> 1)
             if transform & (transform >> 2):
-                return player + 1
+                return player
 
         # NO WINS BUT CHECK FOR DRAW
         current_board = 0
 
-        for player_board in range(Connect4StateClass.numplayers):
+        for player_board in range(Connect4StateClass.num_players):
             current_board |= self.state_val[player_board]
 
         board_size = (
@@ -126,7 +126,7 @@ class Connect4StateClass(absstate.AbstractState):
         return 0
 
     def __eq__(self, other):
-        return self.state_val == other.state_val
+        return self.__hash__() == other.__hash__()
 
     def __hash__(self):
         return hash(tuple(self.state_val))

@@ -111,7 +111,7 @@ class MCTSAgentClass(absagent.AbstractAgent):
 
                 total_reward = [x + y for (x, y) in zip(immediate_reward, self.heuristic.evaluate(successor_state))]
 
-        node.bandit.update(action_index, total_reward[current_player - 1])
+        node.bandit.update(action_index, total_reward[current_player])
         return total_reward
 
 

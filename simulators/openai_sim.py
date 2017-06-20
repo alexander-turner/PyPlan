@@ -105,8 +105,11 @@ class OpenAIStateClass(absstate.AbstractState):
     def get_actions(self):  # TODO: narrow scope to current space? Fix for continuous action spaces?
         return range(self.action_space.n)
 
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
     def __hash__(self):
-        return self.current_observation.__hash__()
+        return hash(self.current_observation)
 
 
 class Agent(object):

@@ -1,4 +1,4 @@
-from abstract import abssimulator
+from abstract import absstate
 from actions import tictactoeaction
 from states import tictactoestate
 
@@ -8,193 +8,197 @@ Simulator Class for TicTacToe
 NOTE :
 ------
 
-1. self.winningplayer = None -> Implies that the game is a draw. 
-							    Otherwise this variable holds the winning player's number.
-								Player number 1 for X. 2 for O.
+1. self.winning_player = None -> Implies that the game is a draw. 
+                                Otherwise this variable holds the winning player's number.
+                                Player number 0 for X. 1 for O.
 
 2. Reward scheme : Win = +3.0. Lose = -3.0. Draw = 0. Every move = -1
 """
 
 
-class TicTacToeSimulatorClass(abssimulator.AbstractSimulator):
-	def __init__(self, num_players):
-		self.current_state = tictactoestate.TicTacToeStateClass()
-		self.numplayers = num_players
-		self.winningplayer = None
-		self.gameover = False
+class TicTacToeStateClass(absstate.AbstractState):
+    def __init__(self, num_players):
+        self.current_state = tictactoestate.TicTacToeStateClass()
+        self.num_players = num_players
+        self.winning_player = None
+        self.game_over = False
 
-	def create_copy(self):
-		new_sim_obj = TicTacToeSimulatorClass(self.numplayers)
-		new_sim_obj.change_simulator_state(self.current_state.create_copy())
-		new_sim_obj.winningplayer = self.winningplayer
-		new_sim_obj.gameover = self.gameover
-		return new_sim_obj
+    def number_of_players(self):
+        return self.num_players
 
-	def reset_simulator(self):
-		self.winningplayer = None
-		self.current_state = tictactoestate.TicTacToeStateClass()
-		self.gameover = False
+    def take_action(self, action):
+        action_value = action.get_action()
+        position = action_value['position']
+        value = action_value['value']
+        self.current_state.get_current_state()["state_val"][position[0]][position[1]] = value
+        self.game_over = self.is_terminal()
 
-	def get_simulator_state(self):
-		return self.current_state
+        reward = [0.0] * self.num_players
 
-	def change_simulator_state(self, current_state):
-		self.current_state = current_state.create_copy()
+        if self.winning_player is not None:
+            for player in range(self.num_players):
+                if player == self.winning_player:
+                    reward[player] += 1.0
+                else:
+                    reward[player] -= 1.0
 
-	def change_turn(self):
-		new_turn = self.current_state.get_current_state()["current_player"] + 1
-		new_turn %= self.numplayers
+        return reward
 
-		if new_turn == 0:
-			self.current_state.get_current_state()["current_player"] = self.numplayers
-		else:
-			self.current_state.get_current_state()["current_player"] = new_turn
+    def get_actions(self):
+        actions_list = []
 
-	def print_board(self):
-		curr_state = self.current_state.get_current_state()["state_val"]
-		outp = "CURRENT BOARD : "
-		for elem in curr_state:
-			outp += "\n" + str(elem)
-		return outp
+        for x in range(len(self.current_state.get_current_state()["state_val"])):
+            for y in range(len(self.current_state.get_current_state()["state_val"][0])):
+                if self.current_state.get_current_state()["state_val"][x][y] == 0:
+                    action = {'position': [x, y], 'value': self.current_state.get_current_state()["current_player"]}
+                    actions_list.append(tictactoeaction.TicTacToeActionClass(action))
 
-	def take_action(self, action):
-		actionvalue = action.get_action()
-		position = actionvalue['position']
-		value = actionvalue['value']
-		self.current_state.get_current_state()["state_val"][position[0]][position[1]] = value
-		self.gameover = self.is_terminal()
+        return actions_list
 
-		reward = [0.0] * self.numplayers
+    def clone(self):
+        new_sim_obj = TicTacToeStateClass(self.num_players)
+        new_sim_obj.set(self)
+        return new_sim_obj
 
-		if self.winningplayer is not None:
-			for player in range(self.numplayers):
-				if player == self.winningplayer - 1:
-					reward[player] += 1.0
-				else:
-					reward[player] -= 1.0
+    def initialize(self):
+        self.current_state = tictactoestate.TicTacToeStateClass()
+        self.winning_player = None
+        self.game_over = False
 
-		return reward
+    def set(self, sim):
+        self.current_state = sim.current_state
+        self.winning_player = sim.winning_player
+        self.game_over = sim.game_over
 
-	def get_valid_actions(self):
-		actions_list = []
+    def change_turn(self):
+        new_turn = self.current_state.get_current_state()["current_player"] + 1
+        new_turn %= self.num_players
 
-		for x in range(len(self.current_state.get_current_state()["state_val"])):
-			for y in range(len(self.current_state.get_current_state()["state_val"][0])):
-				if self.current_state.get_current_state()["state_val"][x][y] == 0:
-					action = {}
-					action['position'] = [x, y]
-					action['value'] = self.current_state.get_current_state()["current_player"]
-					actions_list.append(tictactoeaction.TicTacToeActionClass(action))
+        if new_turn == 0:
+            self.current_state.get_current_state()["current_player"] = self.num_players
+        else:
+            self.current_state.get_current_state()["current_player"] = new_turn
 
-		return actions_list
+    def print_board(self):
+        curr_state = self.current_state.get_current_state()["state_val"]
+        output = "CURRENT BOARD : "
+        for elem in curr_state:
+            output += "\n" + str(elem)
+        return output
 
-	def is_terminal(self):
-		xcount = 0
-		ocount = 0
+    def is_terminal(self):
+        xcount = 0
+        ocount = 0
 
-		current_state_val = self.current_state.get_current_state()["state_val"]
-		current_player = self.current_state.get_current_state()["current_player"]
+        current_state_val = self.current_state.get_current_state()["state_val"]
+        current_player = self.current_state.get_current_state()["current_player"]
 
-		# Horizontal check for hit
-		for x in range(len(current_state_val)):
-			for y in range(len(current_state_val[0])):
-				if current_state_val[x][y] == 1:
-					xcount += 1
-				elif current_state_val[x][y] == 2:
-					ocount += 1
+        # Horizontal check for hit
+        for x in range(len(current_state_val)):
+            for y in range(len(current_state_val[0])):
+                if current_state_val[x][y] == 1:
+                    xcount += 1
+                elif current_state_val[x][y] == 2:
+                    ocount += 1
 
-			if xcount == 3:
-				self.winningplayer = 1
-				break
-			elif ocount == 3:
-				self.winningplayer = 2
-				break
-			else:
-				xcount = 0
-				ocount = 0
+            if xcount == 3:
+                self.winning_player = 0
+                break
+            elif ocount == 3:
+                self.winning_player = 1
+                break
+            else:
+                xcount = 0
+                ocount = 0
 
-		# Vertical check for hit
-		if self.winningplayer == None:
-			for y in range(len(current_state_val[0])):
-				for x in range(len(current_state_val)):
-					if current_state_val[x][y] == 1:
-						xcount += 1
-					elif current_state_val[x][y] == 2:
-						ocount += 1
+        # Vertical check for hit
+        if self.winning_player is None:
+            for y in range(len(current_state_val[0])):
+                for x in range(len(current_state_val)):
+                    if current_state_val[x][y] == 1:
+                        xcount += 1
+                    elif current_state_val[x][y] == 2:
+                        ocount += 1
 
-				if xcount == 3:
-					self.winningplayer = 1
-					break
-				elif ocount == 3:
-					self.winningplayer = 2
-					break
-				else:
-					xcount = 0
-					ocount = 0
+                if xcount == 3:
+                    self.winning_player = 0
+                    break
+                elif ocount == 3:
+                    self.winning_player = 1
+                    break
+                else:
+                    xcount = 0
+                    ocount = 0
 
-		# Diagonal One Check for Hit
-		x = 0
-		y = 0
-		xcount = 0
-		ocount = 0
+        # Diagonal One Check for Hit
+        x = 0
+        y = 0
+        xcount = 0
+        ocount = 0
 
-		if self.winningplayer == None:
-			while x < len(current_state_val):
-				if current_state_val[x][y] == 1:
-					xcount += 1
-				elif current_state_val[x][y] == 2:
-					ocount += 1
+        if self.winning_player is None:
+            while x < len(current_state_val):
+                if current_state_val[x][y] == 1:
+                    xcount += 1
+                elif current_state_val[x][y] == 2:
+                    ocount += 1
 
-				x += 1
-				y += 1
+                x += 1
+                y += 1
 
-			if xcount == 3:
-				self.winningplayer = 1
-			elif ocount == 3:
-				self.winningplayer = 2
-			else:
-				xcount = 0
-				ocount = 0
+            if xcount == 3:
+                self.winning_player = 0
+            elif ocount == 3:
+                self.winning_player = 1
+            else:
+                xcount = 0
+                ocount = 0
 
-		# Diagonal Two Check for Hit
-		x = 0
-		y = len(current_state_val[0]) - 1
-		xcount = 0
-		ocount = 0
+        # Diagonal Two Check for Hit
+        x = 0
+        y = len(current_state_val[0]) - 1
+        xcount = 0
+        ocount = 0
 
-		if self.winningplayer == None:
-			while x < len(current_state_val):
-				if current_state_val[x][y] == 1:
-					xcount += 1
-				elif current_state_val[x][y] == 2:
-					ocount += 1
+        if self.winning_player is None:
+            while x < len(current_state_val):
+                if current_state_val[x][y] == 1:
+                    xcount += 1
+                elif current_state_val[x][y] == 2:
+                    ocount += 1
 
-				x += 1
-				y -= 1
+                x += 1
+                y -= 1
 
-			if xcount == 3:
-				self.winningplayer = 1
-			elif ocount == 3:
-				self.winningplayer = 2
-			else:
-				xcount = 0
-				ocount = 0
+            if xcount == 3:
+                self.winning_player = 0
+            elif ocount == 3:
+                self.winning_player = 1
+            else:
+                xcount = 0
+                ocount = 0
 
-		if self.winningplayer == None:
-			#CHECK IF THE BOARD IS FULL
-			x = 0
-			y = 0
-			game_over = True
+        if self.winning_player is None:
+            # CHECK IF THE BOARD IS FULL
+            x = 0
+            y = 0
+            game_over = True
 
-			for x in range(len(current_state_val)):
-				for y in range(len(current_state_val[0])):
-					if current_state_val[x][y] == 0:
-						game_over = False
-						break
+            for x in range(len(current_state_val)):
+                for y in range(len(current_state_val[0])):
+                    if current_state_val[x][y] == 0:
+                        game_over = False
+                        break
 
-			if game_over == True:
-				return True
-			else:
-				return False
-		else:
-			return True
+            return game_over
+        else:
+            return True
+
+    def get_current_player(self):
+        return self.current_state.get_current_state()["current_player"]
+
+    def __eq__(self, other):
+        return self.current_state == other.current_state
+
+    def __hash__(self):
+        return hash(self.current_state)
