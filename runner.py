@@ -17,7 +17,7 @@ h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=1,
 
 h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=10, depth=10)
 
-u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
+u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
 
 nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=10, policy=u_ro)
 
@@ -34,12 +34,12 @@ eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_tr
 
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=1, num_pulls=10, policies=[u_ro, e_ro_d10_n10])
 
-#openai = openai_sim.OpenAIStateClass('FrozenLake-v0', ss_d3)
-#openai.run()
+openai = openai_sim.OpenAIStateClass('FrozenLake-v0', nested_u_ro, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+openai.run()
 
 #pacman = pacman_sim.PacmanStateClass('testClassic', u_ro)
 #pacman.run()
 
-initial_state = connect4_sim.Connect4StateClass()
-agents_list = [switch_agent, u_ro]
-simulate.run(initial_state, agents_list)
+#initial_state = connect4_sim.Connect4StateClass()
+#agents_list = [switch_agent, u_ro]
+#simulate.run(initial_state, agents_list)

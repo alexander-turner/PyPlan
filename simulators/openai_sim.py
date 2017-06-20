@@ -73,18 +73,16 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def clone(self):
         new_sim = copy.deepcopy(self)
-        new_sim.env = new_sim.env.unwrapped
+        #new_sim.env = new_sim.env.unwrapped  # creates log output - don't need?
         new_sim.wrapper_target = ''
         new_sim.api_key = ''
-        #new_sim = OpenAIStateClass(self.sim_name, self.agent)
-        #new_sim.set(self)
         return new_sim
 
     def number_of_players(self):  # TODO: FIX
         return 1
 
     def set(self, sim):
-        self.env = sim.env  # TODO: this doesn't appear to work - changes first-level object
+        self.env = copy.deepcopy(sim.env.unwrapped)
         self.current_observation = sim.current_observation
         self.done = sim.done
 
@@ -93,7 +91,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def get_current_player(self):  # TODO: FIX
         """Returns one-indexed index of current player (for compatibility with existing bandit library)."""
-        return 1
+        return 0
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
