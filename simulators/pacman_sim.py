@@ -1,6 +1,7 @@
 import sys
 import os
 sys.path.append(os.path.abspath('simulators\\pacmancode'))
+from abstract import absstate
 import pacman
 import game
 import layout
@@ -9,7 +10,7 @@ import graphicsDisplay
 import ghostAgents
 
 
-class PacmanStateClass(pacman.GameState):
+class PacmanStateClass(absstate.AbstractState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
 
     The simulator can be found at http://ai.berkeley.edu/project_overview.html.
@@ -40,7 +41,7 @@ class PacmanStateClass(pacman.GameState):
             self.ghost_agents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
 
         self.agent_construct = agent_construct
-        self.agent = PolicyAgent(agent_construct, self)
+        self.agent = Agent(agent_construct, self)
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.agent,
                                                     ghostAgents=self.ghost_agents, display=self.display)
@@ -52,7 +53,6 @@ class PacmanStateClass(pacman.GameState):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
         self.game = pacman.ClassicGameRules.newGame(self.layout, self.agent, self.ghost_agents, self.display)
         self.current_state = self.game.state
-        self.num_players = self.game.state.getNumAgents()
         self.current_player = 0
 
     def run(self):
@@ -84,9 +84,6 @@ class PacmanStateClass(pacman.GameState):
         """Returns one-indexed index of current player (for compatibility with existing bandit library)."""
         return self.current_player + 1
 
-    def get_current_state(self):
-        return self.current_state
-
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
         new_state = self.current_state.generateSuccessor(self.get_current_player() - 1,
@@ -111,7 +108,7 @@ class PacmanStateClass(pacman.GameState):
         return self.current_state.__hash__()
 
 
-class PolicyAgent(game.Agent):
+class Agent(game.Agent):
     """A wrapper to let the policy interface with the Pacman engine."""
     def __init__(self, policy, pac_state):
         self.policy = policy
