@@ -11,7 +11,7 @@ def run(initial_state, agents_list, simulation_count=10):
     :param agents_list: a list of agents.
     :param simulation_count: how many games should be run.
     """
-    players_count = agents_list.__len__()
+    players_count = len(agents_list)
     output_file = open("output.txt", "w")
     output_file.write("PLAYING " + "\n")
     output_file.write("TOTAL SIMULATIONS : " + str(simulation_count) + "\n")

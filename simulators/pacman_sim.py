@@ -59,10 +59,10 @@ class PacmanStateClass(absstate.AbstractState):
         self.game.run()
 
     def clone(self):
-        new_sim_obj = PacmanStateClass(self.layoutName, self.agent_construct)
-        new_sim_obj.current_state = self.current_state
-        new_sim_obj.current_player = self.current_player
-        return new_sim_obj
+        new_sim = PacmanStateClass(self.layoutName, self.agent_construct)
+        new_sim.current_state = self.current_state
+        new_sim.current_player = self.current_player
+        return new_sim
 
     def number_of_players(self):
         return self.num_players

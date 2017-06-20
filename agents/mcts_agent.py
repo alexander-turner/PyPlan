@@ -80,7 +80,7 @@ class MCTSAgentClass(absagent.AbstractAgent):
             counts = [node.children[action_index][k][1] for k in keys]  # where each key is a state
             normalizer = sum(counts)
             counts = [c / normalizer for c in counts]  # list of counts proportional to total number of samples
-            successor_index = multinomial(counts)  # pseudo-randomly choose a successor
+            successor_index = multinomial(counts)  # randomly sample from polynomial counts - greater counts more likely
             successor_node = node.children[action_index][keys[successor_index]][0]
             immediate_reward = successor_node.transition_reward
             total_reward = [x + y for (x, y) in zip(immediate_reward, self.run_trial(successor_node, depth - 1))]
@@ -133,11 +133,7 @@ class BanditNode:
 
 
 def multinomial(p):
-    """
-
-    :param p:
-    :return:
-    """
+    """Samples randomly from the multinomial p."""
     r = random.random()
     val = 0
     for i in range(len(p)):
