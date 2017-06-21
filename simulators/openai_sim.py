@@ -41,10 +41,8 @@ class OpenAIStateClass(absstate.AbstractState):
         if self.wrapper_target != '':  # set where the results will be written to
             self.wrapper_target = 'simulators\\gym-master\\results\\' + self.wrapper_target + \
                                   time.strftime("%m-%d_%I-%M-%S", time.gmtime())
-            #import logging
-            #logger = logging.getLogger(__name__)
-            #logger.setLevel(logging.WARNING)
-            self.env = wrappers.Monitor(self.env, self.wrapper_target)  # TODO: mute logger output when enabled
+            # Initialized from code at C:\Python36\Lib\site-packages\gym\wrappers\monitoring.py
+            self.env = wrappers.Monitor(self.env, self.wrapper_target)
 
         self.done = False  # indicates if the current observation is terminal
 

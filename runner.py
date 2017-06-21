@@ -27,12 +27,13 @@ eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_tr
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=5, num_pulls=100, policies=[u_ro, e_ro_d10_n10])
 e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=5, num_pulls=100, policies=[u_ro, e_ro_d10_n10])
 
-openai = openai_sim.OpenAIStateClass('ConvergenceControl-v0', u_ro)#, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+openai = openai_sim.OpenAIStateClass('FrozenLake-v0', u_ro, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
 openai.run()
 
 #pacman = pacman_sim.PacmanStateClass('testClassic', u_ro)
 #pacman.run()
 
+# TODO: investigate why e- does worse
 #initial_state = connect4_sim.Connect4StateClass() # seems to be playing same game each time almost
 #agents_list = [switch_agent, e_switch_agent]
 #simulate.run(initial_state, agents_list)
