@@ -8,11 +8,11 @@ sudo apt-get update
 sudo apt-get install -y python-numpy python-dev cmake zlib1g-dev libjpeg-dev xvfb libav-tools xorg-dev python-opengl libboost-all-dev libsdl2-dev swig
 
 cd $GYM
-$PIP install 'gym' .
 
 $PIP install $NUMPY
 $PIP install $SCIPY
-$PIP install 'gym[parameter_tuning]'
+# $PIP install tensorflow
 
-$PIP install tensorflow
+$PIP install 'gym' .
+# $PIP install 'gym[parameter_tuning]'
 $PIP install 'gym[classic_control]' . 
