@@ -20,7 +20,7 @@ After cloning the project, simply run `runner.py`. Unix and Mac users must then 
 
 ### OpenAI for Windows
 
-Although OpenAI does not officially support Windows, the [`algorithmic`](https://gym.openai.com/envs#algorithmic), [`classic_control`](https://gym.openai.com/envs#classic_control), [`parameter_tuning`](https://gym.openai.com/envs#parameter_tuning), and [`toy_text`](https://gym.openai.com/envs#toy_text) environment suites can still be used. 
+Although OpenAI does not officially support Windows, the [`algorithmic`](https://gym.openai.com/envs#algorithmic), [`classic_control`](https://gym.openai.com/envs#classic_control), and [`toy_text`](https://gym.openai.com/envs#toy_text) environment suites can still be used. 
 
 1) [Install Bash for Windows](https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).
 2) Download the [`numpy`](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy) and [`scipy`](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy) wheel files.
