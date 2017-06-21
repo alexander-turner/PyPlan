@@ -34,7 +34,7 @@ eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_tr
 
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=1, num_pulls=10, policies=[u_ro, e_ro_d10_n10])
 
-openai = openai_sim.OpenAIStateClass('FrozenLake-v0', nested_u_ro, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+openai = openai_sim.OpenAIStateClass('Go9x9-v0', u_ro)#, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
 openai.run()
 
 #pacman = pacman_sim.PacmanStateClass('testClassic', u_ro)

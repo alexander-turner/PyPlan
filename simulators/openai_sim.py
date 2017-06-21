@@ -1,12 +1,9 @@
 import time
 import copy
-import sys
-import os
-sys.path.append(os.path.abspath('simulators\\gym-master'))
-from abstract import absstate
 import gym
 from gym import spaces
 from gym import wrappers
+from abstract import absstate
 
 
 class OpenAIStateClass(absstate.AbstractState):
@@ -44,7 +41,10 @@ class OpenAIStateClass(absstate.AbstractState):
         if self.wrapper_target != '':  # set where the results will be written to
             self.wrapper_target = 'simulators\\gym-master\\results\\' + self.wrapper_target + \
                                   time.strftime("%m-%d_%I-%M-%S", time.gmtime())
-            self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=False)  # TODO: mute logger output when enbaled
+            #import logging
+            #logger = logging.getLogger(__name__)
+            #logger.setLevel(logging.WARNING)
+            self.env = wrappers.Monitor(self.env, self.wrapper_target)  # TODO: mute logger output when enabled
 
         self.done = False  # indicates if the current observation is terminal
 
@@ -73,12 +73,11 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def clone(self):
         new_sim = copy.deepcopy(self)
-        #new_sim.env = new_sim.env.unwrapped  # creates log output - don't need?
         new_sim.wrapper_target = ''
         new_sim.api_key = ''
         return new_sim
 
-    def number_of_players(self):  # TODO: FIX
+    def number_of_players(self):  # TODO: Generalize?
         return 1
 
     def set(self, sim):
@@ -89,8 +88,8 @@ class OpenAIStateClass(absstate.AbstractState):
     def is_terminal(self):
         return self.done
 
-    def get_current_player(self):  # TODO: FIX
-        """Returns one-indexed index of current player (for compatibility with existing bandit library)."""
+    def get_current_player(self):  # TODO: Generalize?
+        """Returns index of current player."""
         return 0
 
     def take_action(self, action):
@@ -100,7 +99,7 @@ class OpenAIStateClass(absstate.AbstractState):
         rewards[0] *= -1  # correct agent reward
         return rewards
 
-    def get_actions(self):  # TODO: narrow scope to current space? Fix for continuous action spaces?
+    def get_actions(self):  # TODO: narrow scope to current observation? Fix for continuous action spaces?
         return range(self.action_space.n)
 
     def __eq__(self, other):
