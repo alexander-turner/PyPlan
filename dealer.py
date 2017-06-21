@@ -72,12 +72,12 @@ class DealerClass:
         self.output_file.write(print_output + "\n")
 
         for player in range(self.player_count):
-            self.output_file.write("REWARD FOR " + str(player + 1) + ",")
+            self.output_file.write("REWARD FOR " + str(player) + ",")
 
         self.output_file.write("WINNER,")
 
         for player in range(self.player_count):
-            self.output_file.write("AVERAGE TIME/MOVE FOR " + str(player + 1) + ",")
+            self.output_file.write("AVERAGE TIME/MOVE FOR " + str(player) + ",")
 
         self.output_file.write("\n")
 
@@ -100,7 +100,7 @@ class DealerClass:
 
             print(current_state)
             while current_state.is_terminal() is False and h < self.simulation_horizon:
-                actual_agent_id = current_state.get_current_player() - 1
+                actual_agent_id = current_state.get_current_player()
 
                 # ASK FOR AN ACTION FROM THE AGENT. MOVE TIME CALCULATION.
                 move_start_time = timeit.default_timer()
@@ -124,8 +124,6 @@ class DealerClass:
 
                 print(current_state)
                 h += 1
-
-#                    print(self.simulator.print_board())
 
             # ----------------------
             # STATISTICS OF THE GAME.
@@ -165,8 +163,6 @@ class DealerClass:
             # ---------------
             self.game_winner_list.append(winner)
             self.write_simulation_history(game_history)
-            # print_output += "\n" + str(self.simulator.current_state.get_current_state()["state_val"])
-#            print_output += "\n" + self.simulator.print_board()
             print_output += "\nWINNER : " + str(winner)
             print_output += "\n----------------------------------"
             current_state.initialize()

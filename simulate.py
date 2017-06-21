@@ -27,6 +27,7 @@ def run(initial_state, agents_list, simulation_count=10):
     results = dealer_object.simulation_stats()[0]
     winner_list = dealer_object.simulation_stats()[1]
 
+    print(winner_list)
     # RESULTS CALCULATION
     overall_reward = []
     for game in range(len(results)):
@@ -52,7 +53,7 @@ def run(initial_state, agents_list, simulation_count=10):
 
     for val in range(len(winner_list)):
         if winner_list[val] is not None:
-            win_counts[winner_list[val] - 1] += 1.0
+            win_counts[winner_list[val]] += 1.0
 
     for val in range(players_count):
         temp_print += "\nAVG WINS FOR AGENT {0} : {1}".format(val + 1, win_counts[val] / simulation_count)

@@ -2,8 +2,8 @@ import simulate
 from simulators import connect4_sim, pacman_sim, openai_sim
 from heuristics import rollout_heuristic, switching_heuristic
 from agents import random_agent
-from agents import mcts_agent
 from agents import policy_switch_agent
+from agents import e_policy_switch_agent
 from agents import uniform_rollout_agent
 from agents import e_rollout_agent
 from agents import ucb_rollout_agent
@@ -32,14 +32,15 @@ uct1000 = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
 eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
-switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=1, num_pulls=10, policies=[u_ro, e_ro_d10_n10])
+switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=5, num_pulls=10, policies=[u_ro, e_ro_d10_n10])
+e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=5, num_pulls=10, policies=[u_ro, e_ro_d10_n10])
 
-openai = openai_sim.OpenAIStateClass('Go9x9-v0', u_ro)#, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-openai.run()
+#openai = openai_sim.OpenAIStateClass('FrozenLake-v0', u_ro)#, wrapper_target='FrozenLake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+#openai.run()
 
 #pacman = pacman_sim.PacmanStateClass('testClassic', u_ro)
 #pacman.run()
 
-#initial_state = connect4_sim.Connect4StateClass()
-#agents_list = [switch_agent, u_ro]
-#simulate.run(initial_state, agents_list)
+initial_state = connect4_sim.Connect4StateClass()
+agents_list = [switch_agent, e_switch_agent]
+simulate.run(initial_state, agents_list)
