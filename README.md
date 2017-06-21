@@ -16,7 +16,7 @@ pacman.run()
 
 ## Installation
 
-After cloning the project, simply run `runner.py`. Unix and Mac users must then follow the [OpenAI installation instructions](https://github.com/openai/gym#installation) for the installation at `simulations/gym-master`. As the Gym will be updated with new environments, the `gym-master` directory can safely be manually updated as the user sees fit.
+After cloning the project, simply run `runner.py`. Unix and Mac users must then follow the [OpenAI installation instructions](https://github.com/openai/gym#installation) for the installation at `simulations/gym-master`. As the Gym will be updated with new environments, the `gym-master` directory can safely be manually updated as the user sees fit. After Gym installation, all users should fill in the variable names for `fix_monitoring.sh` and then run the script.
 
 ### OpenAI for Windows
 
