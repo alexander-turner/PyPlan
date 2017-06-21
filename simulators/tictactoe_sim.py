@@ -1,6 +1,6 @@
 from abstract import absstate
-from actions import tictactoeaction
-from states import tictactoestate
+#from actions import tictactoeaction
+#from states import tictactoestate
 
 """
 Simulator Class for TicTacToe
@@ -18,7 +18,7 @@ NOTE :
 
 class TicTacToeStateClass(absstate.AbstractState):
     def __init__(self, num_players):
-        self.current_state = tictactoestate.TicTacToeStateClass()
+        #self.current_state = tictactoestate.TicTacToeStateClass()
         self.num_players = num_players
         self.winning_player = None
         self.game_over = False
@@ -51,7 +51,7 @@ class TicTacToeStateClass(absstate.AbstractState):
             for y in range(len(self.current_state.get_current_state()["state_val"][0])):
                 if self.current_state.get_current_state()["state_val"][x][y] == 0:
                     action = {'position': [x, y], 'value': self.current_state.get_current_state()["current_player"]}
-                    actions_list.append(tictactoeaction.TicTacToeActionClass(action))
+                    #actions_list.append(tictactoeaction.TicTacToeActionClass(action))
 
         return actions_list
 
@@ -61,7 +61,7 @@ class TicTacToeStateClass(absstate.AbstractState):
         return new_sim_obj
 
     def initialize(self):
-        self.current_state = tictactoestate.TicTacToeStateClass()
+        #self.current_state = tictactoestate.TicTacToeStateClass()
         self.winning_player = None
         self.game_over = False
 

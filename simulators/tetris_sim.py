@@ -1,6 +1,6 @@
 from abstract import absstate
-from actions import tetrisaction
-from states import tetrisstate
+#from actions import tetrisaction
+#from states import tetrisstate
 import random
 
 
@@ -8,7 +8,7 @@ class TetrisStateClass(absstate.AbstractState):
     def __init__(self, num_players):
         if num_players > 1:
             raise ValueError("Number of players cannot be more than 1 for tetris.")
-        self.current_state = tetrisstate.TetrisStateClass()
+        #self.current_state = tetrisstate.TetrisStateClass()
         self.current_state.get_current_state()["state_val"]["current_piece"] = random.randrange(1, 6)
         self.current_state.get_current_state()["state_val"]["next_piece"] = random.randrange(1, 6)
         self.num_players = num_players
@@ -24,7 +24,7 @@ class TetrisStateClass(absstate.AbstractState):
 
     def reset_simulator(self):
         self.winning_player = None
-        self.current_state = tetrisstate.TetrisStateClass()
+        #self.current_state = tetrisstate.TetrisStateClass()
         self.current_state.get_current_state()["state_val"]["current_piece"] = random.randrange(1, 6)
         self.current_state.get_current_state()["state_val"]["next_piece"] = random.randrange(1, 6)
         self.game_over = False
@@ -138,7 +138,7 @@ class TetrisStateClass(absstate.AbstractState):
                         if x == (board_height - piece_height):
                             if current_board[x][y] == 0:
                                 action = {'position': [x, y], 'piece_number': current_piece_num, 'rot_number': rot_num}
-                                actions_list.append(tetrisaction.TetrisActionClass(action))
+                                #actions_list.append(tetrisaction.TetrisActionClass(action))
                                 break
                         else:
                             if current_board[x][y] == 1:
@@ -171,7 +171,7 @@ class TetrisStateClass(absstate.AbstractState):
                                 if collision is False:
                                     action = {'position': [x, y], 'piece_number': current_piece_num,
                                               'rot_number': rot_num}
-                                    actions_list.append(tetrisaction.TetrisActionClass(action))
+                                    #actions_list.append(tetrisaction.TetrisActionClass(action))
                                     hit = True
                                 break
         return actions_list

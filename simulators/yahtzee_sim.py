@@ -1,6 +1,6 @@
 from abstract import absstate
-from actions import yahtzeeaction
-from states import yahtzeestate
+#from actions import yahtzeeaction
+#from states import yahtzeestate
 import random
 from itertools import combinations
 
@@ -11,7 +11,7 @@ Simulator Class for Yahtzee
 
 class YahtzeeStateClass(absstate.AbstractState):
     def __init__(self, num_players):
-        self.current_state = yahtzeestate.YahtzeeStateClass()
+        #self.current_state = yahtzeestate.YahtzeeStateClass()
         self.num_players = num_players
         self.winning_player = None
         self.game_over = False
@@ -23,7 +23,7 @@ class YahtzeeStateClass(absstate.AbstractState):
 
     def reset_simulator(self):
         self.winning_player = None
-        self.current_state = yahtzeestate.YahtzeeStateClass()
+        #self.current_state = yahtzeestate.YahtzeeStateClass()
         self.game_over = False
 
     def get_simulator_state(self):
@@ -198,7 +198,7 @@ class YahtzeeStateClass(absstate.AbstractState):
 
         if self.current_state.get_current_state()["state_val"]["current_roll"] == 0:
             action = {'type': "ROLL", 'value': (0, 1, 2, 3, 4)}
-            actions_list.append(yahtzeeaction.YahtzeeActionClass(action))
+            #actions_list.append(yahtzeeaction.YahtzeeActionClass(action))
         else:
             # FIRST : SELECTING ONE OF THE POSSIBLE CATEGORIES AT THAT STATE.
             for category in range(0, 13):
@@ -207,7 +207,7 @@ class YahtzeeStateClass(absstate.AbstractState):
                     action = {}
                     action['type'] = "NOOP"
                     action['value'] = category
-                    actions_list.append(yahtzeeaction.YahtzeeActionClass(action))
+                    #actions_list.append(yahtzeeaction.YahtzeeActionClass(action))
 
             if self.current_state.get_current_state()["state_val"]["current_roll"] < 3:
                 # SECOND : ROLLING ALL POSSIBLE COMBINATIONS
@@ -217,7 +217,7 @@ class YahtzeeStateClass(absstate.AbstractState):
                     dice_values = [0, 1, 2, 3, 4]
                     for comb in combinations(dice_values, vals):
                         action = {'type': "ROLL", 'value': comb}
-                        actions_list.append(yahtzeeaction.YahtzeeActionClass(action))
+                        #actions_list.append(yahtzeeaction.YahtzeeActionClass(action))
 
         return actions_list
 
