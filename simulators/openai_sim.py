@@ -1,5 +1,8 @@
 import time
 import copy
+import sys
+import os
+#sys.path.append(os.path.abspath('simulators\\gym-master'))
 import gym
 from gym import spaces
 from gym import wrappers
@@ -29,9 +32,9 @@ class OpenAIStateClass(absstate.AbstractState):
         self.action_space = self.env.action_space
         self.observation_space = self.env.observation_space
         if not isinstance(self.action_space, spaces.discrete.Discrete):
-            raise UnsupportedSpace('Action space {} incompatible with {}. (Only supports Discrete action spaces.)'.format(self.action_space, self))
-        if not isinstance(self.observation_space, spaces.discrete.Discrete):
-            raise UnsupportedSpace('Observation space {} incompatible with {}. (Only supports Discrete observation spaces.)'.format(self.observation_space, self))
+            raise ValueError('Action space {} incompatible with {}. (Only supports Discrete action spaces.)'.format(self.action_space, self))
+        #if not isinstance(self.observation_space, spaces.discrete.Discrete):  # TODO: Fix for Box spaces
+        #    raise ValueError('Observation space {} incompatible with {}. (Only supports Discrete observation spaces.)'.format(self.observation_space, self))
 
         self.original_observation = self.env.reset()  # initial observation
         self.current_observation = self.original_observation

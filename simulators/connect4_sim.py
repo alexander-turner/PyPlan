@@ -1,3 +1,4 @@
+import copy
 from abstract import absstate
 
 
@@ -12,11 +13,7 @@ class Connect4StateClass(absstate.AbstractState):
         self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
 
     def clone(self):
-        new_state = Connect4StateClass()
-        new_state.state_val[0] = self.state_val[0]
-        new_state.state_val[1] = self.state_val[1]
-        new_state.current_player = self.current_player
-        new_state.game_outcome = self.game_outcome
+        new_state = copy.deepcopy(self)
         return new_state
 
     def number_of_players(self):
@@ -126,7 +123,7 @@ class Connect4StateClass(absstate.AbstractState):
         return 0
 
     def __eq__(self, other):
-        return self.__hash__() == other.__hash__()
+        return self.state_val == other.state_val
 
     def __hash__(self):
         return hash(tuple(self.state_val))

@@ -19,6 +19,7 @@ class PacmanStateClass(absstate.AbstractState):
     Pacman engine.
     """
 
+    # TODO: Add a way to run x trials. Compare between policies.
     def __init__(self, layout_name, agent_construct, use_random_ghost=False, use_graphics=True):
         """Initialize an interface to the Pacman game simulator.
 
