@@ -30,8 +30,8 @@ class Connect4StateClass(absstate.AbstractState):
 
     def initialize(self):
         self.state_val = [0, 0]
-        self.current_player = 1
-        self.game_outcome = None  # 1 - player1 is winner, 2 - player2 is winner, None - no winner
+        self.current_player = 0
+        self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
 
     def take_action(self, action):
         position = action[0]

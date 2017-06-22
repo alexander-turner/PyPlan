@@ -57,12 +57,13 @@ class OpenAIStateClass(absstate.AbstractState):
         self.current_observation = self.env.reset()
         self.done = False
 
-    def run(self):
-        self.initialize()
-        while self.done is False:
-            action = self.agent.act()
-            self.current_observation, _, self.done, _ = self.env.step(action)
-            self.env.render()
+    def run(self, num_sims=1):
+        for i in range(num_sims):
+            self.initialize()
+            while self.done is False:
+                action = self.agent.act()
+                self.current_observation, _, self.done, _ = self.env.step(action)
+                self.env.render()
         self.env.close()
         if self.wrapper_target != '':
             print('Episode finished after {} timesteps.'.format(self.env.get_total_steps()))
