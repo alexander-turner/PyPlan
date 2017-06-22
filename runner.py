@@ -28,11 +28,11 @@ policy_set = [ss_d3, uct1000]
 switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=2, num_pulls=100, policies=policy_set)
 e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=2, num_pulls=100, epsilon=0.5, policies=policy_set)
 
-openai = openai_sim.OpenAIStateClass('SpaceInvaders-v0', nested_u_ro, wrapper_target='Space_Invaders', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-openai.run(100)
+#openai = openai_sim.OpenAIStateClass('SpaceInvaders-v0', nested_u_ro, wrapper_target='Space_Invaders', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+#openai.run(100)
 
-pacman = pacman_sim.PacmanStateClass('testClassic', switch_agent)
-#pacman.run()
+pacman = pacman_sim.PacmanStateClass('testClassic', [u_ro, nested_u_ro, e_ro_d10_n10])
+pacman.run(5, verbose=True)
 
 # TODO: investigate why e- does worse
 initial_state = connect4_sim.Connect4StateClass() # seems to be playing same game each time almost
