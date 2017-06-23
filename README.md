@@ -22,4 +22,4 @@ After cloning the project, simply run `runner.py`.
 
 Unix and Mac users must follow the [OpenAI installation instructions](https://github.com/openai/gym#installation). 
 
-Although OpenAI does not officially support Windows, Windows users may use the included `WinPython` interpreter (located in the `WinPython-64bit-3.6.1.0Zero\python-3.6.1.amd64\` subdirectory) to access the Gym's full functionality.
+Although OpenAI does not officially support Windows, Windows users may use the included `WinPython` interpreter (located in the `WinPython-64bit-3.6.1.0Zero\python-3.6.1.amd64\` subdirectory) to access the Gym's full functionality. Furthermore, to record episodes for games with video output (e.g. Atari), Windows users must [install `ffmpeg`](http://www.wikihow.com/Install-FFmpeg-on-Windows) - make sure to add the `bin` subdirectory to your system path!
