@@ -1,6 +1,6 @@
 ## Synopsis
 
-PyPlan is an easily-extensible library of Reinforcement Learning algorithms and environments, with OpenAI Gym integration for discrete environments.
+PyPlan is an easily-extensible library of Reinforcement Learning algorithms and environments, with OpenAI Gym integration for discrete action spaces.
 
 ## Code Example
 
@@ -14,19 +14,12 @@ pacman = pacman_sim.PacmanStateClass('originalClassic', u_ro)
 pacman.run()
 ```
 
+To implement your own agents or environments, consult the files in `abstract/` and the included examples. A tutorial series based on this suite is currently in production.
+
 ## Installation
 
-After cloning the project, simply run `runner.py`. Unix and Mac users must then follow the [OpenAI installation instructions](https://github.com/openai/gym#installation) for the installation at `simulations/gym-master`. As the Gym will be updated with new environments, the `gym-master` directory can safely be manually updated as the user sees fit. After Gym installation, all users should fill in the variable names for `fix_monitoring.sh` and then run the script.
+After cloning the project, simply run `runner.py`. 
 
-### OpenAI for Windows
+Unix and Mac users must follow the [OpenAI installation instructions](https://github.com/openai/gym#installation). 
 
-Although OpenAI does not officially support Windows, the [`algorithmic`](https://gym.openai.com/envs#algorithmic), [`classic_control`](https://gym.openai.com/envs#classic_control), and [`toy_text`](https://gym.openai.com/envs#toy_text) environment suites can still be used. 
-
-1) [Install Bash for Windows](https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).
-2) Download the [`numpy`](http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy) and [`scipy`](http://www.lfd.uci.edu/~gohlke/pythonlibs/#scipy) wheel files.
-3) Fill in the filepaths in `OpenAI_Win_setup.sh`.
-4) Run `OpenAI_Win_setup.sh`.
-
-----
-
-To implement your own agents or environments, consult the files in `abstract/` and the included examples. A tutorial series based on this suite is currently in production.
+Although OpenAI does not officially support Windows, Windows users may use the included `WinPython` interpreter (located in the `WinPython-64bit-3.6.1.0Zero\python-3.6.1.amd64\` subdirectory) to access the Gym's full functionality. Furthermore, to record episodes for games with video output (e.g. Atari), Windows users must [install `ffmpeg`](http://www.wikihow.com/Install-FFmpeg-on-Windows) - make sure to add the `bin` subdirectory to your **system** path!
