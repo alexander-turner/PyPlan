@@ -9,9 +9,10 @@ h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=1,
 
 h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=10, depth=10)
 
-u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
+u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
 
 nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=5, num_pulls=10, policy=u_ro)
+nested_u_ro.agentname = "Nested Uniform Rollout Agent"
 
 e_ro_d10_n10 = e_rollout_agent.ERolloutAgentClass(depth=10, num_pulls=10, epsilon=0.5, policy=rand_agent)
 
@@ -31,13 +32,13 @@ e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=2, num_pull
 #openai = openai_sim.OpenAIStateClass('SpaceInvaders-v0', nested_u_ro, wrapper_target='Space_Invaders', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
 #openai.run(100)
 
-pacman = pacman_sim.PacmanStateClass('testClassic', [u_ro, nested_u_ro, e_ro_d10_n10])
+pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[u_ro, nested_u_ro, e_ro_d10_n10])
 pacman.run(5, verbose=True)
 
 # TODO: investigate why e- does worse
-initial_state = connect4_sim.Connect4StateClass() # seems to be playing same game each time almost
+initial_state = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
 agents_list = [switch_agent, uct1000]
-simulate.run(initial_state, agents_list)
+#simulate.run(initial_state, agents_list)
 
 """
 0000000

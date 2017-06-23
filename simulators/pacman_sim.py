@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath('simulators\\pacmancode'))
 from abstract import absstate
-import tabulate  # install tabulate in the new environment
+import tabulate
 import numpy
 import pacman
 import game
@@ -24,16 +24,18 @@ class PacmanStateClass(absstate.AbstractState):
     """
 
     # TODO: Add a way to run x trials. Compare between policies.
-    def __init__(self, layout_name, agents, use_random_ghost=False, use_graphics=True):
+    def __init__(self, layout_repr, agents, use_random_ghost=False, use_graphics=True):
         """Initialize an interface to the Pacman game simulator.
 
-        :param layout_name: the filename of the layout (located in layouts/).
+        :param layout_repr: the filename of the layout (located in layouts/), or an actual layout object.
         :param agents: list of the bandit(s) to be used to control Pacman. If multiple, first will be used.
         :param use_random_ghost: whether to use the random or the directional ghost agent.
         :param use_graphics: whether to use the graphics or the text display.
         """
-        self.layoutName = layout_name
-        self.layout = layout.getLayout(self.layoutName)
+        if isinstance(layout_repr, str):
+            self.layout = layout.getLayout(layout_repr)
+        else:  # we've been directly given a layout
+            self.layout = layout_repr
 
         if use_graphics:
             self.display = graphicsDisplay.PacmanGraphics()
@@ -46,15 +48,16 @@ class PacmanStateClass(absstate.AbstractState):
             self.ghost_agents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
 
         self.agents = agents
-        self.current_agent, self.current_agent_idx = self.agents[0], 0  # Take first agent from the list
-        self.pacman_agent = Agent(self.current_agent, self)
+        self.current_agent_idx = 0  # Take first agent from the list
+        self.pacman_agent = Agent(self.agents[self.current_agent_idx], self)
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
                                                     ghostAgents=self.ghost_agents, display=self.display)
         self.current_state = self.game.state
-        self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
-        self.won = False  # True := win, False := loss
         self.num_players = self.game.state.getNumAgents()
+
+        self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
+        self.won = False
 
     def initialize(self):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
@@ -77,19 +80,18 @@ class PacmanStateClass(absstate.AbstractState):
                 rewards[i] = self.final_score
                 if self.won:
                     wins += 1
-            table.append([self.current_agent.agentname, numpy.mean(rewards), wins / num_trials])
+            table.append([self.agents[self.current_agent_idx].agentname, numpy.mean(rewards), float(wins / num_trials)])
             self.load_next_agent()
         if verbose:
-            print(tabulate(table, headers))
+            print(tabulate.tabulate(table, headers))
 
     def load_next_agent(self):
-        """Generates the next agent from the provided list of agents, resetting to the start if necessary."""
+        """Loads the next agent from the provided list of agents, resetting if necessary."""
         self.current_agent_idx = (self.current_agent_idx + 1) % len(self.agents)
-        self.current_agent = self.agents[self.current_agent_idx]
-        self.pacman_agent = Agent(self.current_agent, self)
+        self.pacman_agent = Agent(self.agents[self.current_agent_idx], self)
 
     def clone(self):
-        new_sim = PacmanStateClass(self.layoutName, self.current_agent)
+        new_sim = PacmanStateClass(self.layout, self.agents)
         new_sim.current_state = self.current_state
         return new_sim
 
