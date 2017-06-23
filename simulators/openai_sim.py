@@ -6,6 +6,7 @@ from gym import wrappers
 from abstract import absstate
 
 
+
 class OpenAIStateClass(absstate.AbstractState):
     """An interface to run bandit algorithms on the OpenAI environment library.
 
@@ -15,7 +16,7 @@ class OpenAIStateClass(absstate.AbstractState):
     engine.
     """
 
-    def __init__(self, sim_name, policy=None, wrapper_target='', api_key=''):  # TODO: Fix ffmpeg
+    def __init__(self, sim_name, policy=None, wrapper_target='', api_key=''):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
         :param sim_name: a valid env key that corresponds to a particular game / task.
@@ -37,7 +38,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.wrapper_target = wrapper_target
         self.api_key = api_key
         if self.wrapper_target != '':  # set where the results will be written to
-            self.wrapper_target = 'simulators\\gym-master\\results\\' + self.wrapper_target + \
+            self.wrapper_target = 'results\\' + self.wrapper_target + \
                                   time.strftime("%m-%d_%I-%M-%S", time.gmtime())
             # Initialized from code at C:\Python36\Lib\site-packages\gym\wrappers\monitoring.py
             self.env = wrappers.Monitor(self.env, self.wrapper_target)
@@ -69,7 +70,10 @@ class OpenAIStateClass(absstate.AbstractState):
                 gym.upload(self.wrapper_target, api_key=self.api_key)
 
     def clone(self):
+        temp = self.env  # temporarily disable the monitor to avoid issues with deepcopy
+        self.env = self.env.unwrapped
         new_sim = copy.deepcopy(self)
+        self.env = temp
         new_sim.wrapper_target = ''
         new_sim.api_key = ''
         return new_sim
@@ -96,7 +100,7 @@ class OpenAIStateClass(absstate.AbstractState):
         rewards[0] *= -1  # correct agent reward
         return rewards
 
-    def get_actions(self):  # TODO: narrow scope to current observation? Fix for continuous action spaces?
+    def get_actions(self):  # TODO: narrow scope to current observation? 
         return range(self.action_space.n)
 
     def __eq__(self, other):
@@ -113,6 +117,7 @@ class Agent(object):
         self.parent = parent  # pointer to the agent's parent structure
 
     def act(self):
+        """Despite what its name may suggest, act only determines what action to take."""
         return self.policy.select_action(self.parent)  # extra output coming from here
 
 

@@ -24,7 +24,6 @@ class PacmanStateClass(absstate.AbstractState):
     Pacman engine.
     """
 
-    # TODO: Add a way to run x trials. Compare between policies.
     def __init__(self, layout_repr, agents, use_random_ghost=False, use_graphics=True):
         """Initialize an interface to the Pacman game simulator.
 
@@ -59,7 +58,7 @@ class PacmanStateClass(absstate.AbstractState):
 
         self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
         self.won = False
-        self.time_step_total = 0
+        self.time_step_count = 0
 
     def initialize(self):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
@@ -68,22 +67,26 @@ class PacmanStateClass(absstate.AbstractState):
         self.current_state = self.game.state
         self.final_score = float("-inf")
         self.won = False
-        self.time_step_total = 0  # how many total turns have elapsed
+        self.time_step_count = 0  # how many total turns have elapsed
 
     def run(self, num_trials=1, verbose=False):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
         table = []
-        headers = ["Agent Name", "Average Final Score", "Win Percentage", "Average Time / Move"]
+        headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
         for _ in self.agents:  # TODO: Compare performance to an old commit
             rewards = [0] * num_trials
             wins = 0
             total_time = 0
+            total_time_steps = 0
 
             for i in range(num_trials):
                 self.initialize()  # reset the game
+
                 start_time = time.time()
                 self.game.run()
                 total_time += time.time() - start_time
+                total_time_steps += self.time_step_count
+
                 rewards[i] = self.final_score
                 if self.won:
                     wins += 1
@@ -91,18 +94,14 @@ class PacmanStateClass(absstate.AbstractState):
             table.append([self.agents[self.current_agent_idx].agentname,  # agent name
                           numpy.mean(rewards),  # average final score
                           wins / num_trials,  # win percentage
-                          total_time / self.time_step_total])  # average time taken per move
+                          total_time / total_time_steps])  # average time taken per move
 
             self.load_next_agent()
         if verbose:
-            print(tabulate.tabulate(table, headers))
+            print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
 
     def load_next_agent(self):
-        """Loads the next agent from the provided list of agents, resetting if necessary.
-
-        Also resets time-per-move stats.
-        """
-        self.time_step_total = 0
+        """Loads the next agent from the provided list of agents, resetting if necessary."""
         self.current_agent_idx = (self.current_agent_idx + 1) % len(self.agents)
         self.pacman_agent = Agent(self.agents[self.current_agent_idx], self)
 
@@ -136,8 +135,8 @@ class PacmanStateClass(absstate.AbstractState):
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
-        new_state = self.current_state.generateSuccessor(self.get_current_player(),
-                                                         action)  # -1 since different indexing systems
+        new_state = self.current_state.generateSuccessor(self.get_current_player(), action)  # simulate Pacman movement
+
         for ghostInd, ghost in enumerate(self.ghost_agents):  # simulate ghost movements
             if new_state.isWin() or new_state.isLose():
                 break
@@ -150,7 +149,7 @@ class PacmanStateClass(absstate.AbstractState):
 
         self.current_state = new_state
 
-        self.time_step_total += 1  # mark that another time step has elapsed
+        self.time_step_count += 1  # mark that another time step has elapsed
 
         return rewards  # how much our score increased because of this action
 
@@ -172,5 +171,6 @@ class Agent(game.Agent):
 
     def getAction(self, state):
         self.pac_state.current_state = state
+        self.pac_state.time_step_count += 1
         return self.policy.select_action(self.pac_state)
 
