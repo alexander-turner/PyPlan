@@ -2,6 +2,7 @@ import sys
 import os
 sys.path.append(os.path.abspath('simulators\\pacmancode'))
 from abstract import absstate
+import time
 import tabulate
 import numpy
 import pacman
@@ -58,6 +59,7 @@ class PacmanStateClass(absstate.AbstractState):
 
         self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
         self.won = False
+        self.time_step_total = 0
 
     def initialize(self):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
@@ -66,27 +68,41 @@ class PacmanStateClass(absstate.AbstractState):
         self.current_state = self.game.state
         self.final_score = float("-inf")
         self.won = False
+        self.time_step_total = 0  # how many total turns have elapsed
 
     def run(self, num_trials=1, verbose=False):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
         table = []
-        headers = ["Agent Name", "Average Score", "Win Percentage"]
-        for _ in self.agents:
+        headers = ["Agent Name", "Average Final Score", "Win Percentage", "Average Time / Move"]
+        for _ in self.agents:  # TODO: Compare performance to an old commit
             rewards = [0] * num_trials
             wins = 0
+            total_time = 0
+
             for i in range(num_trials):
                 self.initialize()  # reset the game
+                start_time = time.time()
                 self.game.run()
+                total_time += time.time() - start_time
                 rewards[i] = self.final_score
                 if self.won:
                     wins += 1
-            table.append([self.agents[self.current_agent_idx].agentname, numpy.mean(rewards), float(wins / num_trials)])
+
+            table.append([self.agents[self.current_agent_idx].agentname,  # agent name
+                          numpy.mean(rewards),  # average final score
+                          wins / num_trials,  # win percentage
+                          total_time / self.time_step_total])  # average time taken per move
+
             self.load_next_agent()
         if verbose:
             print(tabulate.tabulate(table, headers))
 
     def load_next_agent(self):
-        """Loads the next agent from the provided list of agents, resetting if necessary."""
+        """Loads the next agent from the provided list of agents, resetting if necessary.
+
+        Also resets time-per-move stats.
+        """
+        self.time_step_total = 0
         self.current_agent_idx = (self.current_agent_idx + 1) % len(self.agents)
         self.pacman_agent = Agent(self.agents[self.current_agent_idx], self)
 
@@ -133,6 +149,9 @@ class PacmanStateClass(absstate.AbstractState):
         rewards[0] *= -1  # correct Pacman reward
 
         self.current_state = new_state
+
+        self.time_step_total += 1  # mark that another time step has elapsed
+
         return rewards  # how much our score increased because of this action
 
     def get_actions(self):
