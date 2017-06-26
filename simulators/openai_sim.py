@@ -100,7 +100,7 @@ class OpenAIStateClass(absstate.AbstractState):
         rewards[0] *= -1  # correct agent reward
         return rewards
 
-    def get_actions(self):  # TODO: narrow scope to current observation? 
+    def get_actions(self):  # TODO: narrow scope to current observation?
         return range(self.action_space.n)
 
     def __eq__(self, other):

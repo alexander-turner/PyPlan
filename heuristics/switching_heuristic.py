@@ -15,31 +15,24 @@ class SwitchingHeuristicClass(absheuristic.AbstractHeuristic):
         return self.agentname
 
     def evaluate(self, state):
-        """Evaluate the state using the heuristic parameters (width and depth) and the rollout policies."""
+        """Evaluate the state using the heuristic parameters (width and depth) and best of the rollout policies."""
         sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
-        total_reward = [0]*sim_state.number_of_players()
+        total_rewards = [[0]*sim_state.number_of_players()] * len(self.switch_policies)
 
-        for sim_num in range(self.width):
-            h = 0  # reset depth counter
-            sim_state.set(state)  # reset state
-            while sim_state.is_terminal() is False and h <= self.depth:  # act and track rewards as long as possible
-                best_reward = [float("-inf")]  # rewards of best policy
-                for i in range(1, sim_state.number_of_players()-1):
-                    best_reward[i] = float("inf")
-                best_action = None
-
-                sim_state_origin = sim_state.clone()  # save where sim_state currently is to reset after each action
-                for policy in self.switch_policies:  # find the best action among the available policies
+        for idx, policy in enumerate(self.switch_policies):  # run each policy width times up to depth
+            for sim_num in range(self.width):  # run width simulations
+                h = 0  # reset depth counter
+                while sim_state.is_terminal() is False and h <= self.depth:  # act and track rewards as long as possible
                     action_to_take = policy.select_action(sim_state)
-                    reward = sim_state.take_action(action_to_take)
-                    if reward[0] > best_reward[0]:
-                        best_reward = reward
-                        best_action = action_to_take
-                    sim_state.set(sim_state_origin)  # reset state
+                    rewards = sim_state.take_action(action_to_take)
+                    total_rewards[idx] = [sum(r) for r in zip(total_rewards[idx], rewards)]
+                    h += 1
+                sim_state.set(state)  # reset state
 
-                reward = best_reward
-                total_reward = [sum(r) for r in zip(total_reward, reward)]
-                sim_state.take_action(best_action)
-                h += 1
+        best_reward = float("-inf")  # rewards of best policy
+        for idx, rewards in enumerate(total_rewards):
+            if rewards[0] > best_reward:  # reward for our agent
+                best_reward = rewards[0]
+                best_idx = idx
 
-        return [r / self.width for r in total_reward]  # average rewards over each of width simulations
+        return [r / self.width for r in total_rewards[best_idx]]  # average rewards over each of width simulations

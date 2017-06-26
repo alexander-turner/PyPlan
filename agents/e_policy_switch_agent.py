@@ -8,7 +8,7 @@ class EPolicySwitchAgentClass(recursive_bandit_agent.RecursiveBanditAgentClass):
 
     def __init__(self, depth, num_pulls, epsilon, policies):
         h1 = switching_heuristic.SwitchingHeuristicClass(switch_policies=policies, width=1, depth=depth)
-
+        # TODO: Fix e-greedy
         recursive_bandit_agent.RecursiveBanditAgentClass.__init__(self, depth=1, pulls_per_node=num_pulls,
                                                                   heuristic=h1, BanditClass=e_bandit_alg.EBanditAlgClass,
                                                                   bandit_parameters=epsilon)

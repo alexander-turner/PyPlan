@@ -27,20 +27,23 @@ uct = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=100, c=1)
 
 eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
-policy_set = [u_ro, ss_d3]
-switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=2, num_pulls=10, policies=policy_set)
-e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=2, num_pulls=100, epsilon=0.5, policies=policy_set)
+policy_set = [u_ro, nested_u_ro]
+switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=1, num_pulls=10, policies=policy_set)
+switch_agent.agentname += " (d=1, n=10)"
 
-openai = openai_sim.OpenAIStateClass('SpaceInvaders-v0', u_ro, wrapper_target='Space_Invaders', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-openai.run(100)
+e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=1, num_pulls=10, epsilon=0.5, policies=policy_set)
+e_switch_agent.agentname += " (d=1, n=10, e=0.5)"
 
-#pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[u_ro, nested_u_ro, e_ro])
-#pacman.run(5, verbose=True)
+#openai = openai_sim.OpenAIStateClass('FrozenLake-v0', nested_u_ro, wrapper_target='Frozen_Lake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+#openai.run(100)
+
+pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[switch_agent])
+pacman.run(10, verbose=True)
 
 # TODO: investigate why e- does worse
 initial_state = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
 agents_list = [switch_agent, u_ro]
-#simulate.run(initial_state, agents_list, simulation_count=100)
+#simulate.run(initial_state, agents_list, simulation_count=10)
 
 """
 0000000
