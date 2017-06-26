@@ -20,4 +20,7 @@ class ERootUCTAgentClass(mcts_agent.MCTSAgentClass):
                                            RootBanditAlgClass=e_bandit_alg.EBanditAlgClass,
                                            root_bandit_parameters=0.5)
 
-        self.agentname = self.myname
+        self.agentname = self.myname + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width,
+                                                                                               num_trials, c,
+                                                                                               base_policy.agentname)
+

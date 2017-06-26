@@ -10,4 +10,4 @@ class SparseSamplingAgentClass(recursive_bandit_agent.RecursiveBanditAgentClass)
         recursive_bandit_agent.RecursiveBanditAgentClass.__init__(self, depth=depth, pulls_per_node=pulls_per_node,
                                                                   heuristic=heuristic,
                                                                   BanditClass=uniform_bandit_alg.UniformBanditAlgClass)
-        self.agentname = self.myname
+        self.agentname = self.myname + " (d={}, pulls per node={})".format(depth, pulls_per_node)

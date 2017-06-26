@@ -10,4 +10,4 @@ class UCBRolloutAgentClass(rollout_agent.RolloutAgentClass):
                                                  policy=policy,
                                                  BanditClass=ucb_bandit_alg.UCBBanditAlgClass,
                                                  bandit_parameters=c)
-        self.agentname = self.myname
+        self.agentname = self.myname + " (d={}, n={}, c={})".format(depth, num_pulls, c)

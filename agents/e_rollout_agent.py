@@ -10,4 +10,5 @@ class ERolloutAgentClass(rollout_agent.RolloutAgentClass):
                                                  policy=policy,
                                                  BanditClass=e_bandit_alg.EBanditAlgClass,
                                                  bandit_parameters=epsilon)
-        self.agentname = self.myname
+        self.agentname = self.myname + " (d={}, n={}, e={})".format(depth, num_pulls, epsilon)
+

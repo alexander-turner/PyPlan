@@ -16,4 +16,5 @@ class PolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):
                                                             BanditClass=uniform_bandit_alg.UniformBanditAlgClass,
                                                             bandit_parameters=bandit_parameters)
 
-        self.agentname = self.myname
+        self.agentname = self.myname + " (n={}, policies={})".format(num_pulls, [h.rollout_policy.myname
+                                                                                 for h in heuristics])

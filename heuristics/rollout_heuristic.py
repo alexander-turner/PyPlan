@@ -12,7 +12,7 @@ class RolloutHeuristicClass(absheuristic.AbstractHeuristic):
         self.depth = depth
 
     def get_heuristic_name(self):
-        return self.agentname
+        return self.heuristicname
 
     def evaluate(self, state):
         """Evaluate the state using the parameters of the heuristic and the rollout policy."""
