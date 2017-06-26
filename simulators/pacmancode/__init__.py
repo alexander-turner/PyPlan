@@ -1,1 +1,2 @@
-__all__ = ["tictactoesimulator", "connect4", "yahtzeesimulator", "tetrissimulator", "othellosimulator", "pacman"]
+__all__ = ["game", "ghostAgents", "graphicsDisplay", "keyboardAgents", "layout", "pacman", "pacmanAgents",
+           "textDisplay", "util"]

@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: cursor
+Version: 1.1.0
+Summary: A small Python package to hide or show the terminal cursor
+Home-page: https://github.com/GijsTimmers/cursor
+Author: Gijs Timmers
+Author-email: gijs.timmers@student.kuleuven.be
+License: UNKNOWN
+Description: UNKNOWN
+Keywords: cursor,terminal,hide,show
+Platform: UNKNOWN

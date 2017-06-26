@@ -2,16 +2,10 @@ import sys
 import os
 sys.path.append(os.path.abspath('simulators\\pacmancode'))
 from abstract import absstate
+from simulators.pacmancode import *
 import time
 import tabulate
 import numpy
-import pacman
-import game
-import layout
-import textDisplay
-import graphicsDisplay
-import ghostAgents
-
 
 class PacmanStateClass(absstate.AbstractState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.

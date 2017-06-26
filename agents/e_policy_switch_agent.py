@@ -1,15 +1,19 @@
-from agents import recursive_bandit_agent
+from agents import switch_bandit_agent
 from bandits import e_bandit_alg
-from heuristics import switching_heuristic
+from heuristics import rollout_heuristic
 
 
-class EPolicySwitchAgentClass(recursive_bandit_agent.RecursiveBanditAgentClass):
-    myname = "Policy Switching Agent"
+class EPolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):
+    myname = "e-Greedy Policy Switching Agent"
 
-    def __init__(self, depth, num_pulls, epsilon, policies):
-        h1 = switching_heuristic.SwitchingHeuristicClass(switch_policies=policies, width=1, depth=depth)
-        # TODO: Fix e-greedy
-        recursive_bandit_agent.RecursiveBanditAgentClass.__init__(self, depth=1, pulls_per_node=num_pulls,
-                                                                  heuristic=h1, BanditClass=e_bandit_alg.EBanditAlgClass,
-                                                                  bandit_parameters=epsilon)
+    def __init__(self, num_pulls, epsilon, policies):
+        # make heuristic for each policy
+        heuristics = [rollout_heuristic.RolloutHeuristicClass(rollout_policy=p, width=1, depth=p.depth)
+                      for p in policies]
+
+        switch_bandit_agent.SwitchBanditAgentClass.__init__(self, pulls_per_node=num_pulls,
+                                                            heuristics=heuristics,
+                                                            BanditClass=e_bandit_alg.EBanditAlgClass,
+                                                            bandit_parameters=epsilon)
+
         self.agentname = self.myname

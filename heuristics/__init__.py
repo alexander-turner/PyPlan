@@ -1,1 +1,1 @@
-__all__ = ['rollout_heuristic', 'switching_heuristic', 'zero_heuristic']
+__all__ = ['rollout_heuristic', 'zero_heuristic']
