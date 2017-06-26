@@ -6,6 +6,8 @@ from simulators.pacmancode import *
 import time
 import tabulate
 import numpy
+import multiprocessing
+
 
 class PacmanStateClass(absstate.AbstractState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
@@ -63,36 +65,69 @@ class PacmanStateClass(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
-    def run(self, num_trials=1, verbose=False):
+    def run(self, num_trials=1, multiprocess=True, verbose=True):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
         table = []
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
-        for _ in self.agents:  # TODO: Implement multiprocessing?
-            rewards = [0] * num_trials
-            wins = 0
-            total_time = 0
-            total_time_steps = 0
+        if multiprocess:
+            jobs = []
+            queues = []
 
-            for i in range(num_trials):
-                self.initialize()  # reset the game
+        for agent_idx, agent in enumerate(self.agents):
+            if multiprocess:
+                new_instance = self.clone()  # set new instance to calculate for the given agent
+                new_instance.current_agent_idx = agent_idx
+                new_instance.pacman_agent = Agent(agent, new_instance)
 
-                start_time = time.time()
-                self.game.run()
-                total_time += time.time() - start_time
-                total_time_steps += self.time_step_count
+                q = multiprocessing.Queue()
+                queues.append(q)
 
-                rewards[i] = self.final_score
-                if self.won:
-                    wins += 1
+                p = multiprocessing.Process(target=new_instance.run_trials, args=(num_trials, q, ))
+                jobs.append(p)
+                p.start()
+            else:
+                [rewards, wins, total_time, total_time_steps] = self.run_trials(num_trials)
+                table.append([agent.agentname,  # agent name
+                              numpy.mean(rewards),  # average final score
+                              wins / num_trials,  # win percentage
+                              total_time / total_time_steps])  # average time taken per move
+                self.load_next_agent()
 
-            table.append([self.agents[self.current_agent_idx].agentname,  # agent name
-                          numpy.mean(rewards),  # average final score
-                          wins / num_trials,  # win percentage
-                          total_time / total_time_steps])  # average time taken per move
-
-            self.load_next_agent()
+        if multiprocess:
+            for j in jobs:  # wait for each job to finish
+                j.join()
+            for q in queues:
+                [name, rewards, wins, total_time, total_time_steps] = q.get()
+                table.append([name,  # agent name
+                              numpy.mean(rewards),  # average final score
+                              wins / num_trials,  # win percentage
+                              total_time / total_time_steps])  # average time taken per move
         if verbose:
             print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
+
+    def run_trials(self, num_trials, q=None):
+        rewards = [0] * num_trials
+        wins = 0
+        total_time = 0
+        total_time_steps = 0
+
+        for i in range(num_trials):
+            self.initialize()  # reset the game
+
+            start_time = time.time()
+            self.game.run()
+            total_time += time.time() - start_time
+            total_time_steps += self.time_step_count
+
+            rewards[i] = self.final_score
+            if self.won:
+                wins += 1
+
+        return_vals = [rewards, wins, total_time, total_time_steps]
+        if q is not None:  # for compatibility with multiprocessing
+            return_vals.insert(0, self.pacman_agent.policy.agentname)  # add name since we can't retrieve later
+            q.put(return_vals)
+        return return_vals
 
     def load_next_agent(self):
         """Loads the next agent from the provided list of agents, resetting if necessary."""

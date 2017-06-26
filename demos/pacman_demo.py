@@ -27,16 +27,17 @@ When depth=1 (a strictly one-step greedy agent) and a sufficient pull budget is 
 fine.
 """
 
-rand_agent = random_agent.RandomAgentClass()
+if __name__ == '__main__':
+    rand_agent = random_agent.RandomAgentClass()
 
-uniform_rollout_d1_low_pulls = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
+    uniform_rollout_d1_low_pulls = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
 
-uniform_rollout_d1 = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
+    uniform_rollout_d1 = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
 
-uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=100, policy=rand_agent)
+    uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=100, policy=rand_agent)
 
-pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[uniform_rollout_d1_low_pulls,
-                                                                        uniform_rollout_d1,
-                                                                        uniform_rollout_d10],
-                                     use_graphics=False)
-pacman.run(num_trials=10, verbose=True)
+    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[uniform_rollout_d1_low_pulls,
+                                                                            uniform_rollout_d1,
+                                                                            uniform_rollout_d10],
+                                         use_graphics=False)
+    pacman.run(num_trials=10)
