@@ -18,7 +18,7 @@ To implement your own agents or environments, consult the files in `abstract/` a
 
 ## Installation
 
-After cloning the project, simply run `runner.py`. 
+After cloning the project, simply run `demos\runner.py`. 
 
 Unix and Mac users must follow the [OpenAI installation instructions](https://github.com/openai/gym#installation). 
 

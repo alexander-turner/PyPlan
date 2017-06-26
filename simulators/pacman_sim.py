@@ -1,6 +1,6 @@
 import sys
 import os
-sys.path.append(os.path.abspath('simulators\\pacmancode'))
+sys.path.append(os.path.abspath('..\\simulators\\pacmancode'))  # assume access from demos\
 from abstract import absstate
 from simulators.pacmancode import *
 import time
@@ -67,7 +67,7 @@ class PacmanStateClass(absstate.AbstractState):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
         table = []
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
-        for _ in self.agents:  # TODO: Compare performance to an old commit
+        for _ in self.agents:  # TODO: Implement multiprocessing?
             rewards = [0] * num_trials
             wins = 0
             total_time = 0
