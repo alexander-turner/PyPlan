@@ -36,6 +36,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
                                          use_graphics=False)
     pacman.run(5)
 
-    initial_state = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
+    sim = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
     agents_list = [switch_agent, nested_u_ro]
-    simulate.run(initial_state, agents_list, num_trials=10)
+    simulate.run(sim, agents_list, num_trials=10)

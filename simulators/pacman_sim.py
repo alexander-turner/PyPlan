@@ -84,9 +84,9 @@ class PacmanStateClass(absstate.AbstractState):
                 q = multiprocessing.Queue()
                 queues.append(q)  # our job's output will go here
 
-                p = multiprocessing.Process(target=new_instance.run_trials, args=(num_trials, q, ))
-                jobs.append(p)
-                p.start()
+                j = multiprocessing.Process(target=new_instance.run_trials, args=(num_trials, q, ))
+                jobs.append(j)
+                j.start()
             else:
                 [rewards, wins, total_time, total_time_steps] = self.run_trials(num_trials)
                 table.append([agent.agentname,  # agent name

@@ -2,12 +2,12 @@ from demos import dealer
 import tabulate
 
 
-def run(initial_state, agents_list, num_trials=10, output_path=None, show_moves=True):
+def run(simulator, agents_list, num_trials=10, output_path=None, show_moves=True):
     """Simulate the given state using the provided agents the given number of times.
 
     Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee
 
-    :param initial_state: a game simulator structure initialized to a game's starting state.
+    :param simulator: a game simulator structure initialized to a game's starting state.
     :param agents_list: a list of agents.
     :param num_trials: how many games should be run.
     :param output_path: a text file to which results should be written.
@@ -17,12 +17,12 @@ def run(initial_state, agents_list, num_trials=10, output_path=None, show_moves=
     headers = ["Agent Name", "Average Final Reward", "Winrate", "Average Time / Move (s)"]
     num_players = len(agents_list)
 
-    dealer_object = dealer.DealerClass(agents_list, initial_state, num_simulations=num_trials, sim_horizon=50,
+    simulator.initialize()  # reset the simulator state
+    dealer_object = dealer.DealerClass(simulator, agents_list, num_simulations=num_trials, sim_horizon=50,
                                        verbose=show_moves)
 
-    avg_times = dealer_object.start_simulation()
-    results = dealer_object.simulation_stats()[0]
-    winner_list = dealer_object.simulation_stats()[1]
+    dealer_object.start_simulation()
+    [results, winner_list, avg_times] = dealer_object.simulation_stats()
 
     # Calculate the results
     overall_reward = []
@@ -54,7 +54,7 @@ def run(initial_state, agents_list, num_trials=10, output_path=None, show_moves=
                       avg_times[agent_idx]])  # average time taken per move
 
     table = tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
-    table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "", initial_state.myname)
+    table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "", simulator.myname)
     print(table)
 
     if output_path is not None:
