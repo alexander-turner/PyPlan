@@ -1,7 +1,7 @@
-import dealer
+from demos import dealer
 
 
-def run(initial_state, agents_list, simulation_count=10):
+def run(initial_state, agents_list, num_trials=10, verbose=True):
     """Simulate the given state using the provided agents the given number of times.
 
     Side-effect: writes output to output.txt.
@@ -9,19 +9,20 @@ def run(initial_state, agents_list, simulation_count=10):
 
     :param initial_state: a game simulator structure initialized to a game's starting state.
     :param agents_list: a list of agents.
-    :param simulation_count: how many games should be run.
+    :param num_trials: how many games should be run.
+    :param verbose: whether the dealer should display each move.
     """
     players_count = len(agents_list)
     output_file = open("output.txt", "w")
     output_file.write("PLAYING " + "\n")
-    output_file.write("TOTAL SIMULATIONS : " + str(simulation_count) + "\n")
+    output_file.write("TOTAL SIMULATIONS : " + str(num_trials) + "\n")
 
     print("-" * 50)
     print("\n\nPLAYING " + "\n")
-    print("TOTAL SIMULATIONS : ", simulation_count)
+    print("TOTAL SIMULATIONS : ", num_trials)
 
-    dealer_object = dealer.DealerClass(agents_list, initial_state, num_simulations=simulation_count, sim_horizon=50,
-                                       results_file=output_file, verbose=True)
+    dealer_object = dealer.DealerClass(agents_list, initial_state, num_simulations=num_trials, sim_horizon=50,
+                                       results_file=output_file, verbose=verbose)
 
     dealer_object.start_simulation()
     results = dealer_object.simulation_stats()[0]
@@ -45,7 +46,7 @@ def run(initial_state, agents_list, simulation_count=10):
         overall_reward_avg = [x + y for x, y in zip(overall_reward_avg, overall_reward[game])]
 
     for x in range(len(overall_reward_avg)):
-        overall_reward_avg[x] = overall_reward_avg[x] / simulation_count
+        overall_reward_avg[x] = overall_reward_avg[x] / num_trials
 
     temp_print = "\nAVG OF REWARDS (FOR OVERALL SIMULATION) : " + str(overall_reward_avg)
 
@@ -56,7 +57,7 @@ def run(initial_state, agents_list, simulation_count=10):
             win_counts[winner_list[val]] += 1.0
 
     for val in range(players_count):
-        temp_print += "\nAVG WINS FOR AGENT {0} : {1}".format(val + 1, win_counts[val] / simulation_count)
+        temp_print += "\nAVG WINS FOR AGENT {0} : {1}".format(val + 1, win_counts[val] / num_trials)
 
     print(temp_print)
     output_file.write("\n" + temp_print + "\n")

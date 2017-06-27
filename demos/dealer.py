@@ -5,20 +5,24 @@ import time
 import os
 import subprocess
 
+
 class DealerClass:
     def __init__(self, agents_list, initial_state, num_simulations, sim_horizon, results_file, verbose=False):
         self.initial_state = initial_state
         self.player_list = agents_list
+
         self.player_count = len(agents_list)
         self.simulation_count = num_simulations
+
         self.simulation_history = []
+        self.game_winner_list = []
+
         self.verbose = verbose
         self.simulation_horizon = sim_horizon
         self.output_file = results_file
 
     def start_simulation(self):
         print_output = ""
-        self.game_winner_list = []
         start_time = timeit.default_timer()
         print_output += "\nAGENTS LIST :"
 
@@ -27,47 +31,15 @@ class DealerClass:
         current_rollout = None
         for count in range(len(self.player_list)):
             print_output += "\n\nAGENT {0} : ".format(count) + self.player_list[count].agentname
-#            current_rollout = self.player_list[count].rollout_policy
 
             while current_rollout is not None:
-                print_output += "\nIts Rollout policy is : " + current_rollout.agentname
-#                current_rollout = current_rollout.rollout_policy
+                print_output += "\nIts rollout policy is : " + current_rollout.agentname
 
                 if "UCT" in self.player_list[count].agentname:
                     print_output += "\nNo. of simulations per move :" + str(self.player_list[count].simulation_count)
                     print_output += "\nTime limit per move :" + str(self.player_list[count].time_limit)
                     print_output += "\nHorizon value :" + str(self.player_list[count].horizon)
                     print_output += "\nConstant value :" + str(self.player_list[count].uct_constant)
-
-                if self.player_list[count].agentname == "EnsembleUCT":
-                    print_output += "\nEnsemble Count : " + str(self.player_list[count].ensemble_count)
-                    print_output += "\nRun in Parallel : " + str(self.player_list[count].is_parallel)
-                    if self.player_list[count].is_parallel:
-                        print_output += "\nCores in Machine : " + str(multiprocessing.cpu_count())
-
-                if self.player_list[count].agentname == "UCT-LP":
-                    print_output += "\nThread Count : " + str(self.player_list[count].threadcount)
-                    print_output += "\nCores in Machine : " + str(multiprocessing.cpu_count())
-
-                if self.player_list[count].agentname == "UCT-BP":
-                    print_output += "\nEnsemble Count : " + str(self.player_list[count].ensemble_count)
-                    print_output += "\nThread Count : " + str(self.player_list[count].thread_count)
-
-                if self.player_list[count].agentname == "UCT-TP-GM":
-                    print_output += "\nThread Count : " + str(self.player_list[count].thread_count)
-                    print_output += "\nCores in Machine : " + str(multiprocessing.cpu_count())
-
-                if self.player_list[count].agentname == "UCT-TP-NVL":
-                    print_output += "\nThread Count : " + str(self.player_list[count].thread_count)
-                    print_output += "\nCores in Machine : " + str(multiprocessing.cpu_count())
-
-                if self.player_list[count].agentname == "UCT-TP-LM-THREAD":
-                    print_output += "\nThread Count : " + str(self.player_list[count].thread_count)
-                    print_output += "\nCores in Machine : " + str(multiprocessing.cpu_count())
-
-                if self.player_list[count].agentname == "UCT-TP-GM-THREAD":
-                    print_output += "\nThread Count : " + str(self.player_list[count].thread_count)
-                    print_output += "\nCores in Machine : " + str(multiprocessing.cpu_count())
 
         self.output_file.write(print_output + "\n")
 
@@ -94,11 +66,12 @@ class DealerClass:
 
             print_output += "\n\nSIMULATION NUMBER : " + str(count)
             game_history = []
-            current_play = 0
             h = 0
             time_values = []
 
-            print(current_state)
+            if self.verbose:
+                print(current_state)
+
             while current_state.is_terminal() is False and h < self.simulation_horizon:
                 actual_agent_id = current_state.get_current_player()
 
@@ -108,7 +81,7 @@ class DealerClass:
                 move_end_time = timeit.default_timer()
 
                 if self.verbose:
-                    print("AGENT", actual_agent_id)
+                    print("AGENT", actual_agent_id + 1)
 
                     print("TIME FOR LAST MOVE ", move_end_time - move_start_time)
                     if hasattr(self.player_list[actual_agent_id], 'num_nodes'):
@@ -122,7 +95,8 @@ class DealerClass:
                 reward = current_state.take_action(action_to_take)
                 game_history.append([reward, action_to_take])
 
-                print(current_state)
+                if self.verbose:
+                    print(current_state)
                 h += 1
 
             # ----------------------
@@ -168,7 +142,7 @@ class DealerClass:
             current_state.initialize()
 
         stop_time = timeit.default_timer()
-        print_output += "\nTOTAL TIME FOR " + str(self.simulation_count) + " SIMULATIONS: " + str(stop_time - start_time) + "\n\n"
+        print_output += "\nTOTAL TIME FOR {} SIMULATIONS: {}\n\n".format(self.simulation_count, stop_time - start_time)
 
         if self.verbose:
             print(print_output)

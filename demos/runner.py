@@ -1,4 +1,4 @@
-import demos.simulate
+import demos.simulate as simulate
 from simulators import *
 from heuristics import *
 from agents import *
@@ -34,11 +34,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     #openai = openai_sim.OpenAIStateClass('FrozenLake-v0', nested_u_ro, wrapper_target='Frozen_Lake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
     #openai.run(100)
 
-    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[switch_agent, switch_agent],
+    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[u_ro, ss_d3, switch_agent, e_switch_agent],
                                          use_graphics=False)
-
-    pacman.run(10)
+    pacman.run(5)
 
     initial_state = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
     agents_list = [switch_agent, nested_u_ro]
-    #simulate.run(initial_state, agents_list, simulation_count=10)
+    simulate.run(initial_state, agents_list, num_trials=10)

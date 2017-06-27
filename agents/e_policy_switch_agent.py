@@ -16,6 +16,6 @@ class EPolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):
                                                             BanditClass=e_bandit_alg.EBanditAlgClass,
                                                             bandit_parameters=epsilon)
 
-        self.agentname = self.myname + " (n={}, e={}, policies=[{}])".format(num_pulls, epsilon,
-                                                                             [h.rollout_policy.myname
-                                                                              for h in heuristics])
+        self.agentname = self.myname + " (n={}, e={}, policies={})".format(num_pulls, epsilon,
+                                                                           [h.rollout_policy.myname
+                                                                            for h in heuristics])

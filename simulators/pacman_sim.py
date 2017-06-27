@@ -80,7 +80,7 @@ class PacmanStateClass(absstate.AbstractState):
                 new_instance.pacman_agent = Agent(agent, new_instance)
 
                 q = multiprocessing.Queue()
-                queues.append(q)
+                queues.append(q)  # our job's output will go here
 
                 p = multiprocessing.Process(target=new_instance.run_trials, args=(num_trials, q, ))
                 jobs.append(p)
@@ -104,8 +104,14 @@ class PacmanStateClass(absstate.AbstractState):
                               total_time / total_time_steps])  # average time taken per move
         if verbose:
             print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
+            print("{} trials ran.".format(num_trials))
 
     def run_trials(self, num_trials, q=None):
+        """Run a given number of games using the current configuration, recording and returning performance statistics.
+
+        :param num_trials: how many times the game will be run
+        :param q: an optional multiprocessing.Queue structure that allows for communication of results
+        """
         rewards = [0] * num_trials
         wins = 0
         total_time = 0
