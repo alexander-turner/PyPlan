@@ -15,6 +15,7 @@ class YahtzeeStateClass(absstate.AbstractState):
         self.num_players = num_players
         self.winning_player = None
         self.game_over = False
+        self.myname = "Yahtzee"
 
     def clone(self):
         new_sim_obj = YahtzeeStateClass(self.num_players)

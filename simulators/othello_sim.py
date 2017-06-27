@@ -24,6 +24,7 @@ class OthelloStateClass(absstate.AbstractState):
         self.num_players = num_players
         self.winning_player = None
         self.game_over = False
+        self.myname = "Othello"
 
     def clone(self):
         new_sim_obj = OthelloStateClass(self.num_players)

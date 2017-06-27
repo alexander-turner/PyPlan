@@ -52,6 +52,8 @@ class PacmanStateClass(absstate.AbstractState):
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
 
+        self.myname = "Pacman"
+
         self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
         self.won = False
         self.time_step_count = 0
@@ -104,7 +106,7 @@ class PacmanStateClass(absstate.AbstractState):
                               total_time / total_time_steps])  # average time taken per move
         if verbose:
             print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
-            print("{} trials ran.".format(num_trials))
+            print("{} game{} of Pacman run.".format(num_trials, "s" if num_trials > 1 else ""))
 
     def run_trials(self, num_trials, q=None):
         """Run a given number of games using the current configuration, recording and returning performance statistics.

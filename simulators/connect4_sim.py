@@ -3,6 +3,7 @@ from abstract import absstate
 
 
 class Connect4StateClass(absstate.AbstractState):
+    myname = "Connect 4"
     num_players = 2
     board_height = 6
     board_width = 7

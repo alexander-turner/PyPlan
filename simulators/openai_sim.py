@@ -25,6 +25,7 @@ class OpenAIStateClass(absstate.AbstractState):
         :param api_key: API key for uploading results to OpenAI Gym.
         """
         self.sim_name = sim_name
+        self.myname = self.env.spec._env_name
 
         self.env = gym.make(sim_name)
         self.action_space = self.env.action_space
