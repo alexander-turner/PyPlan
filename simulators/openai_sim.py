@@ -1,10 +1,10 @@
 import time
 import copy
+import multiprocessing
 import gym
 from gym import spaces
 from gym import wrappers
 from abstract import absstate
-
 
 
 class OpenAIStateClass(absstate.AbstractState):
@@ -16,70 +16,84 @@ class OpenAIStateClass(absstate.AbstractState):
     engine.
     """
 
-    def __init__(self, sim_name, policy=None, wrapper_target='', api_key=''):
+    def __init__(self, sim_name, policy, wrapper_target='', api_key='', force=True):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
         :param sim_name: a valid env key that corresponds to a particular game / task.
         :param policy: an instantiated policy (ex: uniform rollout agent).
         :param wrapper_target: optional target filename for algorithm performance.
-        :param api_key: API key for uploading results to OpenAI Gym.
+        :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
+            run for at least 100 trials.
         """
         self.sim_name = sim_name
+        self.env = gym.make(sim_name)  # the monitored environment - modified in actual run()
         self.myname = self.env.spec._env_name
 
-        self.env = gym.make(sim_name)
+        self.wrapper_target = wrapper_target
+        self.api_key = api_key
+        self.resume = False  # whether to add data to the wrapper target directory
+        if self.wrapper_target != '':  # set where the results will be written to
+            if not self.wrapper_target.startswith('OpenAI results\\'):
+                self.wrapper_target = 'OpenAI results\\' + self.wrapper_target
+            # Initialized from code at C:\Python36\Lib\site-packages\gym\wrappers\monitoring.py
+            self.env = wrappers.Monitor(self.env, self.wrapper_target, force=force, resume=self.resume)
+
         self.action_space = self.env.action_space
-        self.observation_space = self.env.observation_space
         if not isinstance(self.action_space, spaces.discrete.Discrete):
             raise ValueError('Action space {} incompatible with {}. (Only supports Discrete action spaces.)'.format(self.action_space, self))
+        self.observation_space = self.env.observation_space
 
         self.original_observation = self.env.reset()  # initial observation
         self.current_observation = self.original_observation
 
-        self.wrapper_target = wrapper_target
-        self.api_key = api_key
-        if self.wrapper_target != '':  # set where the results will be written to
-            self.wrapper_target = 'results\\' + self.wrapper_target + \
-                                  time.strftime("%m-%d_%I-%M-%S", time.gmtime())
-            # Initialized from code at C:\Python36\Lib\site-packages\gym\wrappers\monitoring.py
-            self.env = wrappers.Monitor(self.env, self.wrapper_target)
-
         self.done = False  # indicates if the current observation is terminal
 
-        self.policy = policy
-        if self.policy is None:
-            self.agent = RandomAgent(self.action_space)
-        else:
-            self.agent = Agent(self.policy, self)
+        self.agent = Agent(policy, self)
 
     def initialize(self):
         """Reinitialize the environment."""
         self.current_observation = self.env.reset()
+        self.unwrapped = self.env.unwrapped
         self.done = False
 
-    def run(self, num_sims=1):
-        for i in range(num_sims):
-            self.initialize()
-            while self.done is False:
-                action = self.agent.act()
-                self.current_observation, _, self.done, _ = self.env.step(action)
-                self.env.render()
+    def run(self, num_trials=1, multiprocess=True, do_render=True):  # TODO: run multiple agents and compare
+        """Run the given number of trials using the current configuration."""
+        if multiprocess:  # TODO: debug multiprocessing for wrappers
+            self.resume = True
+            jobs = []
+
+        for i in range(num_trials):
+            if multiprocess:
+                j = multiprocessing.Process(target=self.run_trial, args=(do_render, ))
+                jobs.append(j)
+                j.start()
+            else:
+                self.run_trial(do_render)
+
+        if multiprocess:
+            for j in jobs:  # wait for each job to finish
+                j.join()
+            self.resume = False  # done adding to the data
         self.env.close()
+
         if self.wrapper_target != '':
             print('Episode finished after {} timesteps.'.format(self.env.get_total_steps()))
             if self.api_key != '':
                 gym.upload(self.wrapper_target, api_key=self.api_key)
 
+    def run_trial(self, do_render):
+        self.initialize()
+        while self.done is False:
+            action = self.agent.act()
+            self.current_observation, _, self.done, _ = self.env.step(action)
+            if do_render:
+                self.env.render()
+
     def clone(self):
-        temp = self.env  # temporarily disable the monitor to avoid issues with deepcopy
-        self.env = self.env.unwrapped
         new_sim = copy.deepcopy(self)
-        self.env = temp
-        new_sim.wrapper_target = ''
-        new_sim.api_key = ''
         return new_sim
 
-    def number_of_players(self):  # TODO: Generalize?
+    def number_of_players(self):
         return 1
 
     def set(self, sim):
@@ -90,13 +104,13 @@ class OpenAIStateClass(absstate.AbstractState):
     def is_terminal(self):
         return self.done
 
-    def get_current_player(self):  # TODO: Generalize?
+    def get_current_player(self):
         """Returns index of current player."""
         return 0
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
-        self.current_observation, reward, self.done, _ = self.env.step(action)
+        self.current_observation, reward, self.done, _ = self.env.step(action) 
         rewards = [-1 * reward] * self.number_of_players()  # reward other agents get
         rewards[0] *= -1  # correct agent reward
         return rewards
@@ -121,11 +135,3 @@ class Agent(object):
         """Despite what its name may suggest, act only determines what action to take."""
         return self.policy.select_action(self.parent)  # extra output coming from here
 
-
-class RandomAgent(object):
-    """The world's simplest agent!"""
-    def __init__(self, action_space):
-        self.action_space = action_space
-
-    def act(self):
-        return self.action_space.sample()

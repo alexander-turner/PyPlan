@@ -77,14 +77,10 @@ class PacmanStateClass(absstate.AbstractState):
 
         for agent_idx, agent in enumerate(self.agents):
             if multiprocess:
-                new_instance = self.clone()  # set new instance to calculate for the given agent
-                new_instance.current_agent_idx = agent_idx
-                new_instance.pacman_agent = Agent(agent, new_instance)
-
                 q = multiprocessing.Queue()
                 queues.append(q)  # our job's output will go here
 
-                j = multiprocessing.Process(target=new_instance.run_trials, args=(num_trials, q, ))
+                j = multiprocessing.Process(target=self.run_trials, args=(num_trials, q, ))
                 jobs.append(j)
                 j.start()
             else:
@@ -93,7 +89,7 @@ class PacmanStateClass(absstate.AbstractState):
                               numpy.mean(rewards),  # average final score
                               wins / num_trials,  # win percentage
                               total_time / total_time_steps])  # average time taken per move
-                self.load_next_agent()
+            self.load_next_agent()
 
         if multiprocess:
             for j in jobs:  # wait for each job to finish

@@ -2,23 +2,23 @@ from demos import dealer
 import tabulate
 
 
-def run(simulator, agents_list, num_trials=10, output_path=None, show_moves=True):
+def run(simulator, agents, num_trials=10, output_path=None, show_moves=True):
     """Simulate the given state using the provided agents the given number of times.
 
     Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee
 
     :param simulator: a game simulator structure initialized to a game's starting state.
-    :param agents_list: a list of agents.
+    :param agents: a list of agents.
     :param num_trials: how many games should be run.
     :param output_path: a text file to which results should be written.
     :param show_moves: whether the dealer should display each move.
     """
     table = []
     headers = ["Agent Name", "Average Final Reward", "Winrate", "Average Time / Move (s)"]
-    num_players = len(agents_list)
+    num_players = len(agents)
 
     simulator.initialize()  # reset the simulator state
-    dealer_object = dealer.DealerClass(simulator, agents_list, num_simulations=num_trials, sim_horizon=50,
+    dealer_object = dealer.DealerClass(simulator, agents, num_simulations=num_trials, sim_horizon=50,
                                        verbose=show_moves)
 
     dealer_object.start_simulation()
@@ -47,7 +47,7 @@ def run(simulator, agents_list, num_trials=10, output_path=None, show_moves=True
         if val is not None:
             win_counts[val] += 1
 
-    for agent_idx, agent in enumerate(agents_list):
+    for agent_idx, agent in enumerate(agents):
         table.append([agent.agentname,  # agent name
                       overall_avg_reward[agent_idx],  # average final reward
                       win_counts[agent_idx] / num_trials,  # win percentage

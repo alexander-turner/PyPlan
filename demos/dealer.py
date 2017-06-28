@@ -1,6 +1,7 @@
 import timeit
 import multiprocessing
 
+
 class DealerClass:
     def __init__(self, simulator, agents_list, num_simulations, sim_horizon, verbose=False):
         self.simulator = simulator
