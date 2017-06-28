@@ -1,10 +1,10 @@
-import time
+import logging
 import copy
 import multiprocessing
 import gym
 from gym import spaces
 from gym import wrappers
-from abstract import absstate
+from abstract import absstate, absagent
 
 
 class OpenAIStateClass(absstate.AbstractState):
@@ -40,7 +40,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
         self.action_space = self.env.action_space
         if not isinstance(self.action_space, spaces.discrete.Discrete):
-            raise ValueError('Action space {} incompatible with {}. (Only supports Discrete action spaces.)'.format(self.action_space, self))
+            raise Exception('Action space {} incompatible with {}. (Only supports Discrete action spaces.)'.format(self.action_space, self))
         self.observation_space = self.env.observation_space
 
         self.original_observation = self.env.reset()  # initial observation
@@ -58,9 +58,13 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def run(self, num_trials=1, multiprocess=True, do_render=True):  # TODO: run multiple agents and compare
         """Run the given number of trials using the current configuration."""
+        if not isinstance(self.agent.policy, absagent.AbstractAgent):  # if this is an actual learning agent
+            multiprocess = False
+            logging.warning('Multiprocessing is disabled for agents which learn over multiple episodes.')
+
         if multiprocess:  # TODO: debug multiprocessing for wrappers
             self.resume = True
-            jobs = [] 
+            jobs = []
 
         for i in range(num_trials):
             if multiprocess:
