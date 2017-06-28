@@ -60,7 +60,7 @@ class OpenAIStateClass(absstate.AbstractState):
         """Run the given number of trials using the current configuration."""
         if multiprocess:  # TODO: debug multiprocessing for wrappers
             self.resume = True
-            jobs = []
+            jobs = [] 
 
         for i in range(num_trials):
             if multiprocess:
