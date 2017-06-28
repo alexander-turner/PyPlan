@@ -24,6 +24,7 @@ class OpenAIStateClass(absstate.AbstractState):
         :param wrapper_target: optional target filename for algorithm performance.
         :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
             run for at least 100 trials.
+        :param force: whether an existing directory at demos/OpenAI results/wrapper_target/ should be overwritten
         """
         self.sim_name = sim_name
         self.env = gym.make(sim_name)  # the monitored environment - modified in actual run()
@@ -36,11 +37,12 @@ class OpenAIStateClass(absstate.AbstractState):
             if not self.wrapper_target.startswith('OpenAI results\\'):
                 self.wrapper_target = 'OpenAI results\\' + self.wrapper_target
             # Initialized from code at C:\Python36\Lib\site-packages\gym\wrappers\monitoring.py
-            self.env = wrappers.Monitor(self.env, self.wrapper_target, force=force, resume=self.resume)
+            self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=force,
+                                        resume=self.resume)
 
         self.action_space = self.env.action_space
         if not isinstance(self.action_space, spaces.discrete.Discrete):
-            raise Exception('Action space {} incompatible with {}. (Only supports Discrete action spaces.)'.format(self.action_space, self))
+            raise Exception('Action space {} incompatible with {} (only supports Discrete action spaces).'.format(self.action_space, self))
         self.observation_space = self.env.observation_space
 
         self.original_observation = self.env.reset()  # initial observation
@@ -53,7 +55,6 @@ class OpenAIStateClass(absstate.AbstractState):
     def initialize(self):
         """Reinitialize the environment."""
         self.current_observation = self.env.reset()
-        self.unwrapped = self.env.unwrapped
         self.done = False
 
     def run(self, num_trials=1, multiprocess=True, do_render=True):  # TODO: run multiple agents and compare

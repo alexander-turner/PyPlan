@@ -25,9 +25,9 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
     policy_set = [u_ro, ss_d3]
-    switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=3, policies=policy_set)
+    switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=10, policies=policy_set)
 
-    e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=3, epsilon=0.5, policies=policy_set)
+    e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
 
     openai = openai_sim.OpenAIStateClass('FrozenLake-v0', u_ro,
                                          wrapper_target='Frozen_Lake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')

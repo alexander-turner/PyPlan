@@ -58,6 +58,5 @@ def run(simulator, agents, num_trials=10, output_path=None, show_moves=True):
     print(table)
 
     if output_path is not None:
-        output_file = open("output.txt", "w")
-        output_file.write(table)
-        output_file.close()
+        with open(output_path, "w") as output_file:
+            output_file.write(table)

@@ -3,16 +3,15 @@ from bandits import uniform_bandit_alg
 
 
 class SwitchBanditAgentClass(absagent.AbstractAgent):
-    """An agent that takes a list of heuristics - one for each policy - and returns the best evaluation."""
+    """An agent that takes a list of policies and returns the value of the best one at a given state."""
     myname = "Policy Switching Bandit"
 
-    def __init__(self, pulls_per_node, heuristics, BanditClass=None, bandit_parameters=None):
-        """Heuristics is our array of policies which we are switching between."""
+    def __init__(self, pulls_per_node, policies, BanditClass=None, bandit_parameters=None):
         self.agentname = self.myname
         self.num_nodes = 1
         self.pulls_per_node = pulls_per_node
 
-        self.heuristics = heuristics
+        self.policies = policies
 
         if BanditClass is None:
             self.BanditClass = uniform_bandit_alg.UniformBanditAlgClass
@@ -35,25 +34,32 @@ class SwitchBanditAgentClass(absagent.AbstractAgent):
         self.num_nodes += 1
 
         current_player = state.get_current_player()
-        num_heuristics = len(self.heuristics)  # how many policies we have
+        actions = state.get_actions()
+        num_policies = len(self.policies)  # how many policies we have
 
         if self.bandit_parameters is None:
-            bandit = self.BanditClass(num_heuristics)
+            bandit = self.BanditClass(num_policies)
         else:
-            bandit = self.BanditClass(num_heuristics, self.bandit_parameters)
+            bandit = self.BanditClass(num_policies, self.bandit_parameters)
 
         # for each policy, for each player, initialize a q value
-        q_values = [[0]*state.number_of_players()]*num_heuristics
+        q_values = [[0]*state.number_of_players()]*num_policies
+        action_counts = [[0]*len(actions)]*num_policies
 
         for i in range(self.pulls_per_node):  # use pull budget
-            chosen_policy = bandit.select_pull_arm()
-            rewards = self.heuristics[chosen_policy].evaluate(state)  # (reward from simulating given policy)
+            policy_idx = bandit.select_pull_arm()
+            policy = self.policies[policy_idx]
+            [rewards, action] = policy.estimateV(state, policy.depth)
+            action = actions.index(action)
+            action_counts[policy_idx][action] += 1
 
             # integrate total reward with current q_values
-            q_values[chosen_policy] = [sum(r) for r in zip(q_values[chosen_policy], rewards)]
-            bandit.update(chosen_policy, rewards[current_player])  # update the reward for the given arm
+            q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], rewards)]
+            bandit.update(policy_idx, rewards[current_player])  # update the reward for the given arm
 
-        best_policy_index = bandit.select_best_arm()
-        best_action = self.heuristics[best_policy_index].rollout_policy.select_action(state)
+        # get most-selected action of highest-valued policy
+        best_policy_idx = bandit.select_best_arm()
+        best_action_idx = action_counts[best_policy_idx].index(max(action_counts[best_policy_idx]))
+        #best_action_idx = self.policies[best_policy_idx].select_action(state)
 
-        return [q / bandit.get_num_pulls(best_policy_index) for q in q_values[best_policy_index]], best_action
+        return [q / bandit.get_num_pulls(best_policy_idx) for q in q_values[best_policy_idx]], actions[best_action_idx]

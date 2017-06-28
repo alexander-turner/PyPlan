@@ -1,9 +1,11 @@
 from agents import *
-from simulators import *
+from simulators import connect4_sim
 from demos import simulate
 
 """
-This demo highlights the performance differences between Uniform, e-Greedy, and Nested rollout agents. 
+This demo highlights the performance differences between uniform, e-greedy, and nested rollout agents. 
+
+Play with the parameters and see how performance changes!
 """
 
 if __name__ == '__main__':
