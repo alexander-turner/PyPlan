@@ -14,9 +14,9 @@ Discussion: agents #1 and #3 performed quite poorly. Agent #1 (low_pulls) simply
 ghost's behavior. However, the reason for agent #3's shortcoming is slightly complicated. 
 
 Imagine that Pacman is being pursued down a narrow corridor and a ghost is on his tail. If he goes right, he dies. If 
-he goes left, he lives, and the ghost (with .9 probability) moves left as well. The policy then employs random 
+he goes left, he lives, and the ghost (with 0.8 probability) moves left as well. The policy then employs random 
 rollout - at each step, there is an equal probability of going right and going left. If at any point he goes right, 
-he dies. However, while Pacman is simulating random behavior, the ghosts move in his direction with 0.9 
+he dies. However, while Pacman is simulating random behavior, the ghosts move in his direction with 0.8
 probability. Therefore, as depth increases, it becomes multiplicatively more likely that Pacman dies in this rollout. 
 This random rollout is simulated up to depth steps. 
 

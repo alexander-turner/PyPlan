@@ -6,14 +6,13 @@ class UniformBanditAlgClass(absbandit_alg.AbstractBanditAlg):
     myname = "Uniform Bandit"
 
     def __init__(self, num_arms):
-        self.banditname = self.myname
         self.num_arms = num_arms
         self.reward = [0]*num_arms
         self.num_pulls = [0]*num_arms
         self.total_pulls = 0
 
     def get_bandit_name(self):
-        return self.agentname
+        return self.myname
 
     def initialize(self):
         """Reset the bandit while retaining the name and number of arms."""
@@ -29,15 +28,12 @@ class UniformBanditAlgClass(absbandit_alg.AbstractBanditAlg):
 
     def select_best_arm(self):
         """Returns the arm with the best average reward."""
-        best_ave = None
         best_arm = None
+        best_ave = None
 
         for i in range(self.num_arms):  # check the average reward of each arm
             if self.num_pulls[i] > 0:  # if we've pulled it at least once
-                if best_arm is None:
-                    best_arm = i
-                    best_ave = self.reward[i]/self.num_pulls[i]
-                elif (self.reward[i]/self.num_pulls[i]) > best_ave:
+                if best_arm is None or (self.reward[i]/self.num_pulls[i]) > best_ave:
                     best_arm = i
                     best_ave = self.reward[i]/self.num_pulls[i]
 

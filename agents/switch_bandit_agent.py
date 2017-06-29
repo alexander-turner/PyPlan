@@ -43,23 +43,30 @@ class SwitchBanditAgentClass(absagent.AbstractAgent):
             bandit = self.BanditClass(num_policies, self.bandit_parameters)
 
         # for each policy, for each player, initialize a q value
-        q_values = [[0]*state.number_of_players()]*num_policies
-        action_counts = [[0]*len(actions)]*num_policies
+        q_values = []
+        # track how many times an action is recommended by a given policy
+        action_counts = []
+        for i in range(num_policies):
+            q_values.append([0]*state.number_of_players())
+            action_counts.append([0] * len(actions))
 
         for i in range(self.pulls_per_node):  # use pull budget
             policy_idx = bandit.select_pull_arm()
             policy = self.policies[policy_idx]
             [rewards, action] = policy.estimateV(state, policy.depth)
-            action = actions.index(action)
-            action_counts[policy_idx][action] += 1
+            policy.num_nodes = 1  # reset for bookkeeping purposes
+
+            # we have to find the index of the actual action which was returned
+            action_counts[policy_idx][actions.index(action)] += 1
 
             # integrate total reward with current q_values
             q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], rewards)]
             bandit.update(policy_idx, rewards[current_player])  # update the reward for the given arm
 
-        # get most-selected action of highest-valued policy
-        best_policy_idx = bandit.select_best_arm()
+        # get most-selected action of highest-valued policy (useful for stochastic environments)
+        best_policy_idx = bandit.select_best_arm()  # rewards
         best_action_idx = action_counts[best_policy_idx].index(max(action_counts[best_policy_idx]))
-        #best_action_idx = self.policies[best_policy_idx].select_action(state)
+        best_action = actions[best_action_idx]
+        best_action_select = self.policies[best_policy_idx].select_action(state)
 
-        return [q / bandit.get_num_pulls(best_policy_idx) for q in q_values[best_policy_idx]], actions[best_action_idx]
+        return [q / bandit.get_num_pulls(best_policy_idx) for q in q_values[best_policy_idx]], best_action_select

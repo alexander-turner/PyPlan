@@ -15,7 +15,6 @@ class UCBBanditAlgClass(absbandit_alg.AbstractBanditAlg):
 
         :param C: multiplier for the exploration constant in the UCB equation.
         """
-        self.banditname = self.myname
         self.num_arms = num_arms
         self.C = C
         self.ave_reward = [0]*num_arms
@@ -23,11 +22,11 @@ class UCBBanditAlgClass(absbandit_alg.AbstractBanditAlg):
         self.total_pulls = 0
 
     def get_bandit_name(self):
-        return self.agentname
+        return self.myname
 
     def initialize(self):
         """Reset the bandit while retaining the name, number of arms, and C value."""
-        self.reward = [0]*self.num_arms
+        self.ave_reward = [0]*self.num_arms
         self.num_pulls = [0]*self.num_arms
         self.total_pulls = 0
 
@@ -39,15 +38,12 @@ class UCBBanditAlgClass(absbandit_alg.AbstractBanditAlg):
 
     def select_best_arm(self):
         """Returns arm with the best average reward."""
-        best_ave = None
         best_arm = None
+        best_ave = None
 
         for i in range(self.num_arms):  # check the average reward of each arm
             if self.num_pulls[i] > 0:  # if we've pulled it at least once
-                if best_arm is None:
-                    best_arm = i
-                    best_ave = self.ave_reward[i]
-                elif self.ave_reward[i] > best_ave:
+                if best_arm is None or self.ave_reward[i] > best_ave:
                     best_arm = i
                     best_ave = self.ave_reward[i]
 
