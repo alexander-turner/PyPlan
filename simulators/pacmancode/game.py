@@ -565,14 +565,14 @@ class Game:
         sys.stderr = OLD_STDERR
 
 
-    def run( self ):
+    def run( self, do_render=True ):
         """
         Main control loop for game play.
         """
-        self.display.initialize(state=self.state.data)
+        if do_render:
+            self.display.initialize(state=self.state.data)
         self.numMoves = 0
 
-        ###self.display.initialize(self.state.makeObservation(1).data)
         # inform learning agents of the game start
         for i in range(len(self.agents)):
             agent = self.agents[i]
@@ -679,7 +679,6 @@ class Game:
                             return
 
                     self.totalAgentTimes[agentIndex] += move_time
-                    #print("Agent: %d, time: %f, total: %f" % (agentIndex, move_time, self.totalAgentTimes[agentIndex])
                     import sys
                     sys.stdout = sys.stderr
                     if self.totalAgentTimes[agentIndex] > self.rules.getMaxTotalTime(agentIndex):
@@ -711,7 +710,8 @@ class Game:
                 self.state = self.state.generateSuccessor( agentIndex, action )
 
             # Change the display
-            self.display.update( self.state.data )
+            if do_render:
+                self.display.update( self.state.data )
             ###idx = agentIndex - agentIndex % 2 + 1
             ###self.display.update( self.state.makeObservation(idx).data )
 
@@ -737,4 +737,5 @@ class Game:
                     self._agentCrash(agentIndex)
                     self.unmute()
                     return
-        self.display.finish()
+        if do_render:
+            self.display.finish()

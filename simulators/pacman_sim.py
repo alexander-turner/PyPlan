@@ -39,6 +39,7 @@ class PacmanStateClass(absstate.AbstractState):
             self.display = graphicsDisplay.PacmanGraphics()
         else:
             self.display = textDisplay.PacmanGraphics()
+        self.do_render = True
 
         if use_random_ghost:
             self.ghost_agents = [ghostAgents.RandomGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
@@ -65,12 +66,15 @@ class PacmanStateClass(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
-    def run(self, agents, num_trials=1, multiprocess=True):
+    def run(self, agents, num_trials=1, multiprocess=True, do_render=True):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
+        self.do_render = do_render  # whether game moves should be shown
+
         table = []
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
 
         for agent in agents:
+            print('\nNow simulating: {}'.format(agent.agentname))
             output = self.run_trials(agent, num_trials, multiprocess)
             table.append([output['name'],  # agent name
                           numpy.mean(output['rewards']),  # average final score
@@ -118,7 +122,7 @@ class PacmanStateClass(absstate.AbstractState):
         self.initialize()  # reset the game
 
         start_time = time.time()
-        self.game.run()
+        self.game.run(self.do_render)
         time_taken = time.time() - start_time
 
         return {'reward': self.final_score, 'won': self.won, 'average move time': time_taken / self.time_step_count}
