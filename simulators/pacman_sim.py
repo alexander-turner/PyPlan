@@ -92,7 +92,6 @@ class PacmanStateClass(absstate.AbstractState):
         if multiprocess:
             # ensures the system runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            # num_trials doesn't change, so make a partial function
             game_outputs = pool.map(self.run_trial, range(num_trials))
         else:
             for i in range(num_trials):

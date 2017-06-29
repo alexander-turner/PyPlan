@@ -65,20 +65,15 @@ class OpenAIStateClass(absstate.AbstractState):
 
         if multiprocess:  # TODO: debug multiprocessing for wrappers
             self.resume = True
-            jobs = []
-
-        for i in range(num_trials):
             if multiprocess:
-                j = multiprocessing.Process(target=self.run_trial, args=(do_render, ))
-                jobs.append(j)
-                j.start()
-            else:
+                # ensures the system runs smoothly
+                pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+                pool.map(self.run_trial, [do_render] * num_trials)
+            self.resume = False  # done adding to the data
+        else:
+            for i in range(num_trials):
                 self.run_trial(do_render)
 
-        if multiprocess:
-            for j in jobs:  # wait for each job to finish
-                j.join()
-            self.resume = False  # done adding to the data
         self.env.close()
 
         if self.wrapper_target != '':

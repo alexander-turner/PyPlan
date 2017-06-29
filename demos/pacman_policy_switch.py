@@ -1,7 +1,6 @@
 from agents import *
 from heuristics import rollout_heuristic
-from simulators import pacman_sim, connect4_sim
-from demos import simulate
+from simulators import pacman_sim
 
 """
 Policy switching carries with it the theoretical guarantee that at each juncture, it will perform at least as well as 
@@ -13,7 +12,9 @@ if __name__ == '__main__':
 
     u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=u_ro)
+
     e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=100, epsilon=0.5, policy=rand_agent)
+
     h = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=1, depth=10)
     ss = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h)
 
