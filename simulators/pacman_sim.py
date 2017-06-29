@@ -70,18 +70,8 @@ class PacmanStateClass(absstate.AbstractState):
         table = []
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
 
-        agent_outputs = []
-        if multiprocess:
-            # ensures the system runs smoothly
-            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            # num_trials doesn't change, so make a partial function
-            partial_trials = partial(self.run_trials, num_trials=num_trials)
-            agent_outputs = pool.map(partial_trials, agents)
-        else:
-            for agent in agents:
-                agent_outputs.append(self.run_trials(agent, num_trials))
-
-        for output in agent_outputs:
+        for agent in agents:
+            output = self.run_trials(agent, num_trials, multiprocess)
             table.append([output['name'],  # agent name
                           numpy.mean(output['rewards']),  # average final score
                           output['wins'] / num_trials,  # win percentage
@@ -89,33 +79,50 @@ class PacmanStateClass(absstate.AbstractState):
         print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
         print("{} game{} of Pacman run.".format(num_trials, "s" if num_trials > 1 else ""))
 
-    def run_trials(self, agent, num_trials):
+    def run_trials(self, agent, num_trials, multiprocess=True):
         """Run a given number of games using the current configuration, recording and returning performance statistics.
 
-        :param agent: an agent to use to run the trials
-        :param num_trials: how many times the game will be run
+        :param agent: an agent to use to run the trials.
+        :param num_trials: how many times the game will be run.
+        :param multiprocess: whether to speed the computation with parallel processing.
         """
-        rewards = [0] * num_trials
-        wins = 0
-        total_time = 0
-        total_time_steps = 0
-
         self.set_agent(agent)
 
-        for i in range(num_trials):
-            self.initialize()  # reset the game
+        game_outputs = []
+        if multiprocess:
+            # ensures the system runs smoothly
+            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+            # num_trials doesn't change, so make a partial function
+            game_outputs = pool.map(self.run_trial, range(num_trials))
+        else:
+            for i in range(num_trials):
+                game_outputs.append(self.run_trial(i))
 
-            start_time = time.time()
-            self.game.run()
-            total_time += time.time() - start_time
-            total_time_steps += self.time_step_count
+        rewards = []
+        wins = 0
+        avg_move_time = 0
+        for output in game_outputs:
+            rewards.append(output['reward'])
+            wins += output['won']
+            avg_move_time += output['average move time']
 
-            rewards[i] = self.final_score
-            if self.won:
-                wins += 1
+        avg_move_time /= num_trials
 
         return {'name': self.pacman_agent.policy.agentname, 'rewards': rewards, 'wins': wins,
-                'average move time': total_time / total_time_steps}
+                'average move time': avg_move_time}
+
+    def run_trial(self, trial_num):
+        """Runs using the set game information, returning information about the trial.
+
+        :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
+        """
+        self.initialize()  # reset the game
+
+        start_time = time.time()
+        self.game.run()
+        time_taken = time.time() - start_time
+
+        return {'reward': self.final_score, 'won': self.won, 'average move time': time_taken / self.time_step_count}
 
     def set_agent(self, agent):
         """Sets Pacman's agent."""
