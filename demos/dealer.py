@@ -18,27 +18,25 @@ class DealerClass:
         self.simulation_horizon = sim_horizon
 
     def start_simulation(self, multiprocess=True):
+        game_outputs = []
         if multiprocess:
             # ensures that the system still runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
 
             game_outputs = pool.map(self.run_trial, range(self.simulation_count))
-            for output in game_outputs:
-                self.game_winner_list.append(output[0])
-                self.write_simulation_history(output[1])
-                self.avg_move_time += output[2]
         else:
             for sim_num in range(self.simulation_count):
-                    [winner, game_history, time_sums] = self.run_trial()
-                    self.game_winner_list.append(winner)
-                    self.write_simulation_history(game_history)
-                    self.avg_move_time += time_sums
+                game_outputs.append(self.run_trial())
+        for output in game_outputs:
+            self.game_winner_list.append(output['winner'])
+            self.write_simulation_history(output['game history'])
+            self.avg_move_time += output['average move times']
         self.avg_move_time = [x / self.simulation_count for x in self.avg_move_time]  # average
 
-    def run_trial(self, q=None):
+    def run_trial(self, sim_num=None):
         """Run a single simulation using the current configuration.
 
-        :param q: an optional multiprocessing.Queue structure that allows for communication of results.
+        :param sim_num: placeholder parameter that allows use with multiprocessing.Pool.
         """
         current_state = self.simulator.clone()
         game_history = []
@@ -93,7 +91,7 @@ class DealerClass:
         for sum_value in range(len(time_sums)):
             time_sums[sum_value] = time_sums[sum_value] / moves_per_player
 
-        return [winner, game_history, time_sums]
+        return {'winner': winner, 'game history': game_history, 'average move times': time_sums}
 
     def simulation_stats(self):
         return self.simulation_history, self.game_winner_list, self.avg_move_time

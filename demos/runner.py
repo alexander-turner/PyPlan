@@ -29,13 +29,12 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
 
-    openai = openai_sim.OpenAIStateClass('FrozenLake-v0', u_ro,
-                                         wrapper_target='Frozen_Lake', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run(num_trials=2, multiprocess=True, do_render=False)
+    openai = openai_sim.OpenAIStateClass('FrozenLake-v0', u_ro, wrapper_target='Frozen_Lake',
+                                         api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+    #openai.run(num_trials=2, multiprocess=True, do_render=False)
 
-    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[u_ro, ss_d3, switch_agent, e_switch_agent],
-                                         use_graphics=True)
-    #pacman.run(2)
+    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
+    pacman.run(agents=[u_ro, ss_d3, switch_agent, e_switch_agent], num_trials=2)
 
     sim = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
-    #simulate.run(simulator=sim, agents=[switch_agent, nested_u_ro], num_trials=10)
+    simulate.run(simulator=sim, agents=[switch_agent, nested_u_ro], num_trials=10)

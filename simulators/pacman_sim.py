@@ -1,8 +1,10 @@
 import sys
 import os
+
 sys.path.append(os.path.abspath('..\\simulators\\pacmancode'))  # assume access from demos\
 from abstract import absstate
 from simulators.pacmancode import *
+from functools import partial
 import time
 import tabulate
 import numpy
@@ -19,12 +21,12 @@ class PacmanStateClass(absstate.AbstractState):
     Note that unlike other interfaces, this is not compatible with the dealer simulator due its reliance on the provided
     Pacman engine.
     """
+    myname = "Pacman Simulator"
 
-    def __init__(self, layout_repr, agents, use_random_ghost=False, use_graphics=True):
+    def __init__(self, layout_repr, use_random_ghost=False, use_graphics=True):
         """Initialize an interface to the Pacman game simulator.
 
         :param layout_repr: the filename of the layout (located in layouts/), or an actual layout object.
-        :param agents: list of the bandit(s) to be used to control Pacman. If multiple, first will be used.
         :param use_random_ghost: whether to use the random or the directional ghost agent.
         :param use_graphics: whether to use the graphics or the text display.
         """
@@ -43,16 +45,12 @@ class PacmanStateClass(absstate.AbstractState):
         else:
             self.ghost_agents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
 
-        self.agents = agents
-        self.current_agent_idx = 0  # Take first agent from the list
-        self.pacman_agent = Agent(self.agents[self.current_agent_idx], self)
+        self.pacman_agent = None
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
                                                     ghostAgents=self.ghost_agents, display=self.display)
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
-
-        self.myname = "Pacman"
 
         self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
         self.won = False
@@ -67,53 +65,42 @@ class PacmanStateClass(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
-    def run(self, num_trials=1, multiprocess=True, verbose=True):
+    def run(self, agents, num_trials=1, multiprocess=True):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
         table = []
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
+
+        agent_outputs = []
         if multiprocess:
-            jobs = []
-            queues = []
+            # ensures the system runs smoothly
+            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+            # num_trials doesn't change, so make a partial function
+            partial_trials = partial(self.run_trials, num_trials=num_trials)
+            agent_outputs = pool.map(partial_trials, agents)
+        else:
+            for agent in agents:
+                agent_outputs.append(self.run_trials(agent, num_trials))
 
-        for agent_idx, agent in enumerate(self.agents):
-            if multiprocess:
-                q = multiprocessing.Queue()
-                queues.append(q)  # our job's output will go here
+        for output in agent_outputs:
+            table.append([output['name'],  # agent name
+                          numpy.mean(output['rewards']),  # average final score
+                          output['wins'] / num_trials,  # win percentage
+                          output['average move time']])  # average time taken per move
+        print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
+        print("{} game{} of Pacman run.".format(num_trials, "s" if num_trials > 1 else ""))
 
-                j = multiprocessing.Process(target=self.run_trials, args=(num_trials, q, ))
-                jobs.append(j)
-                j.start()
-            else:
-                [rewards, wins, total_time, total_time_steps] = self.run_trials(num_trials)
-                table.append([agent.agentname,  # agent name
-                              numpy.mean(rewards),  # average final score
-                              wins / num_trials,  # win percentage
-                              total_time / total_time_steps])  # average time taken per move
-            self.load_next_agent()
-
-        if multiprocess:
-            for j in jobs:  # wait for each job to finish
-                j.join()
-            for q in queues:
-                [name, rewards, wins, total_time, total_time_steps] = q.get()
-                table.append([name,  # agent name
-                              numpy.mean(rewards),  # average final score
-                              wins / num_trials,  # win percentage
-                              total_time / total_time_steps])  # average time taken per move
-        if verbose:
-            print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
-            print("{} game{} of Pacman run.".format(num_trials, "s" if num_trials > 1 else ""))
-
-    def run_trials(self, num_trials, q=None):
+    def run_trials(self, agent, num_trials):
         """Run a given number of games using the current configuration, recording and returning performance statistics.
 
+        :param agent: an agent to use to run the trials
         :param num_trials: how many times the game will be run
-        :param q: an optional multiprocessing.Queue structure that allows for communication of results
         """
         rewards = [0] * num_trials
         wins = 0
         total_time = 0
         total_time_steps = 0
+
+        self.set_agent(agent)
 
         for i in range(num_trials):
             self.initialize()  # reset the game
@@ -127,19 +114,16 @@ class PacmanStateClass(absstate.AbstractState):
             if self.won:
                 wins += 1
 
-        return_vals = [rewards, wins, total_time, total_time_steps]
-        if q is not None:  # for compatibility with multiprocessing
-            return_vals.insert(0, self.pacman_agent.policy.agentname)  # add name since we can't retrieve later
-            q.put(return_vals)
-        return return_vals
+        return {'name': self.pacman_agent.policy.agentname, 'rewards': rewards, 'wins': wins,
+                'average move time': total_time / total_time_steps}
 
-    def load_next_agent(self):
-        """Loads the next agent from the provided list of agents, resetting if necessary."""
-        self.current_agent_idx = (self.current_agent_idx + 1) % len(self.agents)
-        self.pacman_agent = Agent(self.agents[self.current_agent_idx], self)
+    def set_agent(self, agent):
+        """Sets Pacman's agent."""
+        self.pacman_agent = Agent(agent, self)
+        self.initialize()
 
     def clone(self):
-        new_sim = PacmanStateClass(self.layout, self.agents)
+        new_sim = PacmanStateClass(self.layout)
         new_sim.current_state = self.current_state
         return new_sim
 
@@ -198,6 +182,7 @@ class PacmanStateClass(absstate.AbstractState):
 
 class Agent(game.Agent):
     """A wrapper to let the policy interface with the Pacman engine."""
+
     def __init__(self, policy, pac_state):
         self.policy = policy
         self.pac_state = pac_state  # pointer to parent PacmanStateClass structure
@@ -206,4 +191,3 @@ class Agent(game.Agent):
         self.pac_state.current_state = state
         self.pac_state.time_step_count += 1
         return self.policy.select_action(self.pac_state)
-
