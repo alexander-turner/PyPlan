@@ -19,23 +19,14 @@ class DealerClass:
 
     def start_simulation(self, multiprocess=True):
         if multiprocess:
-            queues = []
-            jobs = []
+            # ensures that the system still runs smoothly
+            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
 
-            for sim_num in range(self.simulation_count):
-                q = multiprocessing.Queue()
-                queues.append(q)  # our job's output will go here
-
-                j = multiprocessing.Process(target=self.run_trial, args=(q, ))
-                jobs.append(j)
-                j.start()
-            for j in jobs:  # wait for each job to finish
-                j.join()
-            for q in queues:
-                [winner, game_history, time_sums] = q.get()
-                self.game_winner_list.append(winner)
-                self.write_simulation_history(game_history)
-                self.avg_move_time += time_sums
+            game_outputs = pool.map(self.run_trial, range(self.simulation_count))
+            for output in game_outputs:
+                self.game_winner_list.append(output[0])
+                self.write_simulation_history(output[1])
+                self.avg_move_time += output[2]
         else:
             for sim_num in range(self.simulation_count):
                     [winner, game_history, time_sums] = self.run_trial()
@@ -102,9 +93,7 @@ class DealerClass:
         for sum_value in range(len(time_sums)):
             time_sums[sum_value] = time_sums[sum_value] / moves_per_player
 
-        if q is not None:  # if we are using multiprocessing
-            q.put([winner, game_history, time_sums])
-        return winner, game_history, time_sums
+        return [winner, game_history, time_sums]
 
     def simulation_stats(self):
         return self.simulation_history, self.game_winner_list, self.avg_move_time
