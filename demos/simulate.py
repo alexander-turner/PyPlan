@@ -2,25 +2,28 @@ from demos import dealer
 import tabulate
 
 
-def run(simulator, agents, num_trials=10, output_path=None, multiprocess=True):
+def run(simulator, agents, num_trials=10, output_path=None, multiprocess=True, show_moves=True):
     """Simulate the given state using the provided agents the given number of times.
 
-    Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee
+    Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee.
 
     :param simulator: a game simulator structure initialized to a game's starting state.
     :param agents: a list of agents.
     :param num_trials: how many games should be run.
     :param output_path: a text file to which results should be written.
     :param multiprocess: whether to use parallel processing to speed simulations.
-        If disabled, the dealer will display each move.
+        If enabled, show_moves will be disabled.
+    :param show_moves: whether the dealer should display the game progression.
     """
+    if multiprocess:
+        show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
     table = []
     headers = ["Agent Name", "Average Final Reward", "Winrate", "Average Time / Move (s)"]
     num_players = len(agents)
 
     simulator.initialize()  # reset the simulator state
     dealer_object = dealer.DealerClass(simulator, agents, num_simulations=num_trials, sim_horizon=50,
-                                       verbose=not multiprocess)
+                                       verbose=show_moves)
 
     dealer_object.start_simulation(multiprocess=multiprocess)
     [results, winner_list, avg_times] = dealer_object.simulation_stats()

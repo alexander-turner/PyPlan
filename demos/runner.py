@@ -21,20 +21,19 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     ss_d5 = sparse_sampling_agent.SparseSamplingAgentClass(depth=5, pulls_per_node=5, heuristic=h1)
 
     uct = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=100, c=1)
-
-    eroot_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
+    e_root_uct1000 = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
     policy_set = [u_ro, ss_d3]
     switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=10, policies=policy_set)
 
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
 
-    openai = openai_sim.OpenAIStateClass('FrozenLake-v0', u_ro, wrapper_target='Frozen_Lake',
+    openai = openai_sim.OpenAIStateClass('FrozenLake-v0', wrapper_target='Frozen_Lake',
                                          api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run(num_trials=2, multiprocess=True, do_render=False)
+    openai.run(agents=[u_ro, e_ro], num_trials=1, multiprocess=False, show_moves=False)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[u_ro, ss_d3, switch_agent, e_switch_agent], num_trials=2)
 
-    sim = connect4_sim.Connect4StateClass()   # seems to be playing same game each time almost
+    sim = connect4_sim.Connect4StateClass()
     simulate.run(simulator=sim, agents=[switch_agent, nested_u_ro], num_trials=10)

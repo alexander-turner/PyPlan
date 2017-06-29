@@ -21,7 +21,7 @@ class PacmanStateClass(absstate.AbstractState):
     Note that unlike other interfaces, this is not compatible with the dealer simulator due its reliance on the provided
     Pacman engine.
     """
-    myname = "Pacman Simulator"
+    myname = "Pacman"
 
     def __init__(self, layout_repr, use_random_ghost=False, use_graphics=True):
         """Initialize an interface to the Pacman game simulator.
@@ -39,7 +39,7 @@ class PacmanStateClass(absstate.AbstractState):
             self.display = graphicsDisplay.PacmanGraphics()
         else:
             self.display = textDisplay.PacmanGraphics()
-        self.do_render = True
+        self.show_moves = True
 
         if use_random_ghost:
             self.ghost_agents = [ghostAgents.RandomGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
@@ -66,9 +66,9 @@ class PacmanStateClass(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
-    def run(self, agents, num_trials=1, multiprocess=True, do_render=True):
+    def run(self, agents, num_trials=1, multiprocess=True, show_moves=True):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
-        self.do_render = do_render  # whether game moves should be shown
+        self.show_moves = show_moves  # whether game moves should be shown
 
         table = []
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
@@ -80,8 +80,8 @@ class PacmanStateClass(absstate.AbstractState):
                           numpy.mean(output['rewards']),  # average final score
                           output['wins'] / num_trials,  # win percentage
                           output['average move time']])  # average time taken per move
-        print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".2f"))
-        print("{} game{} of Pacman run.".format(num_trials, "s" if num_trials > 1 else ""))
+        print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
+        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.myname))
 
     def run_trials(self, agent, num_trials, multiprocess=True):
         """Run a given number of games using the current configuration, recording and returning performance statistics.
@@ -115,14 +115,14 @@ class PacmanStateClass(absstate.AbstractState):
                 'average move time': avg_move_time}
 
     def run_trial(self, trial_num):
-        """Runs using the set game information, returning information about the trial.
+        """Using the game parameters, run and return information about the trial.
 
         :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
         """
         self.initialize()  # reset the game
 
         start_time = time.time()
-        self.game.run(self.do_render)
+        self.game.run(self.show_moves)
         time_taken = time.time() - start_time
 
         return {'reward': self.final_score, 'won': self.won, 'average move time': time_taken / self.time_step_count}

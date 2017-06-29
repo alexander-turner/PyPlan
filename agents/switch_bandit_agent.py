@@ -34,7 +34,6 @@ class SwitchBanditAgentClass(absagent.AbstractAgent):
         self.num_nodes += 1
 
         current_player = state.get_current_player()
-        actions = state.get_actions()
         num_policies = len(self.policies)  # how many policies we have
 
         if self.bandit_parameters is None:
@@ -44,20 +43,14 @@ class SwitchBanditAgentClass(absagent.AbstractAgent):
 
         # for each policy, for each player, initialize a q value
         q_values = []
-        # track how many times an action is recommended by a given policy
-        action_counts = []
         for i in range(num_policies):
             q_values.append([0]*state.number_of_players())
-            action_counts.append([0] * len(actions))
 
         for i in range(self.pulls_per_node):  # use pull budget
             policy_idx = bandit.select_pull_arm()
             policy = self.policies[policy_idx]
-            [rewards, action] = policy.estimateV(state, policy.depth)
+            [rewards, _] = policy.estimateV(state, policy.depth)
             policy.num_nodes = 1  # reset for bookkeeping purposes
-
-            # we have to find the index of the actual action which was returned
-            action_counts[policy_idx][actions.index(action)] += 1
 
             # integrate total reward with current q_values
             q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], rewards)]
@@ -65,8 +58,6 @@ class SwitchBanditAgentClass(absagent.AbstractAgent):
 
         # get most-selected action of highest-valued policy (useful for stochastic environments)
         best_policy_idx = bandit.select_best_arm()  # rewards
-        best_action_idx = action_counts[best_policy_idx].index(max(action_counts[best_policy_idx]))
-        best_action = actions[best_action_idx]
         best_action_select = self.policies[best_policy_idx].select_action(state)
 
         return [q / bandit.get_num_pulls(best_policy_idx) for q in q_values[best_policy_idx]], best_action_select
