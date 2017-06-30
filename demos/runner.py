@@ -35,4 +35,4 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     sim = connect4_sim.Connect4StateClass()
     dealer = dealer.DealerClass()
-    dealer.run(simulator=sim, agents=[u_ro, u_ro], num_trials=20, multiprocess=True)
+    dealer.run(simulator=sim, agents=[u_ro, u_ro], num_trials=20, multiprocess=True)  # TODO: Fix first agent's advantage
