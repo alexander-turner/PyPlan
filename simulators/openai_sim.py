@@ -1,5 +1,7 @@
 import logging
 import copy
+
+import itertools
 import tabulate
 import numpy
 import multiprocessing
@@ -27,35 +29,55 @@ class OpenAIStateClass(absstate.AbstractState):
             run for at least 100 trials.
         :param force: whether an existing directory at demos/OpenAI results/wrapper_target/ should be overwritten
         """
-        self.sim_name = sim_name
-        self.env = gym.make(sim_name)  # the monitored environment - modified in actual run()
-        self.myname = self.env.spec._env_name
-
         self.api_key = api_key
-        self.resume = False  # whether to add data to the wrapper target directory
+        self.force = force
+        self.resume = False  # whether to add data to the output directory
         self.show_moves = True
+        self.agent = None
+
+        self.sim_name = sim_name
+        self.env = gym.make(sim_name)
+        self.myname = self.env.spec._env_name
 
         # output directory location for agent performance
         self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
-        self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=force,
+        self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=self.force,
                                     resume=self.resume)
 
         self.action_space = self.env.action_space
-        if not isinstance(self.action_space, spaces.discrete.Discrete):
-            raise Exception('Action space {} incompatible with {} (only supports Discrete action spaces).'.format(self.action_space, self))
+        if not isinstance(self.action_space, spaces.Discrete) and not isinstance(self.action_space, spaces.Tuple):
+            raise Exception('Action space {} incompatible with {} (only supports Discrete and Tuple action spaces).'
+                            .format(self.action_space, self))
         self.observation_space = self.env.observation_space
 
         self.original_observation = self.env.reset()  # initial observation
         self.current_observation = self.original_observation
-
         self.done = False  # indicates if the current observation is terminal
-
-        self.agent = None
 
     def initialize(self):
         """Reinitialize the environment."""
         self.current_observation = self.env.reset()
         self.done = False
+
+    def change_sim(self, sim_name):
+        self.sim_name = sim_name
+        self.env = gym.make(sim_name)
+        self.myname = self.env.spec._env_name
+
+        # output directory location for agent performance
+        self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
+        self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=self.force,
+                                    resume=self.resume)
+
+        self.action_space = self.env.action_space
+        if not isinstance(self.action_space, spaces.Discrete) and not isinstance(self.action_space, spaces.Tuple):
+            raise Exception('Action space {} incompatible with {} (only supports Discrete and Tuple action spaces).'
+                            .format(self.action_space, self))
+        self.observation_space = self.env.observation_space
+
+        self.original_observation = self.env.reset()  # initial observation
+        self.current_observation = self.original_observation
+        self.done = False  # indicates if the current observation is terminal
 
     def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance."""
@@ -158,13 +180,25 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
-        self.current_observation, reward, self.done, _ = self.env.step(action) 
+        self.current_observation, reward, self.done, _ = self.env.step(action)  # QUESTION: current reward or total?
         rewards = [-1 * reward] * self.number_of_players()  # reward other agents get
         rewards[0] *= -1  # correct agent reward
         return rewards
 
-    def get_actions(self):  # TODO: narrow scope to current observation?
-        return range(self.action_space.n)
+    def get_actions(self):
+        if isinstance(self.action_space, spaces.Discrete):
+            return range(self.action_space.n)
+        elif isinstance(self.action_space, spaces.Tuple):  # TODO: tuple support
+            a_spaces = self.action_space.spaces
+
+            all_tuples = ()  # construct a list of range tuples
+            for s in a_spaces:
+                all_tuples += tuple(range(s.n))
+            # this allows for incorrect indices
+            combos = tuple(itertools.combinations(all_tuples, len(a_spaces)))  # get all the tuple combinations
+            return combos
+        else:
+            raise NotImplementedError
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
