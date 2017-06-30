@@ -39,9 +39,8 @@ class OpenAIStateClass(absstate.AbstractState):
         if self.wrapper_target != '':  # set where the results will be written to
             if not self.wrapper_target.startswith('OpenAI results\\'):
                 self.wrapper_target = 'OpenAI results\\' + self.wrapper_target
-            # Initialized from code at C:\Python36\Lib\site-packages\gym\wrappers\monitoring.py
             self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=force,
-                                        resume=self.resume)
+                                        resume=self.resume)  # place earlier?
 
         self.action_space = self.env.action_space
         if not isinstance(self.action_space, spaces.discrete.Discrete):

@@ -1,6 +1,7 @@
 from abstract import absstate
-#from actions import othelloaction
-#from states import othellostate
+
+# from actions import othelloaction
+# from states import othellostate
 
 """
 Simulator Class for Othello
@@ -18,7 +19,7 @@ NOTE :
 
 class OthelloStateClass(absstate.AbstractState):
     def __init__(self, num_players):
-        #self.current_state = othellostate.OthelloStateClass()
+        # self.current_state = othellostate.OthelloStateClass()
         if num_players < 2:
             raise ValueError("Wrong value for player_count for Othello.")
         self.num_players = num_players
@@ -34,7 +35,7 @@ class OthelloStateClass(absstate.AbstractState):
         return new_sim_obj
 
     def reset_simulator(self):
-        #self.current_state = othellostate.OthelloStateClass()
+        # self.current_state = othellostate.OthelloStateClass()
         self.winning_player = None
         self.game_over = False
 
@@ -167,12 +168,12 @@ class OthelloStateClass(absstate.AbstractState):
 
                     if possible_count > 0:
                         action = {'position': [i, j], 'value': self.current_state.get_current_state()["current_player"]}
-                        #actions_list.append(othelloaction.OthelloActionClass(action))
+                        # actions_list.append(othelloaction.OthelloActionClass(action))
 
         # ALWAYS ADD NULL ACTION
         if len(actions_list) == 0:
             action = {'position': [-1, -1], 'value': -1}
-            #actions_list.append(othelloaction.OthelloActionClass(action))
+            # actions_list.append(othelloaction.OthelloActionClass(action))
         return actions_list
 
     def is_terminal(self):
@@ -187,8 +188,6 @@ class OthelloStateClass(absstate.AbstractState):
                 for j in range(8):
                     coin_count[self.current_state.get_current_state()["state_val"][i][j] - 1] += 1
 
-            # print "\n\nCOIN COUNTS", coin_count
-
             if coin_count[0] == coin_count[1]:
                 self.winning_player = None
             else:
@@ -201,6 +200,9 @@ class OthelloStateClass(absstate.AbstractState):
 
     def get_current_player(self):
         return self.current_state.get_current_state()["current_player"]
+
+    def set_current_player(self, player_index):
+        self.current_state.get_current_state()["current_player"] = player_index
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()

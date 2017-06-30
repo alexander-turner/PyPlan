@@ -3,16 +3,16 @@ import random
 
 
 class EBanditAlgClass(absbandit_alg.AbstractBanditAlg):
-    """Pulls the most rewarding arm with 1-epsilon probability; else, another arm is pulled at random.
+    """Pulls the most rewarding arm with (1 - epsilon) probability; else, another arm is pulled at random.
 
     Compared to the uniform bandit, less time is spent on non-promising arms.
     """
-    myname = "EGreedy Bandit Algorithm"
+    myname = "e-Greedy Bandit Algorithm"
 
     def __init__(self, num_arms, epsilon=0.5):
         self.num_arms = num_arms
         self.epsilon = epsilon
-        self.ave_reward = [0]*num_arms
+        self.average_reward = [0] * num_arms
         self.num_pulls = [0]*num_arms
         self.total_pulls = 0
 
@@ -21,26 +21,26 @@ class EBanditAlgClass(absbandit_alg.AbstractBanditAlg):
 
     def initialize(self):
         """Reset the bandit while retaining the name, number of arms, and epsilon value."""
-        self.ave_reward = [0]*self.num_arms
+        self.average_reward = [0] * self.num_arms
         self.num_pulls = [0]*self.num_arms
         self.total_pulls = 0
 
     def update(self, arm, reward):
         """Update the arm's pull count, total pull count, and average reward (using online mean updating)."""
-        self.ave_reward[arm] = (self.ave_reward[arm] * self.num_pulls[arm] + reward)/(self.num_pulls[arm]+1)
+        self.average_reward[arm] = (self.average_reward[arm] * self.num_pulls[arm] + reward) / (self.num_pulls[arm] + 1)
         self.num_pulls[arm] += 1
         self.total_pulls += 1
 
     def select_best_arm(self):
         """Returns the arm with the best average reward."""
         best_arm = None
-        best_ave = None
+        best_average = None
 
         for i in range(self.num_arms):  # check the average reward of each arm
             if self.num_pulls[i] > 0:  # if we've pulled it at least once
-                if best_arm is None or self.ave_reward[i] > best_ave:
+                if best_arm is None or self.average_reward[i] > best_average:
                     best_arm = i
-                    best_ave = self.ave_reward[i]
+                    best_average = self.average_reward[i]
 
         return best_arm
 
@@ -64,7 +64,7 @@ class EBanditAlgClass(absbandit_alg.AbstractBanditAlg):
 
     def get_best_reward(self):
         best_arm = self.select_best_arm()
-        return self.ave_reward[best_arm]
+        return self.average_reward[best_arm]
 
     def get_num_pulls(self, arm):
         return self.num_pulls[arm]

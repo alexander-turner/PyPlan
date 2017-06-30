@@ -18,7 +18,7 @@ class Connect4StateClass(absstate.AbstractState):
         return new_state
 
     def number_of_players(self):
-        return Connect4StateClass.num_players
+        return self.num_players
 
     def set(self, state):
         self.state_val[0] = state.state_val[0]
@@ -51,23 +51,23 @@ class Connect4StateClass(absstate.AbstractState):
         actions_list = []
         current_board = 0
 
-        for player_board in range(Connect4StateClass.num_players):
+        for player_board in range(self.num_players):
             current_board |= self.state_val[player_board]
 
-        board_size = ((Connect4StateClass.board_height + 1) * Connect4StateClass.board_width)
+        board_size = ((self.board_height + 1) * self.board_width)
         current_board = bin(current_board)[2:].zfill(board_size)[::-1]
-        for column in range(Connect4StateClass.board_width):
-            curr_val = (Connect4StateClass.board_height + ((Connect4StateClass.board_height + 1) * column))
+        for column in range(self.board_width):
+            curr_val = (self.board_height + ((self.board_height + 1) * column))
             curr_val -= 1
             if int(current_board[curr_val]) == 0:
-                while curr_val >= (Connect4StateClass.board_height + 1) * column:
+                while curr_val >= (self.board_height + 1) * column:
                     if int(current_board[curr_val]) == 1:
                         actions_list.append(action)
                         break
                     else:
                         action = [curr_val, self.current_player]
 
-                    if curr_val == Connect4StateClass.board_width * column:
+                    if curr_val == self.board_width * column:
                         actions_list.append(action)
 
                     curr_val -= 1
@@ -80,24 +80,27 @@ class Connect4StateClass(absstate.AbstractState):
     def get_current_player(self):
         return self.current_player
 
+    def set_current_player(self, player_index):
+        self.current_player = player_index
+
     def current_game_outcome(self):
-        for player in range(Connect4StateClass.num_players):
+        for player in range(self.num_players):
             curr_board = self.state_val[player]
             temp = bin(curr_board)
 
             # LEFT DIAGONAL
-            transform = curr_board & (curr_board >> Connect4StateClass.board_height)
-            if transform & (transform >> (2 * Connect4StateClass.board_height)):
+            transform = curr_board & (curr_board >> self.board_height)
+            if transform & (transform >> (2 * self.board_height)):
                 return player
 
             # RIGHT DIAGONAL
-            transform = curr_board & (curr_board >> (Connect4StateClass.board_width + 1))
-            if transform & (transform >> (2 * (Connect4StateClass.board_width + 1))):
+            transform = curr_board & (curr_board >> (self.board_width + 1))
+            if transform & (transform >> (2 * (self.board_width + 1))):
                 return player
 
             # HORIZONTAL
-            transform = curr_board & (curr_board >> Connect4StateClass.board_width)
-            if transform & (transform >> (2 * Connect4StateClass.board_width)):
+            transform = curr_board & (curr_board >> self.board_width)
+            if transform & (transform >> (2 * self.board_width)):
                 return player
 
             # VERTICAL
@@ -108,14 +111,13 @@ class Connect4StateClass(absstate.AbstractState):
         # NO WINS BUT CHECK FOR DRAW
         current_board = 0
 
-        for player_board in range(Connect4StateClass.num_players):
+        for player_board in range(self.num_players):
             current_board |= self.state_val[player_board]
 
-        board_size = (
-                     Connect4StateClass.board_height * Connect4StateClass.board_width) + Connect4StateClass.board_height
+        board_size = self.board_height * (self.board_width + 1)
         current_board = bin(current_board)[2:].zfill(board_size)[::-1]
-        excluded_vals = [(Connect4StateClass.board_height + (Connect4StateClass.board_height + 1) * x) for x in
-                         range(Connect4StateClass.board_width)]
+        excluded_vals = [(self.board_height + (self.board_height + 1) * x) for x in
+                         range(self.board_width)]
 
         for val in range(board_size):
             if val not in excluded_vals:
@@ -130,17 +132,15 @@ class Connect4StateClass(absstate.AbstractState):
         return hash(tuple(self.state_val))
 
     def __repr__(self):
-        curr_row = 6
         output = ""
-        while curr_row >= 0:
-            curr_col = 0
-            while curr_col < 7:
+        for row in range(6, -1, -1):
+            for col in range(7):
                 board_size = ((6 + 1) * 7)
                 player_num = 1
                 is_printed = False
                 for player_board in self.state_val:
                     curr_board = bin(player_board)[2:].zfill(board_size)[::-1]
-                    if int(curr_board[curr_row + ((6 + 1) * curr_col)]) == 1:
+                    if int(curr_board[row + ((6 + 1) * col)]) == 1:
                         output += str(player_num) + ""
                         is_printed = True
                     player_num += 1
@@ -148,10 +148,6 @@ class Connect4StateClass(absstate.AbstractState):
                 if is_printed is False:
                     output += "0"
 
-                curr_col += 1
-
             output += "\n"
-
-            curr_row -= 1
 
         return output

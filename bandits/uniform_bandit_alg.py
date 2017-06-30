@@ -29,13 +29,13 @@ class UniformBanditAlgClass(absbandit_alg.AbstractBanditAlg):
     def select_best_arm(self):
         """Returns the arm with the best average reward."""
         best_arm = None
-        best_ave = None
+        best_average = None
 
         for i in range(self.num_arms):  # check the average reward of each arm
             if self.num_pulls[i] > 0:  # if we've pulled it at least once
-                if best_arm is None or (self.reward[i]/self.num_pulls[i]) > best_ave:
+                if best_arm is None or (self.reward[i]/self.num_pulls[i]) > best_average:
                     best_arm = i
-                    best_ave = self.reward[i]/self.num_pulls[i]
+                    best_average = self.reward[i]/self.num_pulls[i]
 
         return best_arm
 

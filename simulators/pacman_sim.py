@@ -66,7 +66,7 @@ class PacmanStateClass(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
-    def run(self, agents, num_trials=1, multiprocess=True, show_moves=True):
+    def run(self, agents, num_trials=1, multiprocess=True, show_moves=False):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
         self.show_moves = show_moves  # whether game moves should be shown
 

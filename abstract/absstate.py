@@ -5,6 +5,8 @@ from abc import ABCMeta
 class AbstractState:
     """The main class for implementing simulators.
 
+    set_current_player is only required for simulators intended to be used with dealer.py.
+
     In addition to the methods below, it is important to implement __eq__ and __hash__, which are used by some planning
     methods to judge equivalence of states. If these are not implemented, then the code will work, but will perhaps
     be sub-optimal. This is because states that are fundamentally the same but correspond to distinct
@@ -17,6 +19,8 @@ class AbstractState:
     is encouraged. openai_sim.py and pacman_sim.py contain implementation examples.
     """
     __metaclass__ = ABCMeta
+
+    myname = ""  # the name of the environment
 
     @abc.abstractmethod
     def initialize(self):
@@ -73,4 +77,8 @@ class AbstractState:
 
         Index values are in the range {0,...,num_players-1}.
         """
+        raise NotImplementedError
+
+    def set_current_player(self, player_index):
+        """Sets the current player index."""
         raise NotImplementedError
