@@ -28,7 +28,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     sim_name = 'FrozenLake-v0'
     openai = openai_sim.OpenAIStateClass(sim_name=sim_name, api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run(agents=[u_ro], num_trials=5, multiprocess=False, show_moves=False)
+    openai.run(agents=[u_ro], num_trials=5, multiprocess=True, show_moves=False)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[switch_agent, e_switch_agent], num_trials=10)

@@ -138,7 +138,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.agent = Agent(agent, self)
 
     def clone(self):
-        new_sim = copy.deepcopy(self)
+        new_sim = copy.copy(self)
         return new_sim
 
     def number_of_players(self):
