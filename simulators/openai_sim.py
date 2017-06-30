@@ -19,11 +19,10 @@ class OpenAIStateClass(absstate.AbstractState):
     engine.
     """
 
-    def __init__(self, sim_name, wrapper_target='', api_key='', force=True):
+    def __init__(self, sim_name, api_key='', force=True):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
         :param sim_name: a valid env key that corresponds to a particular game / task.
-        :param wrapper_target: optional target filename for algorithm performance.
         :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
             run for at least 100 trials.
         :param force: whether an existing directory at demos/OpenAI results/wrapper_target/ should be overwritten
@@ -32,15 +31,14 @@ class OpenAIStateClass(absstate.AbstractState):
         self.env = gym.make(sim_name)  # the monitored environment - modified in actual run()
         self.myname = self.env.spec._env_name
 
-        self.wrapper_target = wrapper_target
         self.api_key = api_key
         self.resume = False  # whether to add data to the wrapper target directory
         self.show_moves = True
-        if self.wrapper_target != '':  # set where the results will be written to
-            if not self.wrapper_target.startswith('OpenAI results\\'):
-                self.wrapper_target = 'OpenAI results\\' + self.wrapper_target
-            self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=force,
-                                        resume=self.resume)  # place earlier?
+
+        # output directory location for agent performance
+        self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
+        self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=force,
+                                    resume=self.resume)
 
         self.action_space = self.env.action_space
         if not isinstance(self.action_space, spaces.discrete.Discrete):
@@ -59,7 +57,6 @@ class OpenAIStateClass(absstate.AbstractState):
         self.current_observation = self.env.reset()
         self.done = False
 
-    # TODO: see if these three functions can be generalized?
     def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance."""
         for agent in agents:
@@ -111,7 +108,7 @@ class OpenAIStateClass(absstate.AbstractState):
         wins = 0
         total_time = 0
         for output in game_outputs:
-            total_reward += output['reward']  # TODO: ensure reward is being properly captured
+            total_reward += output['reward']
             wins += output['won']
             total_time += output['total time']
 
@@ -133,7 +130,9 @@ class OpenAIStateClass(absstate.AbstractState):
             self.current_observation, reward, self.done, _ = self.env.step(action)
             if self.show_moves:
                 self.env.render()
-        return {'reward': reward, 'won': reward > 0, 'total time': total_time}
+        return {'reward': self.env.stats_recorder.rewards,
+                'won': reward > 0,  # won if reward after game ends is positive
+                'total time': total_time}
 
     def set_agent(self, agent):
         self.agent = Agent(agent, self)
