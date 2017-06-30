@@ -5,10 +5,16 @@ from abc import ABCMeta
 class AbstractState:
     """The main class for implementing simulators.
 
-    In addition to the methods below, it is important to implement _eq_ and _hash_, which are used by some planning
+    In addition to the methods below, it is important to implement __eq__ and __hash__, which are used by some planning
     methods to judge equivalence of states. If these are not implemented, then the code will work, but will perhaps
     be sub-optimal. This is because states that are fundamentally the same but correspond to distinct
     objects will be treated as non-equivalent.
+
+    Furthermore, simulators which are incompatible with dealer.py should implement three additional methods: run,
+    run_trials, and run_trial. In short, run handles data processing, initiates run_trials for each of the provided
+    agents, and displays results. run_trials runs the specified number of trials on the given agent, recording pertinent
+    statistics. run_trial runs a single iteration of the simulator with the given agent. multiprocessing compatibility
+    is encouraged. openai_sim.py and pacman_sim.py contain implementation examples.
     """
     __metaclass__ = ABCMeta
 
@@ -32,7 +38,7 @@ class AbstractState:
         state.
 
         As an example, a random trajectory of length horizon from the initial state could be implemented by the
-        following which also accumulates the reward along the trajectory.
+        following (which also accumulates the reward along the trajectory).
 
         total_reward = 0
         s.initialize()

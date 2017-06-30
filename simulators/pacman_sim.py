@@ -103,16 +103,16 @@ class PacmanStateClass(absstate.AbstractState):
 
         rewards = []
         wins = 0
-        avg_move_time = 0
+        average_move_time = 0
         for output in game_outputs:
             rewards.append(output['reward'])
             wins += output['won']
-            avg_move_time += output['average move time']
+            average_move_time += output['average move time']
 
-        avg_move_time /= num_trials
+        average_move_time /= num_trials
 
         return {'name': self.pacman_agent.policy.agentname, 'rewards': rewards, 'wins': wins,
-                'average move time': avg_move_time}
+                'average move time': average_move_time}
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return information about the trial.

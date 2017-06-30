@@ -80,8 +80,8 @@ class OpenAIStateClass(absstate.AbstractState):
             print('\nNow simulating: {}'.format(agent.agentname))
             output = self.run_trials(agent, num_trials, multiprocess, upload)
             table.append([output['name'],  # agent name
-                          numpy.mean(output['rewards']),  # average final score
-                          output['wins'] / num_trials,  # win percentage
+                          output['average reward'],  # average final score
+                          output['success rate'],  # win percentage
                           output['average move time']])  # average time taken per move
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.myname))
@@ -89,18 +89,17 @@ class OpenAIStateClass(absstate.AbstractState):
     def run_trials(self, agent, num_trials=1, multiprocess=True, upload=False):
         """Run the given number of trials using the current configuration."""
         self.set_agent(agent)
-        total_time = 0
 
+        game_outputs = []
         if multiprocess:  # TODO: debug multiprocessing for wrappers
             self.resume = True
             # ensures the system runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            times = pool.map(self.run_trial, range(num_trials))  # total time taken on moves throughout algorithm
-            total_time = sum(times)
+            game_outputs = pool.map(self.run_trial, range(num_trials))
             self.resume = False  # done adding to the data
         else:
             for i in range(num_trials):
-                total_time += self.run_trial(i)
+                game_outputs.append(self.run_trial(i))
 
         self.env.close()
 
@@ -109,10 +108,17 @@ class OpenAIStateClass(absstate.AbstractState):
             if self.api_key != '':
                 gym.upload(self.wrapper_target, api_key=self.api_key)
 
-        stats_recorder = self.env.stats_recorder  # TODO: rewards and wins
+        total_reward = 0
+        wins = 0
+        total_time = 0
+        for output in game_outputs:
+            total_reward += output['reward']  # TODO: ensure reward is being properly captured
+            wins += output['won']
+            total_time += output['total time']
 
-        return {'name': agent.agentname, 'rewards': stats_recorder.episode_rewards, 'wins': 1,
-                'average move time': total_time / stats_recorder.total_steps}
+        return {'name': agent.agentname, 'average reward': total_reward / num_trials,
+                'success rate': wins / num_trials,
+                'average move time': total_time / self.env.stats_recorder.total_steps}
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
@@ -125,10 +131,10 @@ class OpenAIStateClass(absstate.AbstractState):
             begin = time.time()
             action = self.agent.act()
             total_time += time.time() - begin
-            self.current_observation, _, self.done, _ = self.env.step(action)
+            self.current_observation, reward, self.done, _ = self.env.step(action)
             if self.show_moves:
                 self.env.render()
-        return total_time
+        return {'reward': reward, 'won': reward > 0, 'total time': total_time}
 
     def set_agent(self, agent):
         self.agent = Agent(agent, self)
