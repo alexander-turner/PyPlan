@@ -10,10 +10,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=10, depth=10)
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
+    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=3, num_pulls=10, policy=u_ro)
 
-    e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=100, epsilon=0.5, policy=rand_agent)
+    e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=10, epsilon=0.5, policy=rand_agent)
 
     ucb_ro_d100_n100_c1 = ucb_rollout_agent.UCBRolloutAgentClass(depth=100, num_pulls=100, c=1.0, policy=rand_agent)
 
@@ -30,7 +30,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     openai = openai_sim.OpenAIStateClass('FrozenLake-v0', wrapper_target='Frozen_Lake',
                                          api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run(agents=[u_ro, e_ro], num_trials=1, multiprocess=False, show_moves=False)
+    openai.run(agents=[u_ro, nested_u_ro], num_trials=5, multiprocess=False, show_moves=True)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[u_ro, ss_d3, switch_agent, e_switch_agent], num_trials=2)

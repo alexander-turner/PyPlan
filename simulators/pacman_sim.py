@@ -80,7 +80,7 @@ class PacmanStateClass(absstate.AbstractState):
                           numpy.mean(output['rewards']),  # average final score
                           output['wins'] / num_trials,  # win percentage
                           output['average move time']])  # average time taken per move
-        print(tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
+        print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.myname))
 
     def run_trials(self, agent, num_trials, multiprocess=True):

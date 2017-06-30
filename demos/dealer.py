@@ -17,12 +17,11 @@ class DealerClass:
         self.verbose = verbose
         self.simulation_horizon = sim_horizon
 
-    def start_simulation(self, multiprocess=True):
+    def run_trials(self, multiprocess=True):
         game_outputs = []
         if multiprocess:
             # ensures that the system still runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-
             game_outputs = pool.map(self.run_trial, range(self.simulation_count))
         else:
             for sim_num in range(self.simulation_count):

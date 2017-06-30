@@ -25,7 +25,7 @@ def run(simulator, agents, num_trials=10, output_path=None, multiprocess=True, s
     dealer_object = dealer.DealerClass(simulator, agents, num_simulations=num_trials, sim_horizon=50,
                                        verbose=show_moves)
 
-    dealer_object.start_simulation(multiprocess=multiprocess)
+    dealer_object.run_trials(multiprocess=multiprocess)
     [results, winner_list, avg_times] = dealer_object.simulation_stats()
 
     # Calculate the results
@@ -57,7 +57,7 @@ def run(simulator, agents, num_trials=10, output_path=None, multiprocess=True, s
                       win_counts[agent_idx] / num_trials,  # win percentage
                       avg_times[agent_idx]])  # average time taken per move
 
-    table = tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
+    table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
     table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "", simulator.myname)
     print(table)
 

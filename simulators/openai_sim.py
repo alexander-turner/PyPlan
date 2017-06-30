@@ -1,7 +1,10 @@
 import logging
 import copy
+import tabulate
+import numpy
 import multiprocessing
 import gym
+import time
 from gym import spaces
 from gym import wrappers
 from abstract import absstate, absagent
@@ -16,11 +19,10 @@ class OpenAIStateClass(absstate.AbstractState):
     engine.
     """
 
-    def __init__(self, sim_name, policy, wrapper_target='', api_key='', force=True):
+    def __init__(self, sim_name, wrapper_target='', api_key='', force=True):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
         :param sim_name: a valid env key that corresponds to a particular game / task.
-        :param policy: an instantiated policy (ex: uniform rollout agent).
         :param wrapper_target: optional target filename for algorithm performance.
         :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
             run for at least 100 trials.
@@ -33,6 +35,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.wrapper_target = wrapper_target
         self.api_key = api_key
         self.resume = False  # whether to add data to the wrapper target directory
+        self.show_moves = True
         if self.wrapper_target != '':  # set where the results will be written to
             if not self.wrapper_target.startswith('OpenAI results\\'):
                 self.wrapper_target = 'OpenAI results\\' + self.wrapper_target
@@ -50,44 +53,85 @@ class OpenAIStateClass(absstate.AbstractState):
 
         self.done = False  # indicates if the current observation is terminal
 
-        self.agent = Agent(policy, self)
+        self.agent = None
 
     def initialize(self):
         """Reinitialize the environment."""
         self.current_observation = self.env.reset()
         self.done = False
 
-    def run(self, num_trials=1, multiprocess=True, do_render=True):  # TODO: run multiple agents and compare
+    # TODO: see if these three functions can be generalized?
+    def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
+        """Run the given number of trials on the specified agents, comparing their performance."""
+        for agent in agents:
+            agent = Agent(agent, self)
+            if not isinstance(agent.policy, absagent.AbstractAgent):  # if this is an actual learning agent
+                multiprocess = False
+                logging.warning('Multiprocessing is disabled for agents which learn over multiple episodes.')
+        if multiprocess:
+            show_moves = False
+
+        self.show_moves = show_moves
+
+        table = []
+        headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
+
+        for agent in agents:
+            print('\nNow simulating: {}'.format(agent.agentname))
+            output = self.run_trials(agent, num_trials, multiprocess, upload)
+            table.append([output['name'],  # agent name
+                          numpy.mean(output['rewards']),  # average final score
+                          output['wins'] / num_trials,  # win percentage
+                          output['average move time']])  # average time taken per move
+        print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
+        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.myname))
+
+    def run_trials(self, agent, num_trials=1, multiprocess=True, upload=False):
         """Run the given number of trials using the current configuration."""
-        if not isinstance(self.agent.policy, absagent.AbstractAgent):  # if this is an actual learning agent
-            multiprocess = False
-            logging.warning('Multiprocessing is disabled for agents which learn over multiple episodes.')
+        self.set_agent(agent)
+        total_time = 0
 
         if multiprocess:  # TODO: debug multiprocessing for wrappers
             self.resume = True
-            if multiprocess:
-                # ensures the system runs smoothly
-                pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-                pool.map(self.run_trial, [do_render] * num_trials)
+            # ensures the system runs smoothly
+            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+            times = pool.map(self.run_trial, range(num_trials))  # total time taken on moves throughout algorithm
+            total_time = sum(times)
             self.resume = False  # done adding to the data
         else:
             for i in range(num_trials):
-                self.run_trial(do_render)
+                total_time += self.run_trial(i)
 
         self.env.close()
 
-        if self.wrapper_target != '':
+        if upload and self.wrapper_target != '':
             print('Episode finished after {} timesteps.'.format(self.env.get_total_steps()))
             if self.api_key != '':
                 gym.upload(self.wrapper_target, api_key=self.api_key)
 
-    def run_trial(self, do_render):
+        stats_recorder = self.env.stats_recorder  # TODO: rewards and wins
+
+        return {'name': agent.agentname, 'rewards': stats_recorder.episode_rewards, 'wins': 1,
+                'average move time': total_time / stats_recorder.total_steps}
+
+    def run_trial(self, trial_num):
+        """Using the game parameters, run and return total time spent selecting moves.
+
+        :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
+        """
         self.initialize()
+        total_time = 0
         while self.done is False:
+            begin = time.time()
             action = self.agent.act()
+            total_time += time.time() - begin
             self.current_observation, _, self.done, _ = self.env.step(action)
-            if do_render:
+            if self.show_moves:
                 self.env.render()
+        return total_time
+
+    def set_agent(self, agent):
+        self.agent = Agent(agent, self)
 
     def clone(self):
         new_sim = copy.deepcopy(self)
