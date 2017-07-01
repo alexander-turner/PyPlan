@@ -28,9 +28,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
 
     all_environments = envs.registry.all()
-    openai = openai_sim.OpenAIStateClass(sim_name='FrozenLake-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+    openai = openai_sim.OpenAIStateClass(sim_name='CartPole-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
     for env_idx, env in enumerate(all_environments):
-        print("Running {}".format(env))
         openai.change_sim(env.id)
         openai.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=True)
 

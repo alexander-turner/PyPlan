@@ -188,15 +188,11 @@ class OpenAIStateClass(absstate.AbstractState):
     def get_actions(self):
         if isinstance(self.action_space, spaces.Discrete):
             return range(self.action_space.n)
-        elif isinstance(self.action_space, spaces.Tuple):  # TODO: tuple support
+        elif isinstance(self.action_space, spaces.Tuple):
             a_spaces = self.action_space.spaces
-
-            all_tuples = ()  # construct a list of range tuples
-            for s in a_spaces:
-                all_tuples += tuple(range(s.n))
-            # this allows for incorrect indices
-            combos = tuple(itertools.combinations(all_tuples, len(a_spaces)))  # get all the tuple combinations
-            return combos
+            ranges = tuple(tuple(range(s.n)) for s in a_spaces)
+            product = tuple(itertools.product(*ranges))
+            return product
         else:
             raise NotImplementedError
 
