@@ -252,7 +252,7 @@ class YahtzeeStateClass(absstate.AbstractState):
     def set_current_player(self, player_index):
         self.current_state.get_current_state()["current_player"] = player_index
 
-    def __eq__(self):
+    def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):

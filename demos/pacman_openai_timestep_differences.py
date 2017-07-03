@@ -4,7 +4,7 @@ from simulators import openai_sim, pacman_sim
 
 """
 Although Pacman and Ms. Pacman are nearly identical games, the latter's simulator has a much finer grid. This multiplies
- the depth required to be able to have the same level of lookahead.
+ the depth required to have the same level of lookahead.
 """
 
 if __name__ == '__main__':

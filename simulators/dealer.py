@@ -19,7 +19,7 @@ class DealerClass:
         self.num_trials = 0
         self.show_moves = False
 
-    def initialize(self):
+    def reinitialize(self):
         """Resets tracking stats for another use."""
         self.simulation_history = []
         self.game_winner_list = []
@@ -32,7 +32,7 @@ class DealerClass:
         self.num_trials = num_trials
         if simulator:
             self.simulator = simulator
-            self.simulator.initialize()
+            self.simulator.reinitialize()
         if show_moves:
             self.show_moves = show_moves
 
@@ -52,7 +52,7 @@ class DealerClass:
         if multiprocess:
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
 
-        self.initialize()
+        self.reinitialize()
         self.configure(agents, num_trials, simulator, show_moves)
 
         self.run_trials(multiprocess=multiprocess)

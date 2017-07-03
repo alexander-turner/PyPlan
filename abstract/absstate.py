@@ -23,7 +23,7 @@ class AbstractState:
     my_name = ""  # the name of the environment
 
     @abc.abstractmethod
-    def initialize(self):
+    def reinitialize(self):
         """This method sets the state to the/an initial state of the domain."""
         raise NotImplementedError
 

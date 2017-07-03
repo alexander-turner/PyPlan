@@ -28,7 +28,7 @@ class Connect4StateClass(absstate.AbstractState):
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
 
-    def initialize(self):
+    def reinitialize(self):
         self.state_val = [0, 0]
         self.current_player = 0
         self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner

@@ -57,7 +57,7 @@ class PacmanStateClass(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0
 
-    def initialize(self):
+    def reinitialize(self):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
                                                     ghostAgents=self.ghost_agents, display=self.display)
@@ -102,8 +102,7 @@ class PacmanStateClass(absstate.AbstractState):
                 game_outputs.append(self.run_trial(i))
 
         rewards = []
-        wins = 0
-        average_move_time = 0
+        wins, average_move_time = 0, 0
         for output in game_outputs:
             rewards.append(output['reward'])
             wins += output['won']
@@ -119,7 +118,7 @@ class PacmanStateClass(absstate.AbstractState):
 
         :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
         """
-        self.initialize()  # reset the game
+        self.reinitialize()  # reset the game
 
         start_time = time.time()
         self.game.run(self.show_moves)
@@ -130,7 +129,7 @@ class PacmanStateClass(absstate.AbstractState):
     def set_agent(self, agent):
         """Sets Pacman's agent."""
         self.pacman_agent = Agent(agent, self)
-        self.initialize()
+        self.reinitialize()
 
     def clone(self):
         new_sim = PacmanStateClass(self.layout)

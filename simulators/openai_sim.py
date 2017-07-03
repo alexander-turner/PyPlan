@@ -20,7 +20,7 @@ class OpenAIStateClass(absstate.AbstractState):
     engine.
     """
 
-    def __init__(self, sim_name, api_key='', force=True):
+    def __init__(self, sim_name, api_key=None, force=True):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
         :param sim_name: a valid env key that corresponds to a particular game / task.
@@ -53,12 +53,20 @@ class OpenAIStateClass(absstate.AbstractState):
         self.current_observation = self.original_observation
         self.done = False  # indicates if the current observation is terminal
 
-    def initialize(self):
+    def reinitialize(self):
         """Reinitialize the environment."""
         self.current_observation = self.env.reset()
         self.done = False
 
-    def change_sim(self, sim_name):
+    def set(self, sim):
+        self.env = copy.copy(sim.env.unwrapped)
+        self.current_observation = sim.current_observation
+        self.done = sim.done
+
+    def set_agent(self, agent):
+        self.agent = Agent(agent, self)
+
+    def load_env(self, sim_name):
         self.sim_name = sim_name
         self.env = gym.make(sim_name)
         self.my_name = self.env.spec._env_name
@@ -86,18 +94,18 @@ class OpenAIStateClass(absstate.AbstractState):
                 print("Unwanted game - skipping {}.".format(env.id))
                 continue
             try:
-                self.change_sim(env.id)
+                self.load_env(env.id)
             except:  # If the action space is continuous
                 print("Continuous action space - skipping {}.".format(env.id))
                 continue
             self.run(agents=agents, num_trials=num_trials, multiprocess=multiprocess, show_moves=show_moves)
 
-    def run(self, agents, num_trials, multiprocess=False, show_moves=True, upload=False):
+    def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
 
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
-        :param multiprocess: whether to use multiprocessing. NOTE: currently unsupported if a Monitor is instantiated.
+        :param multiprocess: whether to use multiprocessing.
         :param show_moves: if the environment can render, then render each move.
         :param upload: whether to upload results to OpenAI.
         """
@@ -128,8 +136,13 @@ class OpenAIStateClass(absstate.AbstractState):
         """Run the given number of trials using the current configuration."""
         self.set_agent(agent)
 
+        if not self.env.enabled:
+            self.env = gym.make(self.sim_name)
+            self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=self.force,
+                                        resume=self.resume)
+
         game_outputs = []
-        if multiprocess:  # TODO: debug multiprocessing for wrappers
+        if multiprocess:
             self.resume = True
             # ensures the system runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
@@ -140,30 +153,26 @@ class OpenAIStateClass(absstate.AbstractState):
                 game_outputs.append(self.run_trial(i))
 
         self.env.close()
+        if self.api_key and upload:
+            gym.upload(self.wrapper_target, api_key=self.api_key)
 
-        if upload and self.wrapper_target != '':
-            print('Episode finished after {} timesteps.'.format(self.env.get_total_steps()))
-            if self.api_key != '':
-                gym.upload(self.wrapper_target, api_key=self.api_key)
-
-        total_reward = 0
-        wins = 0
-        total_time = 0
+        total_reward, wins, total_time, total_steps = 0, 0, 0, 0
         for output in game_outputs:
             total_reward += output['reward']
             wins += output['won']
             total_time += output['total time']
+            total_steps += output['total steps']
 
         return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
-                'average move time': total_time / self.env.stats_recorder.total_steps}
+                'average move time': total_time / total_steps}
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
 
         :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
         """
-        self.initialize()
+        self.reinitialize()
         total_time = 0
         while self.done is False:
             begin = time.time()
@@ -173,14 +182,12 @@ class OpenAIStateClass(absstate.AbstractState):
             self.current_observation, reward, self.done, _ = self.env.step(action)
 
             if self.show_moves and 'human' in self.env.metadata['render.modes']:  # don't render if not supported
-                self.env.render()  # TODO: fix certain invalid frames
+                self.env.render()
 
         return {'reward': self.env.stats_recorder.rewards,
                 'won': reward > 0,  # won if reward after game ends is positive
-                'total time': total_time}
-
-    def set_agent(self, agent):
-        self.agent = Agent(agent, self)
+                'total time': total_time,
+                'total steps': self.env.stats_recorder.total_steps}
 
     def clone(self):
         new_sim = copy.copy(self)
@@ -188,11 +195,6 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def number_of_players(self):
         return 1
-
-    def set(self, sim):
-        self.env = copy.copy(sim.env.unwrapped)
-        self.current_observation = sim.current_observation
-        self.done = sim.done
 
     def is_terminal(self):
         return self.done

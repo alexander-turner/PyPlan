@@ -61,7 +61,7 @@ class TicTacToeStateClass(absstate.AbstractState):
         new_sim_obj.set(self)
         return new_sim_obj
 
-    def initialize(self):
+    def reinitialize(self):
         #self.current_state = tictactoestate.TicTacToeStateClass()
         self.winning_player = None
         self.game_over = False
