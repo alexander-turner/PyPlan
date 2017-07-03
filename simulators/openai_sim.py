@@ -78,6 +78,20 @@ class OpenAIStateClass(absstate.AbstractState):
         self.current_observation = self.original_observation
         self.done = False  # indicates if the current observation is terminal
 
+    def run_all(self, agents, num_trials):
+        """Runs the agents on all available simulators."""
+        all_environments = gym.envs.registry.all()
+        for env_idx, env in enumerate(all_environments):
+            if should_skip(env.id):  # duplicate games / games that hang
+                print("Unwanted game - skipping {}.".format(env.id))
+                continue
+            try:
+                self.change_sim(env.id)
+            except:  # If the action space is continuous
+                print("Continuous action space - skipping {}.".format(env.id))
+                continue
+            self.run(agents=agents, num_trials=num_trials, multiprocess=False, show_moves=False)
+
     def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
 
@@ -220,3 +234,12 @@ class Agent(object):
     def act(self):
         """Despite what its name may suggest, act only determines what action to take."""
         return self.policy.select_action(self.parent)
+
+
+def should_skip(game_id):
+    """Returns True if the game should be skipped."""
+    skip_games = ["Assault", "BankHeist", "BeamRider-v4", "CliffWalking"]  # games take a very long time
+    skip_keywords = ["Deterministic", "Frameskip", "ram"]
+    for key in skip_games + skip_keywords:
+        if str.find(game_id, key) != -1:
+            return True

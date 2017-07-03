@@ -3,11 +3,11 @@ from abstract import absstate
 
 
 class Connect4StateClass(absstate.AbstractState):
-    def __init__(self, height=6, width=7):
+    def __init__(self):
         self.state_val = [0, 0]
 
-        self.board_height = height
-        self.board_width = width
+        self.board_height = 6
+        self.board_width = 7
 
         self.num_players = 2
         self.current_player = 0
@@ -87,29 +87,28 @@ class Connect4StateClass(absstate.AbstractState):
     def current_game_outcome(self):
         for player in range(self.num_players):
             curr_board = self.state_val[player]
-            temp = bin(curr_board)
 
-            # LEFT DIAGONAL
+            # Left diagonal
             transform = curr_board & (curr_board >> self.board_height)
             if transform & (transform >> (2 * self.board_height)):
                 return player
 
-            # RIGHT DIAGONAL
+            # Right diagonal
             transform = curr_board & (curr_board >> (self.board_width + 1))
             if transform & (transform >> (2 * (self.board_width + 1))):
                 return player
 
-            # HORIZONTAL
+            # Horizontal
             transform = curr_board & (curr_board >> self.board_width)
             if transform & (transform >> (2 * self.board_width)):
                 return player
 
-            # VERTICAL
+            # Vertical
             transform = curr_board & (curr_board >> 1)
             if transform & (transform >> 2):
                 return player
 
-        # NO WINS BUT CHECK FOR DRAW
+        # Check for draw
         current_board = 0
 
         for player_board in range(self.num_players):
@@ -134,21 +133,20 @@ class Connect4StateClass(absstate.AbstractState):
 
     def __repr__(self):
         output = ""
-        for row in range(6, -1, -1):
-            for col in range(7):
-                board_size = ((6 + 1) * 7)
+        board_size = (self.board_height + 1) * self.board_width
+        for row in range(self.board_height, -1, -1):
+            for col in range(self.board_width):
                 player_num = 1
                 is_printed = False
                 for player_board in self.state_val:
                     curr_board = bin(player_board)[2:].zfill(board_size)[::-1]
-                    if int(curr_board[row + ((6 + 1) * col)]) == 1:
+                    if int(curr_board[row + ((self.board_height + 1) * col)]) == 1:
                         output += str(player_num) + ""
                         is_printed = True
                     player_num += 1
 
                 if is_printed is False:
                     output += "0"
-
             output += "\n"
 
         return output
