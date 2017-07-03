@@ -78,7 +78,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.current_observation = self.original_observation
         self.done = False  # indicates if the current observation is terminal
 
-    def run_all(self, agents, num_trials):
+    def run_all(self, agents, num_trials, multiprocess=False, show_moves=False):
         """Runs the agents on all available simulators."""
         all_environments = gym.envs.registry.all()
         for env_idx, env in enumerate(all_environments):
@@ -90,15 +90,16 @@ class OpenAIStateClass(absstate.AbstractState):
             except:  # If the action space is continuous
                 print("Continuous action space - skipping {}.".format(env.id))
                 continue
-            self.run(agents=agents, num_trials=num_trials, multiprocess=False, show_moves=False)
+            self.run(agents=agents, num_trials=num_trials, multiprocess=multiprocess, show_moves=show_moves)
 
-    def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
+    def run(self, agents, num_trials, multiprocess=False, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
 
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
         :param multiprocess: whether to use multiprocessing. NOTE: currently unsupported if a Monitor is instantiated.
         :param show_moves: if the environment can render, then render each move.
+        :param upload: whether to upload results to OpenAI.
         """
         for agent in agents:
             agent = Agent(agent, self)
@@ -182,7 +183,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.agent = Agent(agent, self)
 
     def clone(self):
-        new_sim = copy.copy(self)  # QUESTION: deepcopy or copy?
+        new_sim = copy.copy(self)
         return new_sim
 
     def number_of_players(self):
@@ -202,7 +203,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
-        self.current_observation, reward, self.done, _ = self.env.step(action)  # QUESTION: current reward or total?
+        self.current_observation, reward, self.done, _ = self.env.step(action)
         rewards = [-1 * reward] * self.number_of_players()  # reward other agents get
         rewards[0] *= -1  # correct agent reward
         return rewards
