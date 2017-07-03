@@ -160,14 +160,15 @@ class OpenAIStateClass(absstate.AbstractState):
         self.agent = Agent(agent, self)
 
     def clone(self):
-        new_sim = copy.copy(self)
+        new_sim = copy.deepcopy(self)  # QUESTION: deepcopy or copy?
         return new_sim
 
     def number_of_players(self):
         return 1
 
+    # TODO: Fix environments' closing after copy
     def set(self, sim):
-        self.env = copy.deepcopy(sim.env.unwrapped)
+        self.env = copy.deepcopy(sim.env.unwrapped)  # TODO: Fix CartPole viewer compatibility
         self.current_observation = sim.current_observation
         self.done = sim.done
 
@@ -191,7 +192,7 @@ class OpenAIStateClass(absstate.AbstractState):
         elif isinstance(self.action_space, spaces.Tuple):
             a_spaces = self.action_space.spaces
             ranges = tuple(tuple(range(s.n)) for s in a_spaces)
-            product = tuple(itertools.product(*ranges))
+            product = tuple(itertools.product(*ranges))  # return all combinations of action dimensions
             return product
         else:
             raise NotImplementedError
@@ -211,5 +212,4 @@ class Agent(object):
 
     def act(self):
         """Despite what its name may suggest, act only determines what action to take."""
-        return self.policy.select_action(self.parent)  # extra output coming from here
-
+        return self.policy.select_action(self.parent)
