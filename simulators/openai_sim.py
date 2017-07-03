@@ -2,6 +2,8 @@ import logging
 import copy
 
 import itertools
+
+import sys
 import tabulate
 import multiprocessing
 import gym
@@ -144,9 +146,11 @@ class OpenAIStateClass(absstate.AbstractState):
         game_outputs = []
         if multiprocess:
             self.resume = True
+
             # ensures the system runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            game_outputs = pool.map(self.run_trial, range(num_trials))
+            game_outputs = self.try_pool(pool, num_trials)
+
             self.resume = False  # done adding to the data
         else:
             for i in range(num_trials):
@@ -166,6 +170,14 @@ class OpenAIStateClass(absstate.AbstractState):
         return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
                 'average move time': total_time / total_steps}
+
+    def try_pool(self, pool, num_trials, tries=0):
+        """Sometimes the pool takes a few tries to execute; keep trying until it works."""
+        try:
+            return pool.map(self.run_trial, range(num_trials))
+        except WindowsError:
+            if tries < sys.getrecursionlimit():
+                return self.try_pool(pool, num_trials, tries+1)
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
