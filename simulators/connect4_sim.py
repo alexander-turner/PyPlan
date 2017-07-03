@@ -3,7 +3,6 @@ from abstract import absstate
 
 
 class Connect4StateClass(absstate.AbstractState):
-    myname = "Connect 4"
     num_players = 2
     board_height = 6
     board_width = 7
@@ -12,6 +11,7 @@ class Connect4StateClass(absstate.AbstractState):
         self.state_val = [0, 0]
         self.current_player = 0
         self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
+        self.my_name = "Connect 4"
 
     def clone(self):
         new_state = copy.deepcopy(self)

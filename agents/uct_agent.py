@@ -5,7 +5,7 @@ from heuristics import rollout_heuristic
 
 
 class UCTAgentClass(mcts_agent.MCTSAgentClass):
-    myname = "UCT Agent"
+    my_name = "UCT Agent"
 
     def __init__(self, depth, max_width, num_trials, c=1, base_policy=None):
         if base_policy is None:
@@ -15,6 +15,6 @@ class UCTAgentClass(mcts_agent.MCTSAgentClass):
 
         mcts_agent.MCTSAgentClass.__init__(self, depth=depth, max_width=max_width, num_trials=num_trials,
                                            heuristic=h1,
-                                           BanditAlgClass=ucb_bandit_alg.UCBBanditAlgClass, bandit_parameters=c)
+                                           bandit_alg_class=ucb_bandit_alg.UCBBanditAlgClass, bandit_parameters=c)
 
-        self.agentname = self.myname
+        self.agent_name = self.my_name

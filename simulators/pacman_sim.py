@@ -21,7 +21,6 @@ class PacmanStateClass(absstate.AbstractState):
     Note that unlike other interfaces, this is not compatible with the dealer simulator due its reliance on the provided
     Pacman engine.
     """
-    myname = "Pacman"
 
     def __init__(self, layout_repr, use_random_ghost=False, use_graphics=True):
         """Initialize an interface to the Pacman game simulator.
@@ -34,6 +33,7 @@ class PacmanStateClass(absstate.AbstractState):
             self.layout = layout.getLayout(layout_repr)
         else:  # we've been directly given a layout
             self.layout = layout_repr
+        self.my_name = "Pacman"
 
         if use_graphics:
             self.display = graphicsDisplay.PacmanGraphics()
@@ -81,7 +81,7 @@ class PacmanStateClass(absstate.AbstractState):
                           output['wins'] / num_trials,  # win percentage
                           output['average move time']])  # average time taken per move
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.myname))
+        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.my_name))
 
     def run_trials(self, agent, num_trials, multiprocess=True):
         """Run a given number of games using the current configuration, recording and returning performance statistics.

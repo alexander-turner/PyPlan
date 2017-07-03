@@ -5,11 +5,11 @@ from heuristics import zero_heuristic
 
 
 class MCTSAgentClass(absagent.AbstractAgent):
-    myname = "MCTS"
+    my_name = "MCTS Agent"
 
-    def __init__(self, depth, max_width, num_trials, heuristic=None, BanditAlgClass=None, bandit_parameters=None,
-                 RootBanditAlgClass=None, root_bandit_parameters=None):
-        self.agentname = self.myname
+    def __init__(self, depth, max_width, num_trials, heuristic=None, bandit_alg_class=None, bandit_parameters=None,
+                 root_bandit_alg_class=None, root_bandit_parameters=None):
+        self.agent_name = self.my_name
         self.num_nodes = 1
 
         self.depth = depth
@@ -23,20 +23,20 @@ class MCTSAgentClass(absagent.AbstractAgent):
 
         self.bandit_parameters = bandit_parameters
 
-        if BanditAlgClass is None:
+        if bandit_alg_class is None:
             self.BanditAlgClass = uniform_bandit_alg.UniformBanditAlgClass
         else:
-            self.BanditAlgClass = BanditAlgClass
+            self.BanditAlgClass = bandit_alg_class
 
-        if RootBanditAlgClass is None:
+        if root_bandit_alg_class is None:
             self.RootBanditAlgClass = self.BanditAlgClass
         else:
-            self.RootBanditAlgClass = RootBanditAlgClass
+            self.RootBanditAlgClass = root_bandit_alg_class
 
         self.root_bandit_parameters = root_bandit_parameters
 
     def get_agent_name(self):
-        return self.agentname
+        return self.agent_name
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""

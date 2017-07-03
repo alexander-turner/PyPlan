@@ -14,7 +14,7 @@ class TetrisStateClass(absstate.AbstractState):
         self.num_players = num_players
         self.winning_player = None
         self.game_over = False
-        self.myname = "Tetris"
+        self.my_name = "Tetris"
 
     def create_copy(self):
         new_sim_obj = TetrisStateClass(self.num_players)

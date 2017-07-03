@@ -91,7 +91,7 @@ class DealerClass:
                           avg_times[agent_idx]])  # average time taken per move
 
         table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
-        table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "", simulator.myname)
+        table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "", simulator.my_name)
         print(table)
 
         if output_path is not None:

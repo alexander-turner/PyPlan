@@ -3,7 +3,6 @@ import copy
 
 import itertools
 import tabulate
-import numpy
 import multiprocessing
 import gym
 import time
@@ -37,7 +36,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
         self.sim_name = sim_name
         self.env = gym.make(sim_name)
-        self.myname = self.env.spec._env_name
+        self.my_name = self.env.spec._env_name
 
         # output directory location for agent performance
         self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
@@ -62,7 +61,7 @@ class OpenAIStateClass(absstate.AbstractState):
     def change_sim(self, sim_name):
         self.sim_name = sim_name
         self.env = gym.make(sim_name)
-        self.myname = self.env.spec._env_name
+        self.my_name = self.env.spec._env_name
 
         # output directory location for agent performance
         self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
@@ -102,7 +101,7 @@ class OpenAIStateClass(absstate.AbstractState):
                           output['success rate'],  # win percentage
                           output['average move time']])  # average time taken per move
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.myname))
+        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.my_name))
 
     def run_trials(self, agent, num_trials=1, multiprocess=True, upload=False):
         """Run the given number of trials using the current configuration."""
@@ -151,7 +150,7 @@ class OpenAIStateClass(absstate.AbstractState):
             total_time += time.time() - begin
             self.current_observation, reward, self.done, _ = self.env.step(action)
             if self.show_moves:
-                self.env.render()
+                self.env.render()  # TODO: fix certain invalid frames
         return {'reward': self.env.stats_recorder.rewards,
                 'won': reward > 0,  # won if reward after game ends is positive
                 'total time': total_time}
@@ -160,7 +159,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.agent = Agent(agent, self)
 
     def clone(self):
-        new_sim = copy.deepcopy(self)  # QUESTION: deepcopy or copy?
+        new_sim = copy.copy(self)  # QUESTION: deepcopy or copy?
         return new_sim
 
     def number_of_players(self):
@@ -168,7 +167,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
     # TODO: Fix environments' closing after copy
     def set(self, sim):
-        self.env = copy.deepcopy(sim.env.unwrapped)  # TODO: Fix CartPole viewer compatibility
+        self.env = copy.copy(sim.env.unwrapped)  # TODO: Fix CartPole viewer compatibility
         self.current_observation = sim.current_observation
         self.done = sim.done
 

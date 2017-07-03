@@ -10,8 +10,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=10, depth=10)
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=20, policy=rand_agent)
-    nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=3, num_pulls=30, policy=u_ro)
+    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=1, policy=rand_agent)
+    nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=2, num_pulls=15, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=100, epsilon=0.5, policy=rand_agent)
 
@@ -30,8 +30,15 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     all_environments = envs.registry.all()
     openai = openai_sim.OpenAIStateClass(sim_name='CartPole-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
     for env_idx, env in enumerate(all_environments):
-        openai.change_sim(env.id)
-        openai.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=True)
+        try:
+            openai.change_sim(env.id)
+        except:  # If the action space is continuous
+            print("Continuous action space - skipping {}.".format(env.id))
+            continue
+        if str.startswith(env.id, "CliffWalking") \
+                or str.startswith(env.id, "AirRaid"):  # these environments hang for some reason
+            continue
+        openai.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=False)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[switch_agent, e_switch_agent], num_trials=10)

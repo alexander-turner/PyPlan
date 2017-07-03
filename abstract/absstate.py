@@ -20,7 +20,7 @@ class AbstractState:
     """
     __metaclass__ = ABCMeta
 
-    myname = ""  # the name of the environment
+    my_name = ""  # the name of the environment
 
     @abc.abstractmethod
     def initialize(self):

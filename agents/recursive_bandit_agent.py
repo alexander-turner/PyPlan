@@ -5,10 +5,10 @@ from heuristics import zero_heuristic
 
 class RecursiveBanditAgentClass(absagent.AbstractAgent):
     """The agent blueprint."""
-    myname = "Recursive Bandit"
+    my_name = "Recursive Bandit"
 
-    def __init__(self, depth, pulls_per_node, heuristic=None, BanditClass=None, bandit_parameters=None):
-        self.agentname = self.myname
+    def __init__(self, depth, pulls_per_node, heuristic=None, bandit_class=None, bandit_parameters=None):
+        self.agent_name = self.my_name
         self.num_nodes = 1
 
         self.depth = depth
@@ -19,15 +19,15 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         else:
             self.heuristic = heuristic
 
-        if BanditClass is None:
-            self.BanditClass = uniform_bandit_alg.UniformBanditAlgClass
+        if bandit_class is None:
+            self.bandit_class = uniform_bandit_alg.UniformBanditAlgClass
         else:
-            self.BanditClass = BanditClass
+            self.bandit_class = bandit_class
 
         self.bandit_parameters = bandit_parameters
 
     def get_agent_name(self):
-        return self.agentname
+        return self.agent_name
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -51,9 +51,9 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
 
         # create a bandit according to how many actions are available at the current state
         if self.bandit_parameters is None:
-            bandit = self.BanditClass(num_actions)
+            bandit = self.bandit_class(num_actions)
         else:
-            bandit = self.BanditClass(num_actions, self.bandit_parameters)
+            bandit = self.bandit_class(num_actions, self.bandit_parameters)
 
         current_state = state.clone()
         q_values = [[0]*state.number_of_players()]*num_actions  # for each action, for each player, initialize a q value

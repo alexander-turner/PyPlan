@@ -3,16 +3,16 @@ from abstract import absheuristic
 
 class RolloutHeuristicClass(absheuristic.AbstractHeuristic):
     """Facilitates rollout according to a user-defined policy, width, and depth."""
-    myname = "Rollout Heuristic"
+    my_name = "Rollout Heuristic"
 
     def __init__(self, rollout_policy, width=1, depth=10):
-        self.heuristicname = self.myname
+        self.heuristic_name = self.my_name
         self.rollout_policy = rollout_policy
         self.width = width
         self.depth = depth
 
     def get_heuristic_name(self):
-        return self.heuristicname
+        return self.heuristic_name
 
     def evaluate(self, state):
         """Evaluate the state using the parameters of the heuristic and the rollout policy."""

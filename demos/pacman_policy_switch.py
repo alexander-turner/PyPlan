@@ -6,8 +6,8 @@ from simulators import pacman_sim
 Policy switching carries with it the theoretical guarantee that at each juncture, it will perform at least as well as 
 the best policy in its set. However, observe that when an agent has a low number of pulls (and thus we can't have high 
 confidence in its conclusions), it can be hard for the policy switching agent to estimate the policy's value. 
-This makes it vulnerable to poor decision-making.  
-"""  # TODO: double-check with Fern
+This makes it vulnerable to poor decision-making. 
+"""  # TODO: Integrate proof
 
 if __name__ == '__main__':
     rand_agent = random_agent.RandomAgentClass()

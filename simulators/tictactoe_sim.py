@@ -22,7 +22,7 @@ class TicTacToeStateClass(absstate.AbstractState):
         self.num_players = num_players
         self.winning_player = None
         self.game_over = False
-        self.myname = "Tic Tac Toe"
+        self.my_name = "Tic Tac Toe"
 
     def number_of_players(self):
         return self.num_players

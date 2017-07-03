@@ -6,7 +6,7 @@ from heuristics import rollout_heuristic
 
 
 class ERootUCTAgentClass(mcts_agent.MCTSAgentClass):
-    myname = "0.5-Greedy Root UCT Agent"
+    my_name = "0.5-Greedy Root UCT Agent"
 
     def __init__(self, depth, max_width, num_trials, c=1, base_policy=None):
         if base_policy is None:
@@ -16,11 +16,11 @@ class ERootUCTAgentClass(mcts_agent.MCTSAgentClass):
 
         mcts_agent.MCTSAgentClass.__init__(self, depth=depth, max_width=max_width, num_trials=num_trials,
                                            heuristic=h1,
-                                           BanditAlgClass=ucb_bandit_alg.UCBBanditAlgClass, bandit_parameters=c,
-                                           RootBanditAlgClass=e_bandit_alg.EBanditAlgClass,
+                                           bandit_alg_class=ucb_bandit_alg.UCBBanditAlgClass, bandit_parameters=c,
+                                           root_bandit_alg_class=e_bandit_alg.EBanditAlgClass,
                                            root_bandit_parameters=0.5)
 
-        self.agentname = self.myname + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width,
-                                                                                               num_trials, c,
-                                                                                               base_policy.agentname)
+        self.agent_name = self.my_name + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width,
+                                                                                                 num_trials, c,
+                                                                                                 base_policy.agent_name)
 

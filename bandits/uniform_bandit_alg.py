@@ -3,7 +3,7 @@ from abstract import absbandit_alg
 
 class UniformBanditAlgClass(absbandit_alg.AbstractBanditAlg):
     """Pulls each arm an approximately equal number of times (difference is at most 1)."""
-    myname = "Uniform Bandit"
+    my_name = "Uniform Bandit"
 
     def __init__(self, num_arms):
         self.num_arms = num_arms
@@ -12,7 +12,7 @@ class UniformBanditAlgClass(absbandit_alg.AbstractBanditAlg):
         self.total_pulls = 0
 
     def get_bandit_name(self):
-        return self.myname
+        return self.my_name
 
     def initialize(self):
         """Reset the bandit while retaining the name and number of arms."""

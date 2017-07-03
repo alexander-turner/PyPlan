@@ -7,7 +7,7 @@ class EBanditAlgClass(absbandit_alg.AbstractBanditAlg):
 
     Compared to the uniform bandit, less time is spent on non-promising arms.
     """
-    myname = "e-Greedy Bandit Algorithm"
+    my_name = "e-Greedy Bandit Algorithm"
 
     def __init__(self, num_arms, epsilon=0.5):
         self.num_arms = num_arms
@@ -17,7 +17,7 @@ class EBanditAlgClass(absbandit_alg.AbstractBanditAlg):
         self.total_pulls = 0
 
     def get_bandit_name(self):
-        return self.myname
+        return self.my_name
 
     def initialize(self):
         """Reset the bandit while retaining the name, number of arms, and epsilon value."""
