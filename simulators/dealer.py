@@ -85,7 +85,7 @@ class DealerClass:
         table = []
         headers = ["Agent Name", "Average Final Reward", "Winrate", "Average Time / Move (s)"]
         for agent_idx, agent in enumerate(agents):
-            table.append([agent.agentname,  # agent name
+            table.append([agent.agent_name,  # agent name
                           overall_avg_reward[agent_idx],  # average final reward
                           win_counts[agent_idx] / num_trials,  # win percentage
                           avg_times[agent_idx]])  # average time taken per move

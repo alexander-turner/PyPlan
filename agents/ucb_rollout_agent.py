@@ -11,4 +11,4 @@ class UCBRolloutAgentClass(rollout_agent.RolloutAgentClass):
                                                  bandit_class=ucb_bandit_alg.UCBBanditAlgClass,
                                                  bandit_parameters=c)
 
-        self.agentname = self.myname + " (d={}, n={}, c={})".format(depth, num_pulls, c)
+        self.agent_name = self.my_name + " (d={}, n={}, c={})".format(depth, num_pulls, c)

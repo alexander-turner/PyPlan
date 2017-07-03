@@ -94,7 +94,7 @@ class OpenAIStateClass(absstate.AbstractState):
         headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
 
         for agent in agents:
-            print('\nNow simulating: {}'.format(agent.agentname))
+            print('\nNow simulating: {}'.format(agent.agent_name))
             output = self.run_trials(agent, num_trials, multiprocess, upload)
             table.append([output['name'],  # agent name
                           output['average reward'],  # average final score
@@ -133,7 +133,7 @@ class OpenAIStateClass(absstate.AbstractState):
             wins += output['won']
             total_time += output['total time']
 
-        return {'name': agent.agentname, 'average reward': total_reward / num_trials,
+        return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
                 'average move time': total_time / self.env.stats_recorder.total_steps}
 
@@ -149,7 +149,7 @@ class OpenAIStateClass(absstate.AbstractState):
             action = self.agent.act()
             total_time += time.time() - begin
             self.current_observation, reward, self.done, _ = self.env.step(action)
-            if self.show_moves:
+            if self.show_moves and 'human' in self.env.metadata['render.modes']:  # don't render if not supported
                 self.env.render()  # TODO: fix certain invalid frames
         return {'reward': self.env.stats_recorder.rewards,
                 'won': reward > 0,  # won if reward after game ends is positive

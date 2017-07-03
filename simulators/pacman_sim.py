@@ -74,7 +74,7 @@ class PacmanStateClass(absstate.AbstractState):
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
 
         for agent in agents:
-            print('\nNow simulating: {}'.format(agent.agentname))
+            print('\nNow simulating: {}'.format(agent.agent_name))
             output = self.run_trials(agent, num_trials, multiprocess)
             table.append([output['name'],  # agent name
                           numpy.mean(output['rewards']),  # average final score
@@ -111,7 +111,7 @@ class PacmanStateClass(absstate.AbstractState):
 
         average_move_time /= num_trials
 
-        return {'name': self.pacman_agent.policy.agentname, 'rewards': rewards, 'wins': wins,
+        return {'name': self.pacman_agent.policy.agent_name, 'rewards': rewards, 'wins': wins,
                 'average move time': average_move_time}
 
     def run_trial(self, trial_num):

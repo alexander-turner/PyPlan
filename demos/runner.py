@@ -29,14 +29,16 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     all_environments = envs.registry.all()
     openai = openai_sim.OpenAIStateClass(sim_name='CartPole-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+    openai.change_sim('Blackjack-v0')
+
     for env_idx, env in enumerate(all_environments):
         try:
             openai.change_sim(env.id)
         except:  # If the action space is continuous
             print("Continuous action space - skipping {}.".format(env.id))
             continue
-        if str.startswith(env.id, "CliffWalking") \
-                or str.startswith(env.id, "AirRaid"):  # these environments hang for some reason
+        if str.find(env.id, "ram") != -1 or str.find(env.id, "Frameskip") != -1 or \
+                str.find(env.id, "Deterministic") != -1:  # duplicate games
             continue
         openai.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=False)
 

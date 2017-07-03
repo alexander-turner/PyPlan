@@ -11,4 +11,4 @@ class PolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):
                                                             BanditClass=uniform_bandit_alg.UniformBanditAlgClass,
                                                             bandit_parameters=bandit_parameters)
 
-        self.agent_name = self.my_name + " (n={}, policies={})".format(num_pulls, [p.agentname for p in policies])
+        self.agent_name = self.my_name + " (n={}, policies={})".format(num_pulls, [p.agent_name for p in policies])
