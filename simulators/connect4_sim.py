@@ -3,13 +3,15 @@ from abstract import absstate
 
 
 class Connect4StateClass(absstate.AbstractState):
-    num_players = 2
-    board_height = 6
-    board_width = 7
-
-    def __init__(self):
+    def __init__(self, height=6, width=7):
         self.state_val = [0, 0]
+
+        self.board_height = height
+        self.board_width = width
+
+        self.num_players = 2
         self.current_player = 0
+
         self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
         self.my_name = "Connect 4"
 
@@ -21,8 +23,7 @@ class Connect4StateClass(absstate.AbstractState):
         return self.num_players
 
     def set(self, state):
-        self.state_val[0] = state.state_val[0]
-        self.state_val[1] = state.state_val[1]
+        self.state_val = copy.deepcopy(state.state_val)
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
 

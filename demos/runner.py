@@ -3,6 +3,31 @@ from heuristics import *
 from gym import envs
 from simulators import *
 
+
+def run_all_openai(agents, num_trials):
+    """A helper function for running OpenAI on all available simulators."""
+    all_environments = envs.registry.all()
+    openai = openai_sim.OpenAIStateClass(sim_name='FrozenLake-v0')
+    for env_idx, env in enumerate(all_environments):
+        if should_skip(env.id):  # duplicate games / games that hang
+            continue
+        try:
+            openai.change_sim(env.id)
+        except:  # If the action space is continuous
+            print("Continuous action space - skipping {}.".format(env.id))
+            continue
+        openai.run(agents=agents, num_trials=num_trials, multiprocess=False, show_moves=False)
+
+
+def should_skip(game_id):
+    """Returns True if the game should be skipped."""
+    skip_games = ["Assault", "BankHeist", "CliffWalking"]  # games take a very long time
+    skip_keywords = ["Deterministic", "Frameskip", "ram"]
+    for key in skip_games + skip_keywords:
+        if str.find(game_id, key) != -1:
+            return True
+
+
 if __name__ == '__main__':  # for multiprocessing compatibility
     rand_agent = random_agent.RandomAgentClass()
 
@@ -27,20 +52,9 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=10, policies=policy_set)
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
 
-    all_environments = envs.registry.all()
-    openai = openai_sim.OpenAIStateClass(sim_name='CartPole-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.change_sim('Blackjack-v0')
+    run_all_openai(agents=[u_ro], num_trials=1)
+    #openai = openai_sim.OpenAIStateClass(sim_name='FrozenLake-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
 
-    for env_idx, env in enumerate(all_environments):
-        try:
-            openai.change_sim(env.id)
-        except:  # If the action space is continuous
-            print("Continuous action space - skipping {}.".format(env.id))
-            continue
-        if str.find(env.id, "ram") != -1 or str.find(env.id, "Frameskip") != -1 or \
-                str.find(env.id, "Deterministic") != -1:  # duplicate games
-            continue
-        openai.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=False)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[switch_agent, e_switch_agent], num_trials=10)
@@ -48,3 +62,5 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     sim = connect4_sim.Connect4StateClass()
     dealer = dealer.DealerClass()
     #dealer.run(simulator=sim, agents=[u_ro, u_ro], num_trials=20, multiprocess=True)  # TODO: Fix first agent's advantage
+
+

@@ -79,7 +79,13 @@ class OpenAIStateClass(absstate.AbstractState):
         self.done = False  # indicates if the current observation is terminal
 
     def run(self, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
-        """Run the given number of trials on the specified agents, comparing their performance."""
+        """Run the given number of trials on the specified agents, comparing their performance.
+
+        :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
+        :param num_trials: how many trials to be run.
+        :param multiprocess: whether to use multiprocessing. NOTE: currently unsupported if a Monitor is instantiated.
+        :param show_moves: if the environment can render, then render each move.
+        """
         for agent in agents:
             agent = Agent(agent, self)
             if not isinstance(agent.policy, absagent.AbstractAgent):  # if this is an actual learning agent
@@ -148,9 +154,12 @@ class OpenAIStateClass(absstate.AbstractState):
             begin = time.time()
             action = self.agent.act()
             total_time += time.time() - begin
+
             self.current_observation, reward, self.done, _ = self.env.step(action)
+
             if self.show_moves and 'human' in self.env.metadata['render.modes']:  # don't render if not supported
                 self.env.render()  # TODO: fix certain invalid frames
+
         return {'reward': self.env.stats_recorder.rewards,
                 'won': reward > 0,  # won if reward after game ends is positive
                 'total time': total_time}
@@ -165,9 +174,8 @@ class OpenAIStateClass(absstate.AbstractState):
     def number_of_players(self):
         return 1
 
-    # TODO: Fix environments' closing after copy
     def set(self, sim):
-        self.env = copy.copy(sim.env.unwrapped)  # TODO: Fix CartPole viewer compatibility
+        self.env = copy.copy(sim.env.unwrapped)
         self.current_observation = sim.current_observation
         self.done = sim.done
 
@@ -190,7 +198,7 @@ class OpenAIStateClass(absstate.AbstractState):
             return range(self.action_space.n)
         elif isinstance(self.action_space, spaces.Tuple):
             a_spaces = self.action_space.spaces
-            ranges = tuple(tuple(range(s.n)) for s in a_spaces)
+            ranges = tuple(tuple(range(s.n)) for s in a_spaces)  # TODO: take advantage of tuple aspect
             product = tuple(itertools.product(*ranges))  # return all combinations of action dimensions
             return product
         else:
