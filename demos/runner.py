@@ -28,7 +28,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
 
     openai = openai_sim.OpenAIStateClass(sim_name='FrozenLake-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run(agents=[u_ro, e_ro], num_trials=10, multiprocess=True, show_moves=False, upload=True)
+    openai.run(agents=[u_ro, e_ro], num_trials=10, multiprocess=True, show_moves=False)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[switch_agent, e_switch_agent], num_trials=10)

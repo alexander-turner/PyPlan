@@ -79,6 +79,7 @@ class AbstractState:
         """
         raise NotImplementedError
 
+    @abc.abstractmethod
     def set_current_player(self, player_index):
         """Sets the current player index."""
         raise NotImplementedError

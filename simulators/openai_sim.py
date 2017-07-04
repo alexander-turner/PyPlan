@@ -130,6 +130,8 @@ class OpenAIStateClass(absstate.AbstractState):
         game_outputs = []
         if multiprocess:
             self.resume = True
+            # question: is there a better way to hide certain errors?
+            sys.stderr = None  # Turn off if debugging - try_pool shows WindowsErrors quite often, which is annoying
 
             # ensures the system runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
@@ -158,7 +160,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
         self.env.close()
         if self.api_key and upload:
-            gym.upload(self.wrapper_target, api_key=self.api_key) 
+            gym.upload(self.wrapper_target, api_key=self.api_key)
 
         return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
@@ -166,10 +168,9 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def try_pool(self, pool, num_trials, tries=0):
         """Sometimes the pool takes a few tries to execute; keep trying until it works."""
-        #sys.stderr = None
         try:
             return pool.map(self.run_trial, range(num_trials))
-        except WindowsError:  # TODO: Suppress errors from going to commandline
+        except WindowsError:
             if tries < sys.getrecursionlimit():
                 return self.try_pool(pool, num_trials, tries + 1)
 
