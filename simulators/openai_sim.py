@@ -36,24 +36,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.show_moves = True
         self.agent = None
 
-        self.sim_name = sim_name
-        self.env = gym.make(sim_name)
-        self.my_name = self.env.spec._env_name
-
-        # output directory location for agent performance
-        self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
-        self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=self.force,
-                                    resume=self.resume)
-
-        self.action_space = self.env.action_space
-        if not isinstance(self.action_space, spaces.Discrete) and not isinstance(self.action_space, spaces.Tuple):
-            raise Exception('Action space {} incompatible with {} (only supports Discrete and Tuple action spaces).'
-                            .format(self.action_space, self))
-        self.observation_space = self.env.observation_space
-
-        self.original_observation = self.env.reset()  # initial observation
-        self.current_observation = self.original_observation
-        self.done = False  # indicates if the current observation is terminal
+        self.load_env(sim_name)
 
     def reinitialize(self):
         """Reinitialize the environment."""
@@ -138,6 +121,7 @@ class OpenAIStateClass(absstate.AbstractState):
         """Run the given number of trials using the current configuration."""
         self.set_agent(agent)
 
+        # We need to reinitialize the Monitor for the new trials we are about to run
         if not self.env.enabled:
             self.env = gym.make(self.sim_name)
             self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=self.force,
@@ -156,16 +140,25 @@ class OpenAIStateClass(absstate.AbstractState):
             for i in range(num_trials):
                 game_outputs.append(self.run_trial(i))
 
-        self.env.close()
-        if self.api_key and upload:
-            gym.upload(self.wrapper_target, api_key=self.api_key)
-
         total_reward, wins, total_time, total_steps = 0, 0, 0, 0
+        stats_recorder = self.env.stats_recorder
         for output in game_outputs:
             total_reward += output['reward']
             wins += output['won']
             total_time += output['total time']
-            total_steps += output['total steps']
+            total_steps += output['episode length']
+
+            # record episode information in manifest
+            stats_recorder.timestamps.append(output['timestamp'])
+            stats_recorder.episode_lengths.append(output['episode length'])
+            stats_recorder.episode_rewards.append(output['reward'])
+            stats_recorder.episode_types.append(output['episode type'])
+
+        stats_recorder.flush()
+
+        self.env.close()
+        if self.api_key and upload:
+            gym.upload(self.wrapper_target, api_key=self.api_key) 
 
         return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
@@ -173,11 +166,12 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def try_pool(self, pool, num_trials, tries=0):
         """Sometimes the pool takes a few tries to execute; keep trying until it works."""
+        #sys.stderr = None
         try:
             return pool.map(self.run_trial, range(num_trials))
-        except WindowsError:
+        except WindowsError:  # TODO: Suppress errors from going to commandline
             if tries < sys.getrecursionlimit():
-                return self.try_pool(pool, num_trials, tries+1)
+                return self.try_pool(pool, num_trials, tries + 1)
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
@@ -199,7 +193,9 @@ class OpenAIStateClass(absstate.AbstractState):
         return {'reward': self.env.stats_recorder.rewards,
                 'won': reward > 0,  # won if reward after game ends is positive
                 'total time': total_time,
-                'total steps': self.env.stats_recorder.total_steps}
+                'episode length': self.env.stats_recorder.total_steps,
+                'timestamp': self.env.stats_recorder.timestamps[0],
+                'episode type': self.env.stats_recorder.type}
 
     def clone(self):
         new_sim = copy.copy(self)
