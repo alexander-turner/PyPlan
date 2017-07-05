@@ -241,7 +241,7 @@ class OpenAIStateClass(absstate.AbstractState):
 
     def __hash__(self):
         if isinstance(self.current_observation, numpy.ndarray):
-            return hash(tuple(self.current_observation))
+            return hash(self.current_observation.data.tobytes())
         else:
             return hash(self.current_observation)
 
