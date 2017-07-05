@@ -3,7 +3,6 @@ import copy
 
 import itertools
 
-import sys
 import tabulate
 import multiprocessing
 import gym
@@ -43,6 +42,11 @@ class OpenAIStateClass(absstate.AbstractState):
         self.current_observation = self.env.reset()
         self.done = False
 
+    def clone(self):
+        new_sim = copy.copy(self)
+        new_sim.env = new_sim.env.unwrapped
+        return new_sim
+
     def set(self, sim):
         self.env = copy.copy(sim.env.unwrapped)
         self.current_observation = sim.current_observation
@@ -63,8 +67,8 @@ class OpenAIStateClass(absstate.AbstractState):
 
         self.action_space = self.env.action_space
         if not isinstance(self.action_space, spaces.Discrete) and not isinstance(self.action_space, spaces.Tuple):
-            raise Exception('Action space {} incompatible with {} (only supports Discrete and Tuple action spaces).'
-                            .format(self.action_space, self))
+            raise ValueError('Action space {} incompatible with {} (only supports Discrete and Tuple action spaces).'
+                             .format(self.action_space, self))
         self.observation_space = self.env.observation_space
 
         self.original_observation = self.env.reset()  # initial observation
@@ -80,7 +84,7 @@ class OpenAIStateClass(absstate.AbstractState):
                 continue
             try:
                 self.load_env(env.id)
-            except:  # If the action space is continuous
+            except ValueError:  # If the action space is continuous
                 print("Continuous action space - skipping {}.".format(env.id))
                 continue
             self.run(agents=agents, num_trials=num_trials, multiprocess=multiprocess, show_moves=show_moves)
@@ -96,24 +100,33 @@ class OpenAIStateClass(absstate.AbstractState):
         """
         for agent in agents:
             agent = Agent(agent, self)
-            if not isinstance(agent.policy, absagent.AbstractAgent):  # if this is an actual learning agent
+            if not isinstance(agent.policy, absagent.AbstractAgent):  # if this isn't a planning agent
                 multiprocess = False
                 logging.warning('Multiprocessing is disabled for agents which learn over multiple episodes.')
-        if multiprocess:
+
+        if multiprocess:  # doesn't make sense to show moves while multiprocessing
             show_moves = False
+
+        if not self.api_key:  # can't upload if we don't have an API key!
+            upload = False
 
         self.show_moves = show_moves
 
         table = []
         headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
+        if upload:
+            headers.append("Link")
 
         for agent in agents:
             print('\nNow simulating: {}'.format(agent.agent_name))
             output = self.run_trials(agent, num_trials, multiprocess, upload)
-            table.append([output['name'],  # agent name
-                          output['average reward'],  # average final score
-                          output['success rate'],  # win percentage
-                          output['average move time']])  # average time taken per move
+            row = [output['name'],  # agent name
+                   output['average reward'],  # average final score
+                   output['success rate'],  # win percentage
+                   output['average move time']]  # average time taken per move
+            if upload:
+                row.append(output['url'])
+            table.append(row)
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.my_name))
 
@@ -130,12 +143,7 @@ class OpenAIStateClass(absstate.AbstractState):
         game_outputs = []
         if multiprocess:
             self.resume = True
-            # question: is there a better way to hide certain errors?
-            #sys.stderr = None  # Turn off if debugging - try_pool shows WindowsErrors quite often, which is annoying
-
-            # ensures the system runs smoothly
             game_outputs = self.try_pool(num_trials)
-
             self.resume = False  # done adding to the data
         else:
             for i in range(num_trials):
@@ -149,24 +157,27 @@ class OpenAIStateClass(absstate.AbstractState):
             total_time += output['total time']
             total_steps += output['episode length']
 
-            # record episode information in manifest
-            stats_recorder.timestamps.append(output['timestamp'])
-            stats_recorder.episode_lengths.append(output['episode length'])
-            stats_recorder.episode_rewards.append(output['reward'])
-            stats_recorder.episode_types.append(output['episode type'])
+            # record episode information
+            if multiprocess:
+                stats_recorder.timestamps.append(output['timestamp'])
+                stats_recorder.episode_lengths.append(output['episode length'])
+                stats_recorder.episode_rewards.append(output['reward'])
+                stats_recorder.episode_types.append(output['episode type'])
 
         stats_recorder.flush()
 
         self.env.close()
+        url = None
         if self.api_key and upload:
-            gym.upload(self.wrapper_target, api_key=self.api_key)
+            url = gym.upload(self.wrapper_target, api_key=self.api_key)
 
         return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
-                'average move time': total_time / total_steps}
+                'average move time': total_time / total_steps, 'url': url}
 
     def try_pool(self, num_trials):
         """Sometimes the pool takes a few tries to execute; keep trying until it works."""
+        # Ensures the system runs smoothly
         pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
         while True:
             try:
@@ -197,10 +208,6 @@ class OpenAIStateClass(absstate.AbstractState):
                 'episode length': self.env.stats_recorder.total_steps,
                 'timestamp': self.env.stats_recorder.timestamps[0],
                 'episode type': self.env.stats_recorder.type}
-
-    def clone(self):
-        new_sim = copy.copy(self)
-        return new_sim
 
     def number_of_players(self):
         return 1
@@ -245,7 +252,7 @@ class Agent(object):
 
     def act(self):
         """Despite what its name may suggest, act only determines what action to take."""
-        return self.policy.select_action(self.parent)
+        return self.policy.select_action(self.parent)  # TODO: fix for UCT
 
 
 def should_skip(game_id):
