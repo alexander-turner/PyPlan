@@ -131,11 +131,10 @@ class OpenAIStateClass(absstate.AbstractState):
         if multiprocess:
             self.resume = True
             # question: is there a better way to hide certain errors?
-            sys.stderr = None  # Turn off if debugging - try_pool shows WindowsErrors quite often, which is annoying
+            #sys.stderr = None  # Turn off if debugging - try_pool shows WindowsErrors quite often, which is annoying
 
             # ensures the system runs smoothly
-            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            game_outputs = self.try_pool(pool, num_trials)
+            game_outputs = self.try_pool(num_trials)
 
             self.resume = False  # done adding to the data
         else:
@@ -166,13 +165,14 @@ class OpenAIStateClass(absstate.AbstractState):
                 'success rate': wins / num_trials,
                 'average move time': total_time / total_steps}
 
-    def try_pool(self, pool, num_trials, tries=0):
+    def try_pool(self, num_trials):
         """Sometimes the pool takes a few tries to execute; keep trying until it works."""
-        try:
-            return pool.map(self.run_trial, range(num_trials))
-        except WindowsError:
-            if tries < sys.getrecursionlimit():
-                return self.try_pool(pool, num_trials, tries + 1)
+        pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+        while True:
+            try:
+                return pool.map(self.run_trial, range(num_trials))
+            except WindowsError:
+                pass
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
@@ -223,8 +223,8 @@ class OpenAIStateClass(absstate.AbstractState):
         if isinstance(self.action_space, spaces.Discrete):
             return range(self.action_space.n)
         elif isinstance(self.action_space, spaces.Tuple):
-            a_spaces = self.action_space.spaces
-            ranges = tuple(tuple(range(s.n)) for s in a_spaces)  # TODO: take advantage of tuple aspect
+            action_spaces = self.action_space.spaces
+            ranges = tuple(tuple(range(s.n)) for s in action_spaces)  # TODO: take advantage of tuple aspect
             product = tuple(itertools.product(*ranges))  # return all combinations of action dimensions
             return product
         else:

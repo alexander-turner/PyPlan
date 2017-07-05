@@ -5,14 +5,14 @@ from abc import ABCMeta
 class AbstractState:
     """The main class for implementing simulators.
 
-    set_current_player is only required for simulators intended to be used with dealer.py.
-
     In addition to the methods below, it is important to implement __eq__ and __hash__, which are used by some planning
     methods to judge equivalence of states. If these are not implemented, then the code will work, but will perhaps
     be sub-optimal. This is because states that are fundamentally the same but correspond to distinct
     objects will be treated as non-equivalent.
 
-    Furthermore, simulators which are incompatible with dealer.py should implement three additional methods: run,
+    Simulators compatible with dealer.py must implement set_current_player.
+
+    Simulators which are incompatible with dealer.py should implement three additional methods: run,
     run_trials, and run_trial. In short, run handles data processing, initiates run_trials for each of the provided
     agents, and displays results. run_trials runs the specified number of trials on the given agent, recording pertinent
     statistics. run_trial runs a single iteration of the simulator with the given agent. multiprocessing compatibility
@@ -77,9 +77,4 @@ class AbstractState:
 
         Index values are in the range {0,...,num_players-1}.
         """
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def set_current_player(self, player_index):
-        """Sets the current player index."""
         raise NotImplementedError

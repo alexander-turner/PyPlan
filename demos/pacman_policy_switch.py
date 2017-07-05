@@ -3,11 +3,10 @@ from heuristics import rollout_heuristic
 from simulators import pacman_sim
 
 """
-Policy switching carries with it the theoretical guarantee that at each juncture, it will perform at least as well as 
-the best policy in its set. However, observe that when an agent has a low number of pulls (and thus we can't have high 
-confidence in its conclusions), it can be hard for the policy switching agent to estimate the policy's value. 
-This makes it vulnerable to poor decision-making. 
-"""  # TODO: Integrate proof
+Policy switching carries with it the theoretical guarantee that at each time step, it will perform at least as well as 
+the best policy in its set. However, when a constituent policy has a low number of pulls, the policy-switching agent 
+needs more pulls to maintain the same confidence level in its estimations.
+"""
 
 if __name__ == '__main__':
     rand_agent = random_agent.RandomAgentClass()
