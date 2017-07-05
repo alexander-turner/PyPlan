@@ -1,8 +1,7 @@
 import logging
 import copy
-
+import numpy
 import itertools
-
 import tabulate
 import multiprocessing
 import gym
@@ -241,7 +240,11 @@ class OpenAIStateClass(absstate.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(self.current_observation)
+        if isinstance(self.current_observation, numpy.ndarray):
+            return hash(tuple(self.current_observation))
+        else:
+            return hash(self.current_observation)
+
 
 
 class Agent(object):

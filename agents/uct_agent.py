@@ -17,4 +17,7 @@ class UCTAgentClass(mcts_agent.MCTSAgentClass):
                                            heuristic=h1,
                                            bandit_alg_class=ucb_bandit_alg.UCBBanditAlgClass, bandit_parameters=c)
 
-        self.agent_name = self.my_name
+        self.agent_name = self.my_name + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth,
+                                                                                                 max_width,
+                                                                                                 num_trials, c,
+                                                                                                 base_policy.agent_name)

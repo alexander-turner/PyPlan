@@ -19,7 +19,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     ss_d2 = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgentClass(depth=5, pulls_per_node=5, heuristic=h1)
 
-    uct = uct_agent.UCTAgentClass(depth=1, max_width=1, num_trials=1, c=1)
+    uct = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
     e_root_uct = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
     policy_set = [u_ro, ss_d2]
@@ -28,8 +28,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
 
-    openai = openai_sim.OpenAIStateClass(sim_name='FrozenLake-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')  # TODO: fix CartPole-v0
-    openai.run(agents=[u_ro], num_trials=10, multiprocess=True, show_moves=False, upload=True)
+    openai = openai_sim.OpenAIStateClass(sim_name='CartPole-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')  # TODO: fix CartPole-v0
+    openai.run(agents=[uct], num_trials=10, multiprocess=False, show_moves=False, upload=True)  # TODO: fix invalid frames
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[uct], num_trials=10)
