@@ -93,7 +93,8 @@ class OpenAIStateClass(absstate.AbstractState):
 
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
-        :param multiprocess: whether to use multiprocessing.
+        :param multiprocess: whether to use multiprocessing. Some games (such as Space Invaders) are not compatible
+            with multiprocessing.
         :param show_moves: if the environment can render, then render each move.
         :param upload: whether to upload results to OpenAI.
         """
@@ -104,7 +105,7 @@ class OpenAIStateClass(absstate.AbstractState):
                 logging.warning('Multiprocessing is disabled for agents which learn over multiple episodes.')
 
         if multiprocess:  # doesn't make sense to show moves while multiprocessing
-            show_moves = False
+            show_moves = False  # TODO: investigate why it doesn't work with Space Invaders
 
         if not self.api_key:  # can't upload if we don't have an API key!
             upload = False
@@ -190,6 +191,7 @@ class OpenAIStateClass(absstate.AbstractState):
         :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
         """
         self.reinitialize()
+        self.env.video_recorder.enabled = self.show_moves
         total_time = 0
         while self.done is False:
             begin = time.time()
@@ -199,7 +201,7 @@ class OpenAIStateClass(absstate.AbstractState):
             self.current_observation, reward, self.done, _ = self.env.step(action)
 
             if self.show_moves and 'human' in self.env.metadata['render.modes']:  # don't render if not supported
-                self.env.render()
+                self.env.render()  # TODO: investigate CartPole-v0
 
         return {'reward': self.env.stats_recorder.rewards,
                 'won': reward > 0,  # won if reward after game ends is positive
