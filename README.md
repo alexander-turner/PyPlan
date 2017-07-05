@@ -18,8 +18,8 @@ To implement your own agents or environments, consult the documentation in `abst
 
 ## Installation
 
-After cloning the project, simply run `demos\runner.py`. 
+After cloning the project, get started with the files in the `demos/` directory. 
 
-Unix and Mac users must follow the [OpenAI installation instructions](https://github.com/openai/gym#installation). If you get runtime errors, you may need to replace the installed `gym` folder with `WinPython\python-3.6.1.amd64\Lib\site-packages\gym`.
+Unix and Mac users must follow the [OpenAI installation instructions](https://github.com/openai/gym#installation). If you get runtime errors, you may need to replace the installed `gym` folder with `WinPython/python-3.6.1.amd64/Lib/site-packages/gym`.
 
-Although OpenAI does not officially support Windows, Windows users may use the included `WinPython` interpreter (located in the `WinPython\python-3.6.1.amd64\` subdirectory) to access the Gym's full functionality. Furthermore, to record episodes for games with video output, Windows users must [install `ffmpeg`](http://www.wikihow.com/Install-FFmpeg-on-Windows) - make sure to add the `bin` subdirectory to your **system** path!
+Although OpenAI does not officially support Windows, Windows users may use the included `WinPython` interpreter (located in the `WinPython/python-3.6.1.amd64/` subdirectory) to access the Gym's full functionality. Furthermore, to record episodes for games with video output, Windows users must [install `ffmpeg`](http://www.wikihow.com/Install-FFmpeg-on-Windows) - make sure to add the `bin` subdirectory to your **system** path!
