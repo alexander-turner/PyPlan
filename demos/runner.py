@@ -28,8 +28,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
 
-    openai = openai_sim.OpenAIStateClass(sim_name='FrozenLake-v0', api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run(agents=[uct], num_trials=10, multiprocess=True, show_moves=False, upload=True)
+    openai = openai_sim.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+    openai.run(sim_name='FrozenLake-v0', agents=[uct], num_trials=10, multiprocess=True, show_moves=False, upload=True)
 
     pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
     #pacman.run(agents=[uct], num_trials=10)
