@@ -36,8 +36,5 @@ if __name__ == '__main__':
 
     uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=100, policy=rand_agent)
 
-    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', agents=[uniform_rollout_d1_low_pulls,
-                                                                            uniform_rollout_d1,
-                                                                            uniform_rollout_d10],
-                                         use_graphics=False)
-    pacman.run(num_trials=10)
+    pacman = pacman_sim.Dealer(layout_representation='testClassic')
+    pacman.run(agents=[uniform_rollout_d1_low_pulls, uniform_rollout_d1, uniform_rollout_d10], num_trials=10)

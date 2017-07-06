@@ -14,5 +14,5 @@ if __name__ == '__main__':
     u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
     ucb_ro = ucb_rollout_agent.UCBRolloutAgentClass(depth=1, num_pulls=100, c=1.0, policy=rand_agent)
 
-    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
+    pacman = pacman_sim.Dealer(layout_representation='testClassic')
     pacman.run(agents=[u_ro, ucb_ro], num_trials=15, show_moves=False)

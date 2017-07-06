@@ -11,9 +11,9 @@ if __name__ == '__main__':
     rand_agent = random_agent.RandomAgentClass()
     u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=100, policy=rand_agent)
 
-    pacman = pacman_sim.PacmanStateClass(layout_repr='originalClassic', use_graphics=True)
-    pacman.run(agents=[u_ro], num_trials=1, show_moves=True, multiprocess=True)
+    pacman = pacman_sim.Dealer(layout_representation='originalClassic')
+    pacman.run(agents=[u_ro], num_trials=1, show_moves=True, multiprocess=False)
 
     # be patient - Ms. Pacman has much more overhead!
-    openai_pacman = openai_sim.OpenAIStateClass(sim_name='MsPacman-v0')
+    openai_pacman = openai_sim.Dealer(env_name='MsPacman-v0')
     openai_pacman.run(agents=[u_ro], num_trials=1, show_moves=True, multiprocess=False)

@@ -9,7 +9,7 @@ class EPolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):
     def __init__(self, num_pulls, epsilon, policies):
         switch_bandit_agent.SwitchBanditAgentClass.__init__(self, pulls_per_node=num_pulls,
                                                             policies=policies,
-                                                            BanditClass=e_bandit_alg.EBanditAlgClass,
+                                                            bandit_class=e_bandit_alg.EBanditAlgClass,
                                                             bandit_parameters=epsilon)
 
         self.agent_name = self.my_name + " (n={}, e={}, policies={})".format(num_pulls, epsilon,

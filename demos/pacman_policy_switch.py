@@ -17,12 +17,12 @@ if __name__ == '__main__':
     ss = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
 
     bad_ss = sparse_sampling_agent.SparseSamplingAgentClass(depth=3, pulls_per_node=5, heuristic=h1)
-    bad_ss.agentname += ' (bad)'
+    bad_ss.agent_name += ' (bad)'
 
     switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=10, policies=[u_ro, ss])
 
     bad_switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=10, policies=[u_ro, bad_ss])
-    bad_switch_agent.agentname += ' (bad)'
+    bad_switch_agent.agent_name += ' (bad)'
 
-    pacman = pacman_sim.PacmanStateClass(layout_repr='testClassic', use_graphics=True)
-    pacman.run(agents=[u_ro, ss, bad_ss, switch_agent, bad_switch_agent], num_trials=50, show_moves=False)
+    pacman = pacman_sim.Dealer(layout_representation='testClassic')
+    pacman.run(agents=[u_ro, ss, bad_ss, switch_agent, bad_switch_agent], num_trials=50)

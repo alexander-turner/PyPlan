@@ -9,6 +9,79 @@ import numpy
 import multiprocessing
 
 
+class Dealer: 
+    def __init__(self, layout_representation, multiprocess=True, show_moves=False, use_graphics=True):
+        self.multiprocess = multiprocess
+        self.show_moves = show_moves
+        self.use_graphics = use_graphics
+        self.num_trials = 0
+
+        self.simulator = PacmanState(dealer=self, layout_representation=layout_representation)
+
+    def run(self, agents, num_trials=1, multiprocess=True, show_moves=False):
+        """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
+        self.show_moves = show_moves  # whether game moves should be shown
+        self.num_trials = num_trials
+        self.multiprocess = multiprocess
+
+        table = []
+        headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
+
+        for agent in agents:
+            print('\nNow simulating {}'.format(agent.agent_name))
+            output = self.run_trials(agent)
+            table.append([agent.agent_name,
+                          numpy.mean(output['rewards']),  # average final score
+                          output['wins'] / num_trials,  # win percentage
+                          output['average move time']])
+        print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
+        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "",
+                                                       self.simulator.my_name))
+
+    def run_trials(self, agent):
+        """Run a given number of games using the current configuration, recording and returning performance statistics.
+
+        :param agent: an agent to use to run the trials.
+        :param num_trials: how many times the game will be run.
+        :param multiprocess: whether to speed the computation with parallel processing.
+        """
+        self.simulator.set_agent(agent)
+
+        game_outputs = []
+        if self.multiprocess:
+            # ensures the system runs smoothly
+            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+            game_outputs = pool.map(self.run_trial, range(self.num_trials))
+        else:
+            for i in range(self.num_trials):
+                game_outputs.append(self.run_trial(i))
+
+        rewards = []
+        wins, average_move_time = 0, 0
+        for output in game_outputs:
+            rewards.append(output['reward'])
+            wins += output['won']
+            average_move_time += output['average move time']
+
+        average_move_time /= self.num_trials
+
+        return {'rewards': rewards, 'wins': wins, 'average move time': average_move_time}
+
+    def run_trial(self, trial_num):
+        """Using the game parameters, run and return information about the trial.
+
+        :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
+        """
+        self.simulator.reinitialize()  # reset the game
+
+        start_time = time.time()
+        self.simulator.game.run(self.show_moves)
+        time_taken = time.time() - start_time
+
+        return {'reward': self.simulator.final_score, 'won': self.simulator.won,
+                'average move time': time_taken / self.simulator.time_step_count}
+
+
 class PacmanState(absstate.AbstractState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
 
@@ -20,20 +93,22 @@ class PacmanState(absstate.AbstractState):
     Pacman engine.
     """
 
-    def __init__(self, layout_repr, use_random_ghost=False, use_graphics=True):
+    def __init__(self, dealer, layout_representation, use_random_ghost=False):
         """Initialize an interface to the Pacman game simulator.
 
-        :param layout_repr: the filename of the layout (located in layouts/), or an actual layout object.
+        :param layout_representation: the filename of the layout (located in layouts/), or an actual layout object.
         :param use_random_ghost: whether to use the random or the directional ghost agent.
         :param use_graphics: whether to use the graphics or the text display.
         """
-        if isinstance(layout_repr, str):
-            self.layout = layout.getLayout(layout_repr)
+        self.dealer = dealer
+
+        if isinstance(layout_representation, str):
+            self.layout = layout.getLayout(layout_representation)
         else:  # we've been directly given a layout
-            self.layout = layout_repr
+            self.layout = layout_representation
         self.my_name = "Pacman"
 
-        if use_graphics:
+        if self.dealer.use_graphics:
             self.display = graphicsDisplay.PacmanGraphics()
         else:
             self.display = textDisplay.PacmanGraphics()
@@ -64,72 +139,13 @@ class PacmanState(absstate.AbstractState):
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
-    def run(self, agents, num_trials=1, multiprocess=True, show_moves=False):
-        """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
-        self.show_moves = show_moves  # whether game moves should be shown
-
-        table = []
-        headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
-
-        for agent in agents:
-            print('\nNow simulating {}'.format(agent.agent_name))
-            output = self.run_trials(agent, num_trials, multiprocess)
-            table.append([agent.agent_name,
-                          numpy.mean(output['rewards']),  # average final score
-                          output['wins'] / num_trials,  # win percentage
-                          output['average move time']])
-        print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.my_name))
-
-    def run_trials(self, agent, num_trials, multiprocess=True):
-        """Run a given number of games using the current configuration, recording and returning performance statistics.
-
-        :param agent: an agent to use to run the trials.
-        :param num_trials: how many times the game will be run.
-        :param multiprocess: whether to speed the computation with parallel processing.
-        """
-        self.set_agent(agent)
-
-        game_outputs = []
-        if multiprocess:
-            # ensures the system runs smoothly
-            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            game_outputs = pool.map(self.run_trial, range(num_trials))
-        else:
-            for i in range(num_trials):
-                game_outputs.append(self.run_trial(i))
-
-        rewards = []
-        wins, average_move_time = 0, 0
-        for output in game_outputs:
-            rewards.append(output['reward'])
-            wins += output['won']
-            average_move_time += output['average move time']
-
-        average_move_time /= num_trials
-
-        return {'rewards': rewards, 'wins': wins, 'average move time': average_move_time}
-
-    def run_trial(self, trial_num):
-        """Using the game parameters, run and return information about the trial.
-
-        :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
-        """
-        self.reinitialize()  # reset the game
-
-        start_time = time.time()
-        self.game.run(self.show_moves)
-        time_taken = time.time() - start_time
-
-        return {'reward': self.final_score, 'won': self.won, 'average move time': time_taken / self.time_step_count}
-
     def set_agent(self, agent):
         """Sets Pacman's agent."""
         self.pacman_agent = Agent(agent, self)
         self.reinitialize()
 
     def clone(self):
-        new_sim = PacmanState(self.layout)
+        new_sim = PacmanState(self.dealer, self.layout)
         new_sim.current_state = self.current_state
         return new_sim
 
@@ -142,15 +158,15 @@ class PacmanState(absstate.AbstractState):
     def is_terminal(self):
         return self.current_state.isWin() or self.current_state.isLose()
 
-    def process(self, state, game):
+    def process(self, state, game_object):
         """Wrapper to help with ending the game."""
         if state.isWin():
             self.final_score = state.data.score
             self.won = True
-            pacman.ClassicGameRules.win(self, state=state, game=game)
+            pacman.ClassicGameRules.win(self, state=state, game=game_object)
         if state.isLose():
             self.final_score = state.data.score
-            pacman.ClassicGameRules.lose(self, state=state, game=game)
+            pacman.ClassicGameRules.lose(self, state=state, game=game_object)
 
     def get_current_player(self):
         """Pacman is the only player."""

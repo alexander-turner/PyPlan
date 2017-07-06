@@ -24,6 +24,9 @@ class Dealer:
         self.force = force
         self.api_key = api_key
 
+        self.num_trials = 0
+        self.multiprocess = False
+        self.upload = False
         self.resume = False  # whether to add data to the output directory
 
         self.simulator = OpenAIState(dealer=self, env_name=env_name)
@@ -45,61 +48,67 @@ class Dealer:
             self.run(env_name=env.id, agents=agents, num_trials=num_trials, multiprocess=multiprocess,
                      show_moves=show_moves)
 
-    def run(self, env_name, agents, num_trials, multiprocess=True, show_moves=True, upload=False):
+    def run(self, agents, num_trials, env_name=None, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
 
-        :param env_name: the simulation to run.
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
+        :param env_name: the name of the environment to be run.
         :param multiprocess: whether to use multiprocessing. Some games (such as Space Invaders) are not compatible
             with multiprocessing.
         :param show_moves: if the environment can render, then render each move.
         :param upload: whether to upload results to OpenAI.
         """
-        self.change_wrapper(env_name)
+        self.num_trials = num_trials
+        self.multiprocess = multiprocess
+        self.show_moves = show_moves
+        self.upload = upload
+
+        if not env_name:
+            env_name = self.env_name
+        else:
+            self.change_wrapper(env_name)
+
         try:
             self.simulator.load_env(env_name)
         except ValueError as e:  # If the action space is continuous
             logging.warning(e)
             return
 
-        self.change_wrapper(env_name)
+        if self.multiprocess:  # doesn't make sense to show moves while multiprocessing
+            self.show_moves = False  # TODO: investigate why it doesn't work with Space Invaders
+
         for agent in agents:
             if not isinstance(agent, absagent.AbstractAgent):  # if this isn't a planning agent
-                multiprocess = False
+                self.multiprocess = False
                 logging.warning('Multiprocessing is disabled for agents that learn over multiple episodes.')
 
-        if multiprocess:  # doesn't make sense to show moves while multiprocessing
-            show_moves = False  # TODO: investigate why it doesn't work with Space Invaders
-
         if not self.api_key:  # can't upload if we don't have an API key!
-            upload = False
-
-        self.show_moves = show_moves
+            self.upload = False
 
         table = []
         headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
-        if upload:
+        if self.upload:
             headers.append("Link")
 
         for agent in agents:
             print('\nNow simulating {}'.format(agent.agent_name))
 
             self.simulator.set_agent(agent)
-            output = self.run_trials(num_trials, multiprocess, upload)
+            output = self.run_trials()
 
             row = [agent.agent_name,  # agent name
                    output['average reward'],  # average final score
                    output['success rate'],  # win percentage
                    output['average move time']]  # average time taken per move
-            if upload:
+            if self.upload:
                 row.append(output['url'])
             table.append(row)
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "",
                                                        self.env_name[:-3]))
 
-    def run_trials(self, num_trials=1, multiprocess=True, upload=False):
+    def run_trials(self):
         """Run the given number of trials using the current configuration."""
         # We need to reinitialize the Monitor for the new trials we are about to run
         if not self.simulator.env.enabled:
@@ -108,12 +117,12 @@ class Dealer:
                                                   write_upon_reset=True, force=self.force, resume=self.resume)
 
         game_outputs = []
-        if multiprocess:
+        if self.multiprocess:
             self.resume = True
-            game_outputs = self.try_pool(num_trials)
+            game_outputs = self.try_pool(self.num_trials)
             self.resume = False  # done adding to the data
         else:
-            for i in range(num_trials):
+            for i in range(self.num_trials):
                 game_outputs.append(self.run_trial(i))
 
         total_reward, wins, total_time, total_steps = 0, 0, 0, 0
@@ -125,7 +134,7 @@ class Dealer:
             total_steps += output['episode length']
 
             # Record episode information
-            if multiprocess:
+            if self.multiprocess:
                 stats_recorder.timestamps.append(output['timestamp'])
                 stats_recorder.episode_lengths.append(output['episode length'])
                 stats_recorder.episode_rewards.append(output['reward'])
@@ -135,11 +144,11 @@ class Dealer:
 
         self.simulator.env.close()
         url = None
-        if self.api_key and upload:
+        if self.upload:
             url = gym.upload(self.wrapper_target, api_key=self.api_key)
 
-        return {'average reward': total_reward / num_trials,
-                'success rate': wins / num_trials,
+        return {'average reward': total_reward / self.num_trials,
+                'success rate': wins / self.num_trials,
                 'average move time': total_time / total_steps,
                 'url': url}
 

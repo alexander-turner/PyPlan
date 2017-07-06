@@ -4,24 +4,24 @@ from bandits import uniform_bandit_alg
 
 class SwitchBanditAgentClass(absagent.AbstractAgent):
     """An agent that takes a list of policies and returns the value of the best one at a given state."""
-    myname = "Policy Switching Bandit"
+    my_name = "Policy Switching Bandit"
 
-    def __init__(self, pulls_per_node, policies, BanditClass=None, bandit_parameters=None):
-        self.agentname = self.myname
+    def __init__(self, pulls_per_node, policies, bandit_class=None, bandit_parameters=None):
+        self.agent_name = self.my_name
         self.num_nodes = 1
         self.pulls_per_node = pulls_per_node
 
         self.policies = policies
 
-        if BanditClass is None:
-            self.BanditClass = uniform_bandit_alg.UniformBanditAlgClass
+        if bandit_class is None:
+            self.bandit_class = uniform_bandit_alg.UniformBanditAlgClass
         else:
-            self.BanditClass = BanditClass
+            self.bandit_class = bandit_class
 
         self.bandit_parameters = bandit_parameters
 
     def get_agent_name(self):
-        return self.agentname
+        return self.agent_name
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -37,9 +37,9 @@ class SwitchBanditAgentClass(absagent.AbstractAgent):
         num_policies = len(self.policies)  # how many policies we have
 
         if self.bandit_parameters is None:
-            bandit = self.BanditClass(num_policies)
+            bandit = self.bandit_class(num_policies)
         else:
-            bandit = self.BanditClass(num_policies, self.bandit_parameters)
+            bandit = self.bandit_class(num_policies, self.bandit_parameters)
 
         # for each policy, for each player, initialize a q value
         q_values = []
