@@ -94,8 +94,7 @@ class Dealer:
         for agent in agents:
             print('\nNow simulating {}'.format(agent.agent_name))
 
-            self.simulator.set_agent(agent)
-            output = self.run_trials()
+            output = self.run_trials(agent)
 
             row = [agent.agent_name,  # agent name
                    output['average reward'],  # average final score
@@ -108,8 +107,10 @@ class Dealer:
         print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "",
                                                        self.env_name[:-3]))
 
-    def run_trials(self):
-        """Run the given number of trials using the current configuration."""
+    def run_trials(self, agent):
+        """Run the given number of trials using the agent and the current configuration."""
+        self.simulator.set_agent(agent)
+
         # We need to reinitialize the Monitor for the new trials we are about to run
         if not self.simulator.env.enabled:
             self.simulator.env = gym.make(self.env_name)
@@ -211,7 +212,7 @@ class OpenAIState(absstate.AbstractState):
     def __init__(self, dealer, env_name=None):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
-        :param dealer: a Dealer object that can be accessed runtime parameter information.
+        :param dealer: a Dealer object which provides runtime parameter information.
         :param env_name: a valid env key that corresponds to a particular game / task.
         """
         self.agent = None
