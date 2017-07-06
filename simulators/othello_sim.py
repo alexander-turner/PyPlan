@@ -17,7 +17,7 @@ NOTE :
 """
 
 
-class OthelloStateClass(absstate.AbstractState):
+class OthelloState(absstate.AbstractState):
     def __init__(self, num_players):
         # self.current_state = othellostate.OthelloStateClass()
         if num_players < 2:
@@ -28,7 +28,7 @@ class OthelloStateClass(absstate.AbstractState):
         self.my_name = "Othello"
 
     def clone(self):
-        new_sim_obj = OthelloStateClass(self.num_players)
+        new_sim_obj = OthelloState(self.num_players)
         new_sim_obj.set(self)
         new_sim_obj.winning_player = self.winning_player
         new_sim_obj.game_over = self.game_over

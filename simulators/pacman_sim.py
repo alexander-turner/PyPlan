@@ -1,17 +1,15 @@
 import sys
 import os
-
-sys.path.append(os.path.abspath('..\\simulators\\pacmancode'))  # assume access from demos\
+sys.path.append(os.path.abspath('..\\simulators\\pacmancode'))  # assume we're running from demos/
 from abstract import absstate
 from simulators.pacmancode import *
-from functools import partial
 import time
 import tabulate
 import numpy
 import multiprocessing
 
 
-class PacmanStateClass(absstate.AbstractState):
+class PacmanState(absstate.AbstractState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
 
     Give multiple agents to compare results.
@@ -74,12 +72,12 @@ class PacmanStateClass(absstate.AbstractState):
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
 
         for agent in agents:
-            print('\nNow simulating: {}'.format(agent.agent_name))
+            print('\nNow simulating {}'.format(agent.agent_name))
             output = self.run_trials(agent, num_trials, multiprocess)
-            table.append([output['name'],  # agent name
+            table.append([agent.agent_name,
                           numpy.mean(output['rewards']),  # average final score
                           output['wins'] / num_trials,  # win percentage
-                          output['average move time']])  # average time taken per move
+                          output['average move time']])
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "", self.my_name))
 
@@ -110,8 +108,7 @@ class PacmanStateClass(absstate.AbstractState):
 
         average_move_time /= num_trials
 
-        return {'name': self.pacman_agent.policy.agent_name, 'rewards': rewards, 'wins': wins,
-                'average move time': average_move_time}
+        return {'rewards': rewards, 'wins': wins, 'average move time': average_move_time}
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return information about the trial.
@@ -132,7 +129,7 @@ class PacmanStateClass(absstate.AbstractState):
         self.reinitialize()
 
     def clone(self):
-        new_sim = PacmanStateClass(self.layout)
+        new_sim = PacmanState(self.layout)
         new_sim.current_state = self.current_state
         return new_sim
 

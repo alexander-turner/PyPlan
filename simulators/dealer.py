@@ -4,7 +4,7 @@ import tabulate
 import multiprocessing
 
 
-class DealerClass:
+class Dealer:
     """Facilitates simulation of Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee."""
     def __init__(self, sim_horizon=50):
         self.simulation_horizon = sim_horizon

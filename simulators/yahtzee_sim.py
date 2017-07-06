@@ -9,7 +9,7 @@ Simulator Class for Yahtzee
 """
 
 
-class YahtzeeStateClass(absstate.AbstractState):
+class YahtzeeState(absstate.AbstractState):
     def __init__(self, num_players):
         #self.current_state = yahtzeestate.YahtzeeStateClass()
         self.num_players = num_players
@@ -18,7 +18,7 @@ class YahtzeeStateClass(absstate.AbstractState):
         self.my_name = "Yahtzee"
 
     def clone(self):
-        new_sim_obj = YahtzeeStateClass(self.num_players)
+        new_sim_obj = YahtzeeState(self.num_players)
         new_sim_obj.set(self)
         return new_sim_obj
 

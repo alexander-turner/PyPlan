@@ -2,7 +2,7 @@ import copy
 from abstract import absstate
 
 
-class Connect4StateClass(absstate.AbstractState):
+class Connect4State(absstate.AbstractState):
     def __init__(self):
         self.state_val = [0, 0]
 

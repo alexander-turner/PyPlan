@@ -16,7 +16,7 @@ NOTE :
 """
 
 
-class TicTacToeStateClass(absstate.AbstractState):
+class TicTacToeState(absstate.AbstractState):
     def __init__(self, num_players):
         #self.current_state = tictactoestate.TicTacToeStateClass()
         self.num_players = num_players
@@ -57,7 +57,7 @@ class TicTacToeStateClass(absstate.AbstractState):
         return actions_list
 
     def clone(self):
-        new_sim_obj = TicTacToeStateClass(self.num_players)
+        new_sim_obj = TicTacToeState(self.num_players)
         new_sim_obj.set(self)
         return new_sim_obj
 

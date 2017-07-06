@@ -4,7 +4,7 @@ from abstract import absstate
 import random
 
 
-class TetrisStateClass(absstate.AbstractState):
+class TetrisState(absstate.AbstractState):
     def __init__(self, num_players):
         if num_players > 1:
             raise ValueError("Number of players cannot be more than 1 for tetris.")
@@ -17,7 +17,7 @@ class TetrisStateClass(absstate.AbstractState):
         self.my_name = "Tetris"
 
     def create_copy(self):
-        new_sim_obj = TetrisStateClass(self.num_players)
+        new_sim_obj = TetrisState(self.num_players)
         new_sim_obj.change_simulator_state(self.current_state.clone())
         new_sim_obj.winning_player = self.winning_player
         new_sim_obj.game_over = self.game_over
