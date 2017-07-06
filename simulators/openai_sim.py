@@ -13,10 +13,23 @@ from abstract import absstate, absagent
 
 class Dealer:
     def __init__(self, sim_name=None, force=True, api_key=None):
+        """Initialize a Dealer object for running trials of agents on environments.
+
+        :param sim_name: a valid env key that corresponds to a particular game / task.
+        :param force: whether an existing directory at demos/OpenAI results/wrapper_target/ should be overwritten
+        :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
+            run for at least 100 trials.
+        """
+        self.change_sim_path(sim_name)
         self.force = force
         self.api_key = api_key
         self.resume = False  # whether to add data to the output directory
         self.simulator = OpenAIStateClass(dealer=self, sim_name=sim_name)
+
+    def change_sim_path(self, sim_name):
+        self.sim_name = sim_name
+        if self.sim_name:
+            self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
 
     def run_all(self, agents, num_trials, multiprocess=False, show_moves=False):
         """Runs the agents on all available simulators."""
@@ -40,6 +53,7 @@ class Dealer:
         :param show_moves: if the environment can render, then render each move.
         :param upload: whether to upload results to OpenAI.
         """
+        self.change_sim_path(sim_name)
         try:
             self.simulator.load_env(sim_name)
         except ValueError:  # If the action space is continuous
@@ -86,7 +100,7 @@ class Dealer:
         # We need to reinitialize the Monitor for the new trials we are about to run
         if not self.simulator.env.enabled:
             self.simulator.env = gym.make(self.simulator.sim_name)
-            self.simulator.env = wrappers.Monitor(self.simulator.env, self.simulator.wrapper_target,
+            self.simulator.env = wrappers.Monitor(self.simulator.env, self.wrapper_target,
                                                   write_upon_reset=True, force=self.force, resume=self.resume)
 
         game_outputs = []
@@ -118,7 +132,7 @@ class Dealer:
         self.simulator.env.close()
         url = None
         if self.api_key and upload:
-            url = gym.upload(self.simulator.wrapper_target, api_key=self.api_key)
+            url = gym.upload(self.wrapper_target, api_key=self.api_key)
 
         return {'name': agent.agent_name, 'average reward': total_reward / num_trials,
                 'success rate': wins / num_trials,
@@ -183,10 +197,8 @@ class OpenAIStateClass(absstate.AbstractState):
     def __init__(self, dealer, sim_name=None):
         """Initialize an interface with the specified OpenAI simulation task and policy.
 
+        :param dealer: a Dealer object that can be accessed runtime parameter information.
         :param sim_name: a valid env key that corresponds to a particular game / task.
-        :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
-            run for at least 100 trials.
-        :param force: whether an existing directory at demos/OpenAI results/wrapper_target/ should be overwritten
         """
         self.agent = None
         self.dealer = dealer
@@ -217,8 +229,7 @@ class OpenAIStateClass(absstate.AbstractState):
         self.my_name = self.env.spec._env_name
 
         # output directory location for agent performance
-        self.wrapper_target = 'OpenAI results\\' + self.sim_name[:-3]  # cut off version name
-        self.env = wrappers.Monitor(self.env, self.wrapper_target, write_upon_reset=True, force=self.dealer.force,
+        self.env = wrappers.Monitor(self.env, self.dealer.wrapper_target, write_upon_reset=True, force=self.dealer.force,
                                     resume=self.dealer.resume)
 
         self.action_space = self.env.action_space
