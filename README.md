@@ -10,7 +10,7 @@ Running a one-step greedy bandit algorithm on [Berkeley's Pacman simulator](http
 rand_agent = random_agent.RandomAgentClass()
 u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=100, policy=rand_agent)
 
-pacman = pacman_sim.PacmanStateClass(layout_repr='originalClassic')
+pacman = pacman_sim.Dealer(layout_representation='originalClassic')
 pacman.run(agents=[u_ro], num_trials=10)
 ```
 
