@@ -9,17 +9,31 @@ import numpy
 import multiprocessing
 
 
-class Dealer: 
+class Dealer:
     def __init__(self, layout_representation, multiprocess=True, show_moves=False, use_graphics=True):
+        """
+
+        :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
+        :param multiprocess: whether to speed the computation with parallel processing.
+        :param show_moves: whether moves should be rendered. Disabled if multiprocess is True.
+        :param use_graphics: whether to use the graphics or the text display.
+        """
         self.multiprocess = multiprocess
         self.show_moves = show_moves
         self.use_graphics = use_graphics
+
         self.num_trials = 0
 
         self.simulator = PacmanState(dealer=self, layout_representation=layout_representation)
 
     def run(self, agents, num_trials=1, multiprocess=True, show_moves=False):
-        """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested)."""
+        """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested).
+
+        :param agents: the agents whose Pacman performance will be compared.
+        :param num_trials: how many times the game will be run.
+        :param multiprocess: whether to speed the computation with parallel processing.
+        :param show_moves: whether moves should be rendered. Disabled if multiprocess is True.
+        """
         self.show_moves = show_moves  # whether game moves should be shown
         self.num_trials = num_trials
         self.multiprocess = multiprocess
@@ -42,8 +56,6 @@ class Dealer:
         """Run a given number of games using the current configuration, recording and returning performance statistics.
 
         :param agent: an agent to use to run the trials.
-        :param num_trials: how many times the game will be run.
-        :param multiprocess: whether to speed the computation with parallel processing.
         """
         self.simulator.set_agent(agent)
 
@@ -96,9 +108,8 @@ class PacmanState(absstate.AbstractState):
     def __init__(self, dealer, layout_representation, use_random_ghost=False):
         """Initialize an interface to the Pacman game simulator.
 
-        :param layout_representation: the filename of the layout (located in layouts/), or an actual layout object.
+        :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
         :param use_random_ghost: whether to use the random or the directional ghost agent.
-        :param use_graphics: whether to use the graphics or the text display.
         """
         self.dealer = dealer
 
