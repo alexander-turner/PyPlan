@@ -29,7 +29,7 @@ class Dealer:
         self.upload = False
         self.resume = False  # whether to add data to the output directory
 
-        self.simulator = OpenAIState(dealer=self, env_name=env_name) 
+        self.simulator = OpenAIState(dealer=self, env_name=env_name)
 
     def change_wrapper(self, env_name):
         self.env_name = env_name
@@ -45,8 +45,8 @@ class Dealer:
                 print("Filtered game - skipping {}.".format(env.id))
                 continue
 
-            self.run(env_name=env.id, agents=agents, num_trials=num_trials, multiprocess=multiprocess,
-                     show_moves=show_moves)
+            self.run(agents=agents, num_trials=num_trials, env_name=env.id,
+                     multiprocess=multiprocess, show_moves=show_moves) 
 
     def run(self, agents, num_trials, env_name=None, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
