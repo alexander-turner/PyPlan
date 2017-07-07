@@ -23,17 +23,18 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     e_root_uct = eroot_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
     policy_set = [u_ro, ss_d2]
-    switch_agent = policy_switch_agent.PolicySwitchAgentClass(num_pulls=10, policies=policy_set)
-    e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(num_pulls=10, epsilon=0.5, policies=policy_set)
+    switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
+    # TODO: clarify where num_pulls is specified for each constituent agent
+    e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
 
     openai = openai_sim.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    openai.run_all(agents=[u_ro], num_trials=4)
-    openai.run(agents=[uct, u_ro], num_trials=10, env_name='FrozenLake-v0', multiprocess=True, show_moves=False, upload=True)
+    openai.run_all(agents=[u_ro], num_trials=3)
+    openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess=False, show_moves=True, upload=False)
 
     pacman = pacman_sim.Dealer(layout_representation='testClassic')
-    #pacman.run(agents=[uct], num_trials=10)
+    #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
 
     sim = connect4_sim.Connect4State()
     dealer = dealer.Dealer()

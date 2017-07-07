@@ -35,7 +35,7 @@ class Dealer:
         self.env_name = env_name
         if self.env_name:
             # Output directory location for agent performance
-            self.wrapper_target = 'OpenAI results\\' + self.env_name[:-3]  # cut off version name
+            self.wrapper_target = 'OpenAI results\\' + self.env_name  # cut off version name
 
     def run_all(self, agents, num_trials, multiprocess=True, show_moves=False):
         """Runs the agents on all available simulators."""
@@ -46,7 +46,7 @@ class Dealer:
                 continue
 
             self.run(agents=agents, num_trials=num_trials, env_name=env.id,
-                     multiprocess=multiprocess, show_moves=show_moves) 
+                     multiprocess=multiprocess, show_moves=show_moves)
 
     def run(self, agents, num_trials, env_name=None, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
@@ -167,8 +167,12 @@ class Dealer:
                 return pool.map(self.run_trial, range(self.num_trials))
             except WindowsError:
                 pass
-            except TypeError:  # encountered a thread.Lock object in video recorder - we aren't recording, so disable
-                self.simulator.env.video_recorder = None
+            except TypeError:  # encountered a thread.Lock in video recorder
+                self.simulator.env.video_recorder = None  # we aren't displaying moves during multiprocessing anyways
+            except ValueError:  # encountered a ctypes object with pointers
+                if str.startswith(self.env_name, "CartPole"):
+                    self.simulator.env.video_recorder = None
+                    self.simulator.env.env.unwrapped.viewer = None
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
@@ -200,7 +204,7 @@ class Dealer:
     @staticmethod
     def should_skip(game_id):
         """Returns True if the game should be skipped."""
-        skip_games = ["Assault", "BankHeist", "BeamRider-v4", "CliffWalking"]  # games take a very long time
+        skip_games = ["Assault", "BankHeist", "BeamRider-v4", "CartPole", "CliffWalking"]  # problematic games
         skip_keywords = ["Deterministic", "Frameskip", "ram"]
         for key in skip_games + skip_keywords:
             if str.find(game_id, key) != -1:
