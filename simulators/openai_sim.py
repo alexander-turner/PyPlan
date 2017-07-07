@@ -29,7 +29,7 @@ class Dealer:
         self.upload = False
         self.resume = False  # whether to add data to the output directory
 
-        self.simulator = OpenAIState(dealer=self, env_name=env_name)
+        self.simulator = OpenAIState(dealer=self, env_name=env_name) 
 
     def change_wrapper(self, env_name):
         self.env_name = env_name
@@ -50,6 +50,8 @@ class Dealer:
 
     def run(self, agents, num_trials, env_name=None, multiprocess=True, show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
+
+        Returns nothing if the environment's action space is continuous.
 
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
@@ -76,7 +78,7 @@ class Dealer:
             return
 
         if self.multiprocess:  # doesn't make sense to show moves while multiprocessing
-            self.show_moves = False  # TODO: investigate why it doesn't work with Space Invaders
+            self.show_moves = False
 
         for agent in agents:
             if not isinstance(agent, absagent.AbstractAgent):  # if this isn't a planning agent
@@ -108,7 +110,10 @@ class Dealer:
                                                        self.env_name[:-3]))
 
     def run_trials(self, agent):
-        """Run the given number of trials using the agent and the current configuration."""
+        """Run the given number of trials using the agent and the current configuration.
+
+        :param agent: the agent to be used in the trials.
+        """
         self.simulator.set_agent(agent)
 
         # We need to reinitialize the Monitor for the new trials we are about to run
@@ -120,7 +125,7 @@ class Dealer:
         game_outputs = []
         if self.multiprocess:
             self.resume = True
-            game_outputs = self.try_pool(self.num_trials)
+            game_outputs = self.try_pool()
             self.resume = False  # done adding to the data
         else:
             for i in range(self.num_trials):
@@ -153,22 +158,24 @@ class Dealer:
                 'average move time': total_time / total_steps,
                 'url': url}
 
-    def try_pool(self, num_trials):
+    def try_pool(self):
         """Sometimes the pool takes a few tries to execute; keep trying until it works."""
         # Ensures the system runs smoothly
         pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
         while True:
             try:
-                return pool.map(self.run_trial, range(num_trials))
+                return pool.map(self.run_trial, range(self.num_trials))
             except WindowsError:
                 pass
+            except TypeError:  # encountered a thread.Lock object in video recorder - we aren't recording, so disable
+                self.simulator.env.video_recorder = None
 
     def run_trial(self, trial_num):
         """Using the game parameters, run and return total time spent selecting moves.
 
         :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
         """
-        self.simulator.reinitialize()  # TODO: Initialize simulator for each thread?
+        self.simulator.reinitialize()
 
         total_time = 0
         while not self.simulator.is_terminal():
@@ -215,10 +222,10 @@ class OpenAIState(absstate.AbstractState):
         :param dealer: a Dealer object which provides runtime parameter information.
         :param env_name: a valid env key that corresponds to a particular game / task.
         """
-        self.agent = None
         self.dealer = dealer
         if env_name:
             self.load_env(env_name)
+        self.agent = None
 
     def reinitialize(self):
         """Reinitialize the environment."""

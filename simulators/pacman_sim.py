@@ -55,7 +55,7 @@ class Dealer:
     def run_trials(self, agent):
         """Run a given number of games using the current configuration, recording and returning performance statistics.
 
-        :param agent: an agent to use to run the trials.
+        :param agent: the agent to be used in the trials.
         """
         self.simulator.set_agent(agent)
 
