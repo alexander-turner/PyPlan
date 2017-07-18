@@ -1,7 +1,6 @@
 from abstract import absstate
 
 # from actions import othelloaction
-# from states import othellostate
 
 """
 Simulator Class for Othello
@@ -9,7 +8,7 @@ Simulator Class for Othello
 NOTE :
 ------
 
-1. self.winning_player = None -> Implies that the game is a draw.
+1. self.game_outcome = None -> Implies that the game is a draw.
 		                	    Otherwise this variable holds the winning player's number.
 								Player number 0 for X, 1 for O.
 
@@ -18,63 +17,71 @@ NOTE :
 
 
 class OthelloState(absstate.AbstractState):
-    def __init__(self, num_players):
-        # self.current_state = othellostate.OthelloStateClass()
-        if num_players < 2:
-            raise ValueError("Wrong value for player_count for Othello.")
-        self.num_players = num_players
-        self.winning_player = None
+    def __init__(self):
+        self.current_state = {
+            "state_val": [[0] * 8 for _ in range(8)],
+            "current_player": 1
+        }
+
+        self.current_state["state_val"][3][3] = 2
+        self.current_state["state_val"][3][4] = 1
+        self.current_state["state_val"][4][3] = 1
+        self.current_state["state_val"][4][4] = 2
+
+        self.num_players = 2
+        self.game_outcome = None
         self.game_over = False
         self.my_name = "Othello"
 
     def clone(self):
-        new_sim_obj = OthelloState(self.num_players)
+        new_sim_obj = OthelloState()
         new_sim_obj.set(self)
-        new_sim_obj.winning_player = self.winning_player
+        new_sim_obj.game_outcome = self.game_outcome
         new_sim_obj.game_over = self.game_over
         return new_sim_obj
 
-    def reset_simulator(self):
-        # self.current_state = othellostate.OthelloStateClass()
-        self.winning_player = None
+    def reinitialize(self):
+        self.current_state = {
+            "state_val": [[0] * 8 for _ in range(8)],
+            "current_player": 1
+        }
+
+        self.current_state["state_val"][3][3] = 2
+        self.current_state["state_val"][3][4] = 1
+        self.current_state["state_val"][4][3] = 1
+        self.current_state["state_val"][4][4] = 2
+
+        self.game_outcome = None
         self.game_over = False
 
-    def get_simulator_state(self):
+    def get_current_state(self):
         return self.current_state
 
     def set(self, sim):
         self.current_state = sim.current_state
-        self.winning_player = sim.winning_player
+        self.game_outcome = sim.game_outcome
         self.game_over = sim.game_over
 
     def change_turn(self):
-        new_turn = self.current_state.get_current_state()["current_player"] + 1
+        new_turn = self.get_current_state()["current_player"] + 1
         new_turn %= self.num_players
 
         if new_turn == 0:
-            self.current_state.get_current_state()["current_player"] = self.num_players
+            self.get_current_state()["current_player"] = self.num_players
         else:
-            self.current_state.get_current_state()["current_player"] = new_turn
-
-    def print_board(self):
-        curr_state = self.current_state.get_current_state()["state_val"]
-        output = "CURRENT BOARD : "
-        for elem in curr_state:
-            output += "\n" + str(elem)
-        return output
+            self.get_current_state()["current_player"] = new_turn
 
     def take_action(self, action):
-        action_value = action.get_action()
-        position = action_value['position']
-        value = action_value['value']
+        position = action['position']
+        value = action['value']
 
-        # CHECK FOR NULL ACTION
+        # Check for null action
         if value == -1:
             return [0.0] * self.num_players
 
-        self.current_state.get_current_state()["state_val"][position[0]][position[1]] = value
+        self.get_current_state()["state_val"][position[0]][position[1]] = value
 
-        # UPDATE THE BOARD
+        # Update the board
         i = position[0]
         j = position[1]
         self.color_coins(value, [i - 1, j], "U", True)
@@ -90,9 +97,9 @@ class OthelloState(absstate.AbstractState):
 
         reward = [0.0] * self.num_players
 
-        if self.winning_player is not None:
+        if self.game_outcome is not None:
             for player in range(self.num_players):
-                if player == self.winning_player:
+                if player == self.game_outcome:
                     reward[player] += 1.0
                 else:
                     reward[player] -= 1.0
@@ -105,10 +112,10 @@ class OthelloState(absstate.AbstractState):
 
         if i > 7 or i < 0 or j > 7 or j < 0:
             return False
-        elif self.current_state.get_current_state()["state_val"][i][j] == 0:
+        elif self.get_current_state()["state_val"][i][j] == 0:
             return False
 
-        if self.current_state.get_current_state()["state_val"][i][j] == curr_turn:
+        if self.get_current_state()["state_val"][i][j] == curr_turn:
             return True
         else:
             if direction == "U":
@@ -131,19 +138,19 @@ class OthelloState(absstate.AbstractState):
             ret = self.color_coins(curr_turn, new_posn, direction, do_color)
             if ret:
                 if do_color:
-                    self.current_state.get_current_state()["state_val"][i][j] = curr_turn
+                    self.get_current_state()["state_val"][i][j] = curr_turn
 
             return ret
 
-    def get_valid_actions(self, curr_player=-1):
+    def get_actions(self, curr_player=-1):
         actions_list = []
 
         if curr_player == -1:
-            value = self.current_state.get_current_state()["current_player"]
+            value = self.get_current_state()["current_player"]
         else:
             value = curr_player
 
-        curr_board = self.current_state.get_current_state()["state_val"]
+        curr_board = self.get_current_state()["state_val"]
         for i in range(8):
             for j in range(8):
                 if curr_board[i][j] == 0:
@@ -167,18 +174,18 @@ class OthelloState(absstate.AbstractState):
                         possible_count += int(self.color_coins(value, [i + 1, j - 1], "DL", False))
 
                     if possible_count > 0:
-                        action = {'position': [i, j], 'value': self.current_state.get_current_state()["current_player"]}
-                        # actions_list.append(othelloaction.OthelloActionClass(action))
+                        action = {'position': [i, j], 'value': self.get_current_state()["current_player"]}
+                        actions_list.append(action)
 
-        # ALWAYS ADD NULL ACTION
+        # Always add null action
         if len(actions_list) == 0:
             action = {'position': [-1, -1], 'value': -1}
-            # actions_list.append(othelloaction.OthelloActionClass(action))
+            actions_list.append(action)
         return actions_list
 
     def is_terminal(self):
-        for_player_1 = self.get_valid_actions(1)
-        for_player_2 = self.get_valid_actions(2)
+        for_player_1 = self.get_actions(1)
+        for_player_2 = self.get_actions(2)
 
         if len(for_player_1) > 1 or len(for_player_2) > 1:
             return False
@@ -186,26 +193,35 @@ class OthelloState(absstate.AbstractState):
             coin_count = [0] * self.num_players
             for i in range(8):
                 for j in range(8):
-                    coin_count[self.current_state.get_current_state()["state_val"][i][j] - 1] += 1
+                    coin_count[self.get_current_state()["state_val"][i][j] - 1] += 1
 
             if coin_count[0] == coin_count[1]:
-                self.winning_player = None
+                self.game_outcome = None
             else:
                 if coin_count[0] > coin_count[1]:
-                    self.winning_player = 0
+                    self.game_outcome = 0
                 else:
-                    self.winning_player = 1
+                    self.game_outcome = 1
 
             return True
 
+    def number_of_players(self):
+        return self.num_players
+
     def get_current_player(self):
-        return self.current_state.get_current_state()["current_player"]
+        return self.get_current_state()["current_player"]
 
     def set_current_player(self, player_index):
-        self.current_state.get_current_state()["current_player"] = player_index
+        self.get_current_state()["current_player"] = player_index
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(self.current_state)
+        return hash(str(self.current_state["state_val"]))
+
+    def __repr__(self):
+        output = ''
+        for elem in self.get_current_state()["state_val"]:
+            output += str(elem) + '\n'
+        return output

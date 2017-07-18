@@ -5,7 +5,11 @@ from bandits import uniform_bandit_alg
 class PolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):
     my_name = "Policy Switching Agent"
 
-    def __init__(self, num_pulls, policies, bandit_parameters=None):
+    def __init__(self, depth, num_pulls, policies, bandit_parameters=None):
+        """Runs all of the policies using the given depth."""
+        for policy in policies:
+            policy.depth = depth
+
         switch_bandit_agent.SwitchBanditAgentClass.__init__(self, pulls_per_node=num_pulls,
                                                             policies=policies,
                                                             bandit_class=uniform_bandit_alg.UniformBanditAlgClass,

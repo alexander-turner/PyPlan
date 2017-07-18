@@ -10,7 +10,7 @@ Simulator Class for Yahtzee
 
 
 class YahtzeeState(absstate.AbstractState):
-    def __init__(self, num_players):
+    def __init__(self, num_players=2):
         #self.current_state = yahtzeestate.YahtzeeStateClass()
         self.num_players = num_players
         self.winning_player = None

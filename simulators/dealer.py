@@ -119,12 +119,15 @@ class Dealer:
         :param sim_num: placeholder parameter that allows use with multiprocessing.Pool.
         """
         current_state = self.simulator.clone()
+        current_state.reinitialize()
+
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list
         current_state.set_current_player(random.randrange(self.player_count))
 
         game_history = []
         time_values = []
         h = 0
+
         while current_state.is_terminal() is False and h < self.simulation_horizon:
             current_player = current_state.get_current_player()
 
@@ -143,8 +146,8 @@ class Dealer:
 
             # Take selected action
             reward = current_state.take_action(action_to_take)
-            game_history.append([reward, action_to_take])
 
+            game_history.append([reward, action_to_take])
             h += 1
 
         if self.show_moves:

@@ -8,7 +8,7 @@ Simulator Class for TicTacToe
 NOTE :
 ------
 
-1. self.winning_player = None -> Implies that the game is a draw. 
+1. self.game_outcome = None -> Implies that the game is a draw. 
                                 Otherwise this variable holds the winning player's number.
                                 Player number 0 for X. 1 for O.
 
@@ -17,9 +17,9 @@ NOTE :
 
 
 class TicTacToeState(absstate.AbstractState):
-    def __init__(self, num_players):
+    def __init__(self):
         #self.current_state = tictactoestate.TicTacToeStateClass()
-        self.num_players = num_players
+        self.num_players = 2
         self.winning_player = None
         self.game_over = False
         self.my_name = "Tic Tac Toe"
@@ -57,7 +57,7 @@ class TicTacToeState(absstate.AbstractState):
         return actions_list
 
     def clone(self):
-        new_sim_obj = TicTacToeState(self.num_players)
+        new_sim_obj = TicTacToeState()
         new_sim_obj.set(self)
         return new_sim_obj
 
