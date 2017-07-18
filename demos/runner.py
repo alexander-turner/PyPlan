@@ -44,6 +44,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
 
-    dealer.run(simulator=simulators['tetris'], agents=[uct], num_trials=5, multiprocess=False, show_moves=True)
+    dealer.run(simulator=simulators['tictactoe'], agents=[u_ro], num_trials=5, multiprocess=True, show_moves=True)
 
 

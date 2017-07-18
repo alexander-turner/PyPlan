@@ -14,6 +14,7 @@ class TetrisState(absstate.AbstractState):
         self.current_state = self.original_state
         self.current_state["current_piece"] = random.randrange(1, 6)
         self.current_state["next_piece"] = random.randrange(1, 6)
+
         self.num_players = 1
         self.game_outcome = None
         self.game_over = False
@@ -191,8 +192,7 @@ class TetrisState(absstate.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        #print(hash(str(self.current_state["current_board"])))
-        return hash(str(self.current_state))
+        return hash(str(self.current_state["current_board"]))  # TODO: Fix hashing / counts interaction
 
     def __str__(self):
         output = ''

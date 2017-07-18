@@ -1,6 +1,5 @@
 from abstract import absstate
-#from actions import tictactoeaction
-#from states import tictactoestate
+import copy
 
 """
 Simulator Class for TicTacToe
@@ -17,21 +16,25 @@ NOTE :
 
 
 class TicTacToeState(absstate.AbstractState):
+    original_state = {
+            "state_val": [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+            "current_player": 1
+        }
+
     def __init__(self):
-        #self.current_state = tictactoestate.TicTacToeStateClass()
+        self.current_state = self.original_state
         self.num_players = 2
         self.winning_player = None
         self.game_over = False
-        self.my_name = "Tic Tac Toe"
+        self.my_name = "Tic-Tac-Toe"
 
     def number_of_players(self):
         return self.num_players
 
     def take_action(self, action):
-        action_value = action.get_action()
-        position = action_value['position']
-        value = action_value['value']
-        self.current_state.get_current_state()["state_val"][position[0]][position[1]] = value
+        position = action['position']
+        value = action['value']
+        self.current_state["state_val"][position[0]][position[1]] = value
         self.game_over = self.is_terminal()
 
         reward = [0.0] * self.num_players
@@ -48,11 +51,10 @@ class TicTacToeState(absstate.AbstractState):
     def get_actions(self):
         actions_list = []
 
-        for x in range(len(self.current_state.get_current_state()["state_val"])):
-            for y in range(len(self.current_state.get_current_state()["state_val"][0])):
-                if self.current_state.get_current_state()["state_val"][x][y] == 0:
-                    action = {'position': [x, y], 'value': self.current_state.get_current_state()["current_player"]}
-                    #actions_list.append(tictactoeaction.TicTacToeActionClass(action))
+        for x in range(len(self.current_state["state_val"])):
+            for y in range(len(self.current_state["state_val"][0])):
+                if self.current_state["state_val"][x][y] == 0:
+                    actions_list.append({'position': [x, y], 'value': self.current_state["current_player"]})
 
         return actions_list
 
@@ -62,7 +64,7 @@ class TicTacToeState(absstate.AbstractState):
         return new_sim_obj
 
     def reinitialize(self):
-        #self.current_state = tictactoestate.TicTacToeStateClass()
+        self.current_state = copy.deepcopy(self.original_state)
         self.winning_player = None
         self.game_over = False
 
@@ -72,27 +74,20 @@ class TicTacToeState(absstate.AbstractState):
         self.game_over = sim.game_over
 
     def change_turn(self):
-        new_turn = self.current_state.get_current_state()["current_player"] + 1
+        new_turn = self.current_state["current_player"] + 1
         new_turn %= self.num_players
 
         if new_turn == 0:
-            self.current_state.get_current_state()["current_player"] = self.num_players
+            self.current_state["current_player"] = self.num_players
         else:
-            self.current_state.get_current_state()["current_player"] = new_turn
-
-    def print_board(self):
-        curr_state = self.current_state.get_current_state()["state_val"]
-        output = "CURRENT BOARD : "
-        for elem in curr_state:
-            output += "\n" + str(elem)
-        return output
+            self.current_state["current_player"] = new_turn
 
     def is_terminal(self):
         xcount = 0
         ocount = 0
 
-        current_state_val = self.current_state.get_current_state()["state_val"]
-        current_player = self.current_state.get_current_state()["current_player"]
+        current_state_val = self.current_state["state_val"]
+        current_player = self.current_state["current_player"]
 
         # Horizontal check for hit
         for x in range(len(current_state_val)):
@@ -180,7 +175,7 @@ class TicTacToeState(absstate.AbstractState):
                 ocount = 0
 
         if self.winning_player is None:
-            # CHECK IF THE BOARD IS FULL
+            # Check if the board is full
             x = 0
             y = 0
             game_over = True
@@ -196,13 +191,19 @@ class TicTacToeState(absstate.AbstractState):
             return True
 
     def get_current_player(self):
-        return self.current_state.get_current_state()["current_player"]
+        return self.current_state["current_player"]
 
     def set_current_player(self, player_index):
-        self.current_state.get_current_state()["current_player"] = player_index
+        self.current_state["current_player"] = player_index
 
     def __eq__(self, other):
         return self.current_state == other.current_state
 
     def __hash__(self):
         return hash(self.current_state)
+
+    def __str__(self):
+        output = ''
+        for elem in self.current_state["state_val"]:
+            output += str(elem) + '\n'
+        return output
