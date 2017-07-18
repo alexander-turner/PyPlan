@@ -238,7 +238,7 @@ class OpenAIState(absstate.AbstractState):
 
     def clone(self):
         new_sim = copy.copy(self)
-        new_sim.env = new_sim.env.unwrapped
+        new_sim.env = copy.deepcopy(self.env.unwrapped)
         return new_sim
 
     def set(self, sim):
