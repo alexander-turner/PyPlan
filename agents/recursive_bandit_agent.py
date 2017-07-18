@@ -49,7 +49,7 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
         action_list = state.get_actions()
         num_actions = len(action_list)
 
-        # create a bandit according to how many actions are available at the current state
+        # Create a bandit according to how many actions are available at the current state
         if self.bandit_parameters is None:
             bandit = self.bandit_class(num_actions)
         else:
@@ -66,7 +66,7 @@ class RecursiveBanditAgentClass(absagent.AbstractAgent):
             future_reward = self.estimateV(current_state, depth-1)[0]  # [0] references the q_values for best action
             total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
 
-            # integrate total reward with current q_values
+            # Integrate total reward with current q_values
             q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
 
             bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm

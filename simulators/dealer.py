@@ -9,9 +9,13 @@ class Dealer:
     """
     Facilitates simulation of Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee.
 
-    Generally, if the simulator isn't using any external frameworks to run, it should interface with this simulator,
+    Generally, if the simulator isn't using any external frameworks to run, it should interface with this class,
     rather than its own (à la openai_sim.py's implementation).
     """
+    simulators = {'connect4': connect4_sim.Connect4State(), 'othello': othello_sim.OthelloState(),
+                  'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
+                  'yahtzee': yahtzee_sim.YahtzeeState()}
+
     def __init__(self, sim_horizon=50):
         self.simulation_horizon = sim_horizon
 
@@ -19,9 +23,6 @@ class Dealer:
         self.game_winner_list = []  # a list of which agent index won which game
         self.avg_move_time = []  # average time taken by each player per move
 
-        self.simulators = {'connect4': connect4_sim.Connect4State(), 'othello': othello_sim.OthelloState(),
-                           'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
-                           'yahtzee': yahtzee_sim.YahtzeeState()}
         self.simulator_str = ''
         self.agents = []
         self.player_count = 0
@@ -53,18 +54,24 @@ class Dealer:
         :param agents: a list of agents. Currently does not support iterating over multiple groups.
         :param num_trials: how many games should be run.
         :param output_path: a text file to which results should be written.
-        :param multiprocess: whether to use parallel processing to speed simulations.
+        :param multiprocess: whether to use parallel processing for trial runs, instead of for rollouts.
             If enabled, show_moves will be disabled.
         :param show_moves: whether the dealer should display the game progression.
         """
         if multiprocess:
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
+            for agent in agents:
+                agent.heuristic.multiprocess = False  # can't use both multiprocessing methods at the same time
 
         self.reinitialize()
         self.configure(agents, num_trials, simulator_str, show_moves)
 
         self.run_trials(multiprocess=multiprocess)
         [results, winner_list, avg_times] = self.simulation_stats()
+
+        if multiprocess:
+            for agent in agents:
+                agent.heuristic.multiprocess = True  # reset heuristic status
 
         # Calculate the results
         overall_reward = []

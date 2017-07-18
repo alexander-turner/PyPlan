@@ -13,7 +13,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=1, depth=10)
     h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=10, depth=10)
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=2, policy=rand_agent)
+    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=3, num_pulls=10, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=10, epsilon=0.5, policy=rand_agent)
@@ -28,7 +28,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     policy_set = [u_ro, ss_d2]
     switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
-    # TODO: clarify where num_pulls is specified for each constituent agent
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
@@ -38,6 +37,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
 
-    dealer.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=5, multiprocess=True, show_moves=True)
+    dealer.run(simulator_str='connect4', agents=[e_ro, u_ro], num_trials=5, multiprocess=False, show_moves=True)
 
 
