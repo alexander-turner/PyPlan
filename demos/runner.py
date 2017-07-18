@@ -40,10 +40,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
 
     #openai.run_all(agents=[u_ro], num_trials=3)
-    openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess=True, show_moves=False, upload=False)
+    #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess=True, show_moves=False, upload=False)
 
     #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
 
-    #dealer.run(simulator=simulators['othello'], agents=[u_ro, e_ro], num_trials=5, multiprocess=False, show_moves=True)
+    dealer.run(simulator=simulators['tetris'], agents=[uct], num_trials=5, multiprocess=False, show_moves=True)
 
 

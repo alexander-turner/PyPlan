@@ -121,8 +121,10 @@ class Dealer:
         current_state = self.simulator.clone()
         current_state.reinitialize()
 
+
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list
-        current_state.set_current_player(random.randrange(self.player_count))
+        if self.simulator.number_of_players() > 1:
+            current_state.set_current_player(random.randrange(self.player_count))
 
         game_history = []
         time_values = []

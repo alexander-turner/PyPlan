@@ -1,47 +1,54 @@
 from abstract import absstate
-#from actions import tetrisaction
-#from states import tetrisstate
+import copy
 import random
 
 
 class TetrisState(absstate.AbstractState):
+    original_state = {
+            "current_board": [[0] * 10 for _ in range(20)],
+            "current_piece": None,
+            "next_piece": None
+        }
+
     def __init__(self):
-        #self.current_state = tetrisstate.TetrisStateClass()
-        #self.current_state.get_current_state()["state_val"]["current_piece"] = random.randrange(1, 6)
-        #self.current_state.get_current_state()["state_val"]["next_piece"] = random.randrange(1, 6)
+        self.current_state = self.original_state
+        self.current_state["current_piece"] = random.randrange(1, 6)
+        self.current_state["next_piece"] = random.randrange(1, 6)
         self.num_players = 1
-        self.winning_player = None
+        self.game_outcome = None
         self.game_over = False
         self.my_name = "Tetris"
 
-    def create_copy(self):
-        new_sim_obj = TetrisState()
-        new_sim_obj.change_simulator_state(self.current_state.clone())
-        new_sim_obj.winning_player = self.winning_player
-        new_sim_obj.game_over = self.game_over
-        return new_sim_obj
+    def clone(self):
+        return copy.deepcopy(self)
 
-    def reset_simulator(self):
-        self.winning_player = None
-        #self.current_state = tetrisstate.TetrisStateClass()
-        self.current_state.get_current_state()["state_val"]["current_piece"] = random.randrange(1, 6)
-        self.current_state.get_current_state()["state_val"]["next_piece"] = random.randrange(1, 6)
+    def reinitialize(self):
+        self.game_outcome = None
+        self.current_state = copy.deepcopy(self.original_state)
+        self.current_state["current_piece"] = random.randrange(1, 6)
+        self.current_state["next_piece"] = random.randrange(1, 6)
         self.game_over = False
 
-    def get_simulator_state(self):
+    def get_current_state(self):
         return self.current_state
 
-    def change_simulator_state(self, current_state):
-        self.current_state = current_state.clone()
+    def get_current_player(self):
+        return 0
+
+    def number_of_players(self):
+        return self.num_players
+
+    def set(self, sim):
+        self.current_state = sim.current_state
 
     def change_turn(self):
-        self.current_state.get_current_state()["state_val"]["current_piece"] = int(
-            self.current_state.get_current_state()["state_val"]["next_piece"])
-        self.current_state.get_current_state()["state_val"]["next_piece"] = random.randrange(1, 6)
+        self.current_state["current_piece"] = int(self.current_state["next_piece"])
+        self.current_state["next_piece"] = random.randrange(1, 6)
         self.game_over = self.is_terminal()
 
-    # TETRIS SPECIFIC FUNCTION
-    def get_piece_shape(self, piece_number, rotation_number=0):
+    # Tetris-specific function
+    @staticmethod
+    def get_piece_shape(piece_number, rotation_number=0):
         piece = None
 
         if piece_number == 1:
@@ -84,11 +91,10 @@ class TetrisState(absstate.AbstractState):
         return piece
 
     def take_action(self, action):
-        action_val = action.get_action()
-        x_position = action_val['position'][0]
-        y_position = action_val['position'][1]
-        piece = self.get_piece_shape(action_val['piece_number'], action_val['rot_number'])
-        current_board = self.current_state.get_current_state()["state_val"]["current_board"]
+        x_position = action['position'][0]
+        y_position = action['position'][1]
+        piece = self.get_piece_shape(action['piece_number'], action['rot_number'])
+        current_board = self.current_state['current_board']
 
         if piece is None:
             raise ValueError("Invalid rotation number.")
@@ -117,10 +123,10 @@ class TetrisState(absstate.AbstractState):
 
         return reward
 
-    def get_valid_actions(self):
+    def get_actions(self):
         actions_list = []
-        current_board = self.current_state.get_current_state()["state_val"]["current_board"]
-        current_piece_num = self.current_state.get_current_state()["state_val"]["current_piece"]
+        current_board = self.current_state["current_board"]
+        current_piece_num = self.current_state["current_piece"]
         board_height = len(current_board)
         board_width = len(current_board[0])
 
@@ -137,7 +143,7 @@ class TetrisState(absstate.AbstractState):
                         if x == (board_height - piece_height):
                             if current_board[x][y] == 0:
                                 action = {'position': [x, y], 'piece_number': current_piece_num, 'rot_number': rot_num}
-                                #actions_list.append(tetrisaction.TetrisActionClass(action))
+                                actions_list.append(action)
                                 break
                         else:
                             if current_board[x][y] == 1:
@@ -156,7 +162,7 @@ class TetrisState(absstate.AbstractState):
                                         break
 
                             if hold:
-                                # COLLISION CHECK
+                                # Collision check
                                 collision = False
                                 for subx in range(piece_height):
                                     for suby in range(piece_width):
@@ -170,20 +176,27 @@ class TetrisState(absstate.AbstractState):
                                 if collision is False:
                                     action = {'position': [x, y], 'piece_number': current_piece_num,
                                               'rot_number': rot_num}
-                                    #actions_list.append(tetrisaction.TetrisActionClass(action))
+                                    actions_list.append(action)
                                     hit = True
                                 break
         return actions_list
 
     def is_terminal(self):
-        if len(self.get_valid_actions()) > 0:
+        if len(self.get_actions()) > 0:
             return False
         else:
             return True
 
-    def print_board(self):
-        output = "CURRENT BOARD : \n"
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
+    def __hash__(self):
+        #print(hash(str(self.current_state["current_board"])))
+        return hash(str(self.current_state))
+
+    def __str__(self):
+        output = ''
         for x in range(20):
-            output += str(self.current_state.get_current_state()["state_val"]["current_board"][x]) + "\n"
+            output += str(self.current_state["current_board"][x]) + "\n"
 
         return output

@@ -10,7 +10,7 @@ class AbstractState:
     be sub-optimal. This is because states that are fundamentally the same but correspond to distinct
     objects will be treated as non-equivalent.
 
-    Simulators compatible with dealer.py must implement set_current_player.
+    Simulators compatible with dealer.py must implement set_current_player (if not single-player) and __str__.
 
     Simulators which are incompatible with dealer.py should implement three additional methods: run,
     run_trials, and run_trial. In short, run handles data processing, initiates run_trials for each of the provided

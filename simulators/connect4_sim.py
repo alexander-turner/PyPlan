@@ -130,9 +130,9 @@ class Connect4State(absstate.AbstractState):
         return self.state_val == other.state_val
 
     def __hash__(self):
-        return hash(tuple(self.state_val))
+        return hash(tuple(self.state_val + [self.current_player]))
 
-    def __repr__(self):
+    def __str__(self):
         output = ""
         board_size = (self.board_height + 1) * self.board_width
         for row in range(self.board_height, -1, -1):
