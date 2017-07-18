@@ -40,7 +40,7 @@ class TetrisState(absstate.AbstractState):
         return self.num_players
 
     def set(self, sim):
-        self.current_state = sim.current_state
+        self.current_state = copy.deepcopy(sim.current_state)
 
     def change_turn(self):
         self.current_state["current_piece"] = int(self.current_state["next_piece"])
@@ -192,7 +192,7 @@ class TetrisState(absstate.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(str(self.current_state["current_board"]))  # TODO: Fix hashing / counts interaction
+        return hash(str(self.current_state["current_board"]))
 
     def __str__(self):
         output = ''
