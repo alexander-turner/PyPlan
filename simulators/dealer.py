@@ -41,7 +41,6 @@ class Dealer:
         self.num_trials = num_trials
         if simulator_str:
             self.simulator_str = simulator_str
-            #self.simulators[self.simulator_str].reinitialize()
         if show_moves is not None:
             self.show_moves = show_moves
 
