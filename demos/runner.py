@@ -10,6 +10,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     dealer = dealer.Dealer()
 
     # Simulation objects (to be passed into dealer)
+    # TODO: Fix Othello
+    # Othello problems: hashing, move generation, playing real-looking games
     simulators = {'connect4': connect4_sim.Connect4State(), 'othello': othello_sim.OthelloState(),
                   'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
                   'yahtzee': yahtzee_sim.YahtzeeState()}
@@ -19,7 +21,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=1, depth=10)
     h10 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=10, depth=10)
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=1, policy=rand_agent)
+    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=2, policy=rand_agent)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=3, num_pulls=10, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=10, epsilon=0.5, policy=rand_agent)
@@ -44,6 +46,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
 
-    dealer.run(simulator=simulators['tictactoe'], agents=[u_ro], num_trials=5, multiprocess=True, show_moves=True)
+    dealer.run(simulator=simulators['tictactoe'], agents=[uct, e_ro], num_trials=5, multiprocess=True, show_moves=True)
 
 

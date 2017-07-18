@@ -24,7 +24,7 @@ class TicTacToeState(absstate.AbstractState):
     def __init__(self):
         self.current_state = self.original_state
         self.num_players = 2
-        self.winning_player = None
+        self.game_outcome = None
         self.game_over = False
         self.my_name = "Tic-Tac-Toe"
 
@@ -33,18 +33,19 @@ class TicTacToeState(absstate.AbstractState):
 
     def take_action(self, action):
         position = action['position']
-        value = action['value']
-        self.current_state["state_val"][position[0]][position[1]] = value
+        self.current_state['state_val'][position[0]][position[1]] = action['value']
         self.game_over = self.is_terminal()
 
         reward = [0.0] * self.num_players
 
-        if self.winning_player is not None:
+        if self.game_outcome is not None:
             for player in range(self.num_players):
-                if player == self.winning_player:
+                if player == self.game_outcome:
                     reward[player] += 1.0
                 else:
                     reward[player] -= 1.0
+
+        self.change_turn()
 
         return reward
 
@@ -54,33 +55,25 @@ class TicTacToeState(absstate.AbstractState):
         for x in range(len(self.current_state["state_val"])):
             for y in range(len(self.current_state["state_val"][0])):
                 if self.current_state["state_val"][x][y] == 0:
-                    actions_list.append({'position': [x, y], 'value': self.current_state["current_player"]})
+                    actions_list.append({'position': [x, y], 'value': self.current_state["current_player"] + 1})
 
         return actions_list
 
     def clone(self):
-        new_sim_obj = TicTacToeState()
-        new_sim_obj.set(self)
-        return new_sim_obj
+        return copy.deepcopy(self)
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)
-        self.winning_player = None
+        self.game_outcome = None
         self.game_over = False
 
     def set(self, sim):
-        self.current_state = sim.current_state
-        self.winning_player = sim.winning_player
+        self.current_state = copy.deepcopy(sim.current_state)
+        self.game_outcome = sim.game_outcome
         self.game_over = sim.game_over
 
     def change_turn(self):
-        new_turn = self.current_state["current_player"] + 1
-        new_turn %= self.num_players
-
-        if new_turn == 0:
-            self.current_state["current_player"] = self.num_players
-        else:
-            self.current_state["current_player"] = new_turn
+        self.current_state["current_player"] = (self.current_state["current_player"] + 1) % self.num_players
 
     def is_terminal(self):
         xcount = 0
@@ -98,17 +91,17 @@ class TicTacToeState(absstate.AbstractState):
                     ocount += 1
 
             if xcount == 3:
-                self.winning_player = 0
+                self.game_outcome = 0
                 break
             elif ocount == 3:
-                self.winning_player = 1
+                self.game_outcome = 1
                 break
             else:
                 xcount = 0
                 ocount = 0
 
         # Vertical check for hit
-        if self.winning_player is None:
+        if self.game_outcome is None:
             for y in range(len(current_state_val[0])):
                 for x in range(len(current_state_val)):
                     if current_state_val[x][y] == 1:
@@ -117,10 +110,10 @@ class TicTacToeState(absstate.AbstractState):
                         ocount += 1
 
                 if xcount == 3:
-                    self.winning_player = 0
+                    self.game_outcome = 0
                     break
                 elif ocount == 3:
-                    self.winning_player = 1
+                    self.game_outcome = 1
                     break
                 else:
                     xcount = 0
@@ -132,7 +125,7 @@ class TicTacToeState(absstate.AbstractState):
         xcount = 0
         ocount = 0
 
-        if self.winning_player is None:
+        if self.game_outcome is None:
             while x < len(current_state_val):
                 if current_state_val[x][y] == 1:
                     xcount += 1
@@ -143,9 +136,9 @@ class TicTacToeState(absstate.AbstractState):
                 y += 1
 
             if xcount == 3:
-                self.winning_player = 0
+                self.game_outcome = 0
             elif ocount == 3:
-                self.winning_player = 1
+                self.game_outcome = 1
             else:
                 xcount = 0
                 ocount = 0
@@ -156,7 +149,7 @@ class TicTacToeState(absstate.AbstractState):
         xcount = 0
         ocount = 0
 
-        if self.winning_player is None:
+        if self.game_outcome is None:
             while x < len(current_state_val):
                 if current_state_val[x][y] == 1:
                     xcount += 1
@@ -167,14 +160,14 @@ class TicTacToeState(absstate.AbstractState):
                 y -= 1
 
             if xcount == 3:
-                self.winning_player = 0
+                self.game_outcome = 0
             elif ocount == 3:
-                self.winning_player = 1
+                self.game_outcome = 1
             else:
                 xcount = 0
                 ocount = 0
 
-        if self.winning_player is None:
+        if self.game_outcome is None:
             # Check if the board is full
             x = 0
             y = 0
@@ -200,7 +193,7 @@ class TicTacToeState(absstate.AbstractState):
         return self.current_state == other.current_state
 
     def __hash__(self):
-        return hash(self.current_state)
+        return hash(str(self.current_state))
 
     def __str__(self):
         output = ''

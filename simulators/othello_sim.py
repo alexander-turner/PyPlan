@@ -53,10 +53,7 @@ class OthelloState(absstate.AbstractState):
         new_turn = self.current_state["current_player"] + 1
         new_turn %= self.num_players
 
-        if new_turn == 0:
-            self.current_state["current_player"] = self.num_players
-        else:
-            self.current_state["current_player"] = new_turn
+        self.current_state["current_player"] = new_turn
 
     def take_action(self, action):
         position = action['position']
@@ -90,6 +87,8 @@ class OthelloState(absstate.AbstractState):
                     reward[player] += 1.0
                 else:
                     reward[player] -= 1.0
+
+        self.change_turn()
 
         return reward
 
@@ -164,10 +163,10 @@ class OthelloState(absstate.AbstractState):
                         action = {'position': [i, j], 'value': self.current_state["current_player"]}
                         actions_list.append(action)
 
-        # Always add null action
-        if len(actions_list) == 0:
-            action = {'position': [-1, -1], 'value': -1}
-            actions_list.append(action)
+        # Always add null action  # TODO: remove null action
+        #if len(actions_list) == 0:
+        #    action = {'position': [-1, -1], 'value': -1}
+        #    actions_list.append(action)
         return actions_list
 
     def is_terminal(self):

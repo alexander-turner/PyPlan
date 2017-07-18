@@ -5,7 +5,12 @@ import multiprocessing
 
 
 class Dealer:
-    """Facilitates simulation of Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee."""
+    """
+    Facilitates simulation of Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee.
+
+    Generally, if the simulator isn't using any external frameworks to run, it should interface with this simulator,
+    rather than its own (à la openai_sim.py's implementation).
+    """
     def __init__(self, sim_horizon=50):
         self.simulation_horizon = sim_horizon
 
@@ -33,7 +38,7 @@ class Dealer:
         if simulator:
             self.simulator = simulator
             self.simulator.reinitialize()
-        if show_moves:
+        if show_moves is not None:
             self.show_moves = show_moves
 
     def run(self, simulator, agents, num_trials=10, output_path=None, multiprocess=True, show_moves=True):
