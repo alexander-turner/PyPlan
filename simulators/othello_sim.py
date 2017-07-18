@@ -23,7 +23,7 @@ class OthelloState(absstate.AbstractState):
     state_val[4][4] = 2
     original_state = {
             "state_val": state_val,
-            "current_player": 1
+            "current_player": 0
         }
 
     def __init__(self):
@@ -45,15 +45,12 @@ class OthelloState(absstate.AbstractState):
         return self.current_state
 
     def set(self, sim):
-        self.current_state = sim.current_state
+        self.current_state = copy.deepcopy(sim.current_state)
         self.game_outcome = sim.game_outcome
         self.game_over = sim.game_over
 
     def change_turn(self):
-        new_turn = self.current_state["current_player"] + 1
-        new_turn %= self.num_players
-
-        self.current_state["current_player"] = new_turn
+        self.current_state["current_player"] = (self.current_state["current_player"] + 1) % self.num_players
 
     def take_action(self, action):
         position = action['position']
@@ -132,7 +129,7 @@ class OthelloState(absstate.AbstractState):
         actions_list = []
 
         if curr_player == -1:
-            value = self.current_state["current_player"]
+            value = self.current_state["current_player"] + 1
         else:
             value = curr_player
 
@@ -160,13 +157,13 @@ class OthelloState(absstate.AbstractState):
                         possible_count += int(self.color_coins(value, [i + 1, j - 1], "DL", False))
 
                     if possible_count > 0:
-                        action = {'position': [i, j], 'value': self.current_state["current_player"]}
+                        action = {'position': [i, j], 'value': self.current_state["current_player"] + 1}
                         actions_list.append(action)
 
         # Always add null action  # TODO: remove null action
-        #if len(actions_list) == 0:
-        #    action = {'position': [-1, -1], 'value': -1}
-        #    actions_list.append(action)
+        if len(actions_list) == 0:
+            action = {'position': [-1, -1], 'value': -1}
+            actions_list.append(action)
         return actions_list
 
     def is_terminal(self):

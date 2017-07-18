@@ -2,6 +2,7 @@ import random
 import timeit
 import tabulate
 import multiprocessing
+from simulators import connect4_sim, othello_sim, tetris_sim, tictactoe_sim, yahtzee_sim
 
 
 class Dealer:
@@ -18,7 +19,10 @@ class Dealer:
         self.game_winner_list = []  # a list of which agent index won which game
         self.avg_move_time = []  # average time taken by each player per move
 
-        self.simulator = None
+        self.simulators = {'connect4': connect4_sim.Connect4State(), 'othello': othello_sim.OthelloState(),
+                           'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
+                           'yahtzee': yahtzee_sim.YahtzeeState()}
+        self.simulator_str = ''
         self.agents = []
         self.player_count = 0
         self.num_trials = 0
@@ -30,23 +34,23 @@ class Dealer:
         self.game_winner_list = []
         self.avg_move_time = []  # time taken per move by each player over all games
 
-    def configure(self, agents, num_trials, simulator=None, show_moves=None):
+    def configure(self, agents, num_trials, simulator_str=None, show_moves=None):
         """Reconfigure the dealer with the given parameters."""
         self.agents = agents
         self.player_count = len(agents)
         self.num_trials = num_trials
-        if simulator:
-            self.simulator = simulator
-            self.simulator.reinitialize()
+        if simulator_str:
+            self.simulator_str = simulator_str
+            #self.simulators[self.simulator_str].reinitialize()
         if show_moves is not None:
             self.show_moves = show_moves
 
-    def run(self, simulator, agents, num_trials=10, output_path=None, multiprocess=True, show_moves=True):
+    def run(self, simulator_str, agents, num_trials=10, output_path=None, multiprocess=True, show_moves=True):
         """Simulate the given state using the provided agents the given number of times.
 
         Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee.
 
-        :param simulator: a game simulator structure initialized to a game's starting state.
+        :param simulator_str: a string indicating which simulator to use.
         :param agents: a list of agents. Currently does not support iterating over multiple groups.
         :param num_trials: how many games should be run.
         :param output_path: a text file to which results should be written.
@@ -58,7 +62,7 @@ class Dealer:
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
 
         self.reinitialize()
-        self.configure(agents, num_trials, simulator, show_moves)
+        self.configure(agents, num_trials, simulator_str, show_moves)
 
         self.run_trials(multiprocess=multiprocess)
         [results, winner_list, avg_times] = self.simulation_stats()
@@ -96,7 +100,8 @@ class Dealer:
                           avg_times[agent_idx]])  # average time taken per move
 
         table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
-        table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "", simulator.my_name)
+        table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "",
+                                                     self.simulators[self.simulator_str].my_name)
         print(table)
 
         if output_path is not None:
@@ -123,11 +128,11 @@ class Dealer:
 
         :param sim_num: placeholder parameter that allows use with multiprocessing.Pool.
         """
-        current_state = self.simulator.clone()
+        current_state = self.simulators[self.simulator_str].clone()
         current_state.reinitialize()
 
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list
-        if self.simulator.number_of_players() > 1:
+        if self.simulators[self.simulator_str].number_of_players() > 1:
             current_state.set_current_player(random.randrange(self.player_count))
 
         game_history = []

@@ -2,19 +2,11 @@ from agents import *
 from heuristics import *
 from simulators import *
 
-
 if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
     openai = openai_sim.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
     pacman = pacman_sim.Dealer(layout_representation='testClassic')
     dealer = dealer.Dealer()
-
-    # Simulation objects (to be passed into dealer)
-    # TODO: Fix Othello
-    # Othello problems: hashing, move generation, playing real-looking games
-    simulators = {'connect4': connect4_sim.Connect4State(), 'othello': othello_sim.OthelloState(),
-                  'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
-                  'yahtzee': yahtzee_sim.YahtzeeState()}
 
     rand_agent = random_agent.RandomAgentClass()
 
@@ -46,6 +38,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
 
-    dealer.run(simulator=simulators['tictactoe'], agents=[uct, e_ro], num_trials=5, multiprocess=True, show_moves=True)
+    dealer.run(simulator_str='yahtzee', agents=[u_ro, e_ro], num_trials=5, multiprocess=False, show_moves=True)
 
 
