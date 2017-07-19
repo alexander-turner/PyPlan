@@ -1,9 +1,9 @@
-from abstract import absstate
+from abstract import abstract_state
 import copy
 import random
 
 
-class TetrisState(absstate.AbstractState):
+class TetrisState(abstract_state.AbstractState):
     original_state = {
             "current_board": [[0] * 10 for _ in range(20)],
             "current_piece": None,

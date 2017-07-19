@@ -1,8 +1,8 @@
-from abstract import absagent
+from abstract import abstract_agent
 import random
 
 
-class RandomAgentClass(absagent.AbstractAgent):
+class RandomAgentClass(abstract_agent.AbstractAgent):
     """An agent which randomly chooses from the available actions at each state."""
     my_name = "Random Agent"
 

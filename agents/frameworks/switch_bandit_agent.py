@@ -1,8 +1,8 @@
-from abstract import absagent
+from abstract import abstract_agent
 from bandits import uniform_bandit_alg
 
 
-class SwitchBanditAgentClass(absagent.AbstractAgent):
+class SwitchBanditAgentClass(abstract_agent.AbstractAgent):
     """An agent that takes a list of policies and returns the value of the best one at a given state."""
     my_name = "Policy Switching Bandit"
 

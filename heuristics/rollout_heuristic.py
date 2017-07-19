@@ -1,14 +1,15 @@
-from abstract import absheuristic
+from abstract import abstract_heuristic
 from agents.frameworks import random_agent
 import multiprocessing
 import numpy as np
 
 
-class RolloutHeuristicClass(absheuristic.AbstractHeuristic):
+class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
     """Facilitates rollout according to a user-defined policy, width, and depth."""
     my_name = "Rollout Heuristic"
 
     def __init__(self, width=1, depth=10, rollout_policy=None, multiprocess=False):
+        """If no policy is provided, initialize a random agent."""
         self.heuristic_name = self.my_name
         self.width = width
         self.depth = depth

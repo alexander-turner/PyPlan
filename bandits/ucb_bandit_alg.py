@@ -1,8 +1,8 @@
-from abstract import absbandit_alg
+from abstract import abstract_bandit_alg
 import math
 
 
-class UCBBanditAlgClass(absbandit_alg.AbstractBanditAlg):
+class UCBBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
     """Balances exploration and exploitation while minimizing time spent on sub-optimal arms.
 
     arm value := avg reward + exploration bonus that decreases as an arm is pulled more.

@@ -1,7 +1,7 @@
-from abstract import absbandit_alg
+from abstract import abstract_bandit_alg
 
 
-class UniformBanditAlgClass(absbandit_alg.AbstractBanditAlg):
+class UniformBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
     """Pulls each arm an approximately equal number of times (difference is at most 1)."""
     my_name = "Uniform Bandit"
 

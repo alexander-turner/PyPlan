@@ -1,8 +1,8 @@
-from abstract import absbandit_alg
+from abstract import abstract_bandit_alg
 import random
 
 
-class EBanditAlgClass(absbandit_alg.AbstractBanditAlg):
+class EBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
     """Pulls the most rewarding arm with (1 - epsilon) probability; else, another arm is pulled at random.
 
     Compared to the uniform bandit, less time is spent on non-promising arms.

@@ -1,4 +1,4 @@
-from abstract import absstate
+from abstract import abstract_state
 import random
 import copy
 from itertools import combinations
@@ -8,7 +8,7 @@ Simulator Class for Yahtzee
 """
 
 
-class YahtzeeState(absstate.AbstractState):
+class YahtzeeState(abstract_state.AbstractState):
     original_state = {
             "state_val": {
                     "current_roll": 0,

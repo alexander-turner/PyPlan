@@ -4,10 +4,10 @@ import itertools
 import gym
 from gym import spaces
 from gym import wrappers
-from abstract import absstate
+from abstract import abstract_state
 
 
-class OpenAIState(absstate.AbstractState):
+class OpenAIState(abstract_state.AbstractState):
     """An interface to run bandit algorithms on the OpenAI environment library.
 
     The simulator can be found at https://github.com/openai/gym.

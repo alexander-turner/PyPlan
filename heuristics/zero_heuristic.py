@@ -1,7 +1,7 @@
-from abstract import absheuristic
+from abstract import abstract_heuristic
 
 
-class ZeroHeuristicClass(absheuristic.AbstractHeuristic):
+class ZeroHeuristicClass(abstract_heuristic.AbstractHeuristic):
     my_name = "Zero Heuristic"
 
     def __init__(self):

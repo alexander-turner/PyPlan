@@ -11,13 +11,6 @@ class AbstractState:
     objects will be treated as non-equivalent.
 
     Simulators compatible with native_dealer.py must implement set_current_player (if not single-player) and __str__.
-
-    Simulators which are incompatible with native_dealer.py should have their own dealer, which must implement three
-    additional methods: run, run_trials, and run_trial. In short, run handles data processing, initiates run_trials
-    for each of the provided agents, and displays results. run_trials runs the specified number of trials on the
-    given agent, recording pertinent statistics. run_trial runs a single iteration of the simulator with the given
-    agent. multiprocessing compatibility is encouraged. openai_sim.py and pacman_sim.py contain implementation
-    examples.
     """
     __metaclass__ = ABCMeta
 

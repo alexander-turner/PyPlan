@@ -1,13 +1,15 @@
+from abstract import abstract_dealer
+from dealers.simulators import pacman_sim
 import multiprocessing
 import time
+import os
 import tabulate
 import numpy
-from dealers.simulators import pacman_sim
 
 
-class Dealer:
+class Dealer(abstract_dealer.AbstractDealer):
     def __init__(self, layout_representation, multiprocess=True, show_moves=False, use_graphics=True):
-        """
+        """Initialize the given layout.
 
         :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
         :param multiprocess: whether to speed the computation with parallel processing.
@@ -88,3 +90,11 @@ class Dealer:
 
         return {'reward': self.simulator.final_score, 'won': self.simulator.won,
                 'average move time': time_taken / self.simulator.time_step_count}
+
+    @staticmethod
+    def available_configurations():
+        """Returns the available level layouts."""
+        configurations = []
+        for filename in os.listdir("..\\dealers\\simulators\\pacmancode\\layouts"):
+            configurations.append(filename[:-4])
+        return configurations

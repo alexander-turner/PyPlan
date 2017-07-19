@@ -3,11 +3,11 @@ import tabulate
 import multiprocessing
 import logging
 import gym
-from abstract import absagent
+from abstract import abstract_agent, abstract_dealer
 from dealers.simulators import openai_sim
 
 
-class Dealer:
+class Dealer(abstract_dealer.AbstractDealer):
     def __init__(self, env_name=None, force=True, api_key=None):
         """Initialize a Dealer object for running trials of agents on environments.
 
@@ -35,13 +35,13 @@ class Dealer:
 
     def run_all(self, agents, num_trials, multiprocess=True, show_moves=False):
         """Runs the agents on all available simulators."""
-        all_environments = gym.envs.registry.all()
-        for env_idx, env in enumerate(all_environments):
-            if self.should_skip(env.id):  # duplicate games / games that hang
-                print("Filtered game - skipping {}.".format(env.id))
+        all_environments = self.available_configurations()
+        for env_id in all_environments:
+            if self.should_skip(env_id):  # duplicate games / games that hang
+                print("Filtered game - skipping {}.".format(env_id))
                 continue
 
-            self.run(agents=agents, num_trials=num_trials, env_name=env.id,
+            self.run(agents=agents, num_trials=num_trials, env_name=env_id,
                      multiprocess=multiprocess, show_moves=show_moves)
 
     def run(self, agents, num_trials, env_name=None, multiprocess=True, show_moves=True, upload=False):
@@ -77,7 +77,7 @@ class Dealer:
             self.show_moves = False
 
         for agent in agents:
-            if not isinstance(agent, absagent.AbstractAgent):  # if this isn't a planning agent
+            if not isinstance(agent, abstract_agent.AbstractAgent):  # if this isn't a planning agent
                 self.multiprocess = False
                 logging.warning('Multiprocessing is disabled for agents that learn over multiple episodes.')
 
@@ -196,6 +196,18 @@ class Dealer:
                 'episode length': stats_recorder.total_steps,
                 'timestamp': stats_recorder.timestamps[0],
                 'episode type': stats_recorder.type}
+
+    @staticmethod
+    def available_configurations():
+        """Lists all available environments.
+
+        To print nicely, use the pprint module.
+        """
+        configurations = []
+        for e in gym.envs.registry.all():
+            configurations.append(e.id)
+        configurations.sort()
+        return configurations
 
     @staticmethod
     def should_skip(game_id):

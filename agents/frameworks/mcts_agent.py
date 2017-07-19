@@ -1,10 +1,10 @@
-from abstract import absagent
+from abstract import abstract_agent
 import random
 from bandits import uniform_bandit_alg
 from heuristics import zero_heuristic
 
 
-class MCTSAgentClass(absagent.AbstractAgent):
+class MCTSAgentClass(abstract_agent.AbstractAgent):
     my_name = "MCTS Agent"
 
     def __init__(self, depth, max_width, num_trials, heuristic=None, bandit_alg_class=None, bandit_parameters=None,

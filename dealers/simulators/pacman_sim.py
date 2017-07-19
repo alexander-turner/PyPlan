@@ -1,11 +1,11 @@
 import sys
 import os
 sys.path.append(os.path.abspath('..\\dealers\\simulators\\pacmancode'))  # assume we're running from demos/
-from abstract import absstate
+from abstract import abstract_state
 from dealers.simulators.pacmancode import *
 
 
-class PacmanState(absstate.AbstractState):
+class PacmanState(abstract_state.AbstractState):
     """An interface to run bandit algorithms on the Pacman simulator provided by Berkeley.
 
     Give multiple agents to compare results.

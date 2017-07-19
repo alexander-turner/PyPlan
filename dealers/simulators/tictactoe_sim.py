@@ -1,4 +1,4 @@
-from abstract import absstate
+from abstract import abstract_state
 import copy
 
 """
@@ -15,7 +15,7 @@ NOTE :
 """
 
 
-class TicTacToeState(absstate.AbstractState):
+class TicTacToeState(abstract_state.AbstractState):
     original_state = {
             "state_val": [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
             "current_player": 1

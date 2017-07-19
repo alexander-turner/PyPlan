@@ -6,7 +6,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
     openai = openai_dealer.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
-    dealer = native_dealer.Dealer()
+    native = native_dealer.Dealer()
 
     h1 = rollout_heuristic.RolloutHeuristicClass(width=1, depth=10)
     h10 = rollout_heuristic.RolloutHeuristicClass(width=10, depth=10)
@@ -29,12 +29,12 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
-
+    print(openai.available_configurations())
     #openai.run_all(agents=[u_ro], num_trials=3)
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess=True, show_moves=False, upload=False)
 
-    pacman.run(agents=[u_ro], num_trials=10)
+    #pacman.run(agents=[u_ro], num_trials=10)
 
-    #dealer.run(simulator_str='connect4', agents=[e_ro, u_ro], num_trials=5)
+    #native.run(simulator_str='connect4', agents=[e_ro, u_ro], num_trials=5)
 
 

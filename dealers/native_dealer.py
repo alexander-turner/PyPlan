@@ -2,10 +2,11 @@ import random
 import timeit
 import tabulate
 import multiprocessing
+from abstract import abstract_dealer
 from dealers.simulators import *
 
 
-class Dealer:
+class Dealer(abstract_dealer.AbstractDealer):
     """
     Facilitates simulation of Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee.
 
@@ -197,6 +198,10 @@ class Dealer:
             time_sums[sum_value] = time_sums[sum_value] / moves_per_player
 
         return {'winner': winner, 'game history': game_history, 'average move times': time_sums}
+
+    def available_configurations(self):
+        """Returns the strings for the native simulators available."""
+        return list(self.simulators)
 
     def simulation_stats(self):
         return self.simulation_history, self.game_winner_list, self.avg_move_time

@@ -1,4 +1,4 @@
-from abstract import absstate
+from abstract import abstract_state
 import copy
 
 """
@@ -15,7 +15,7 @@ NOTE :
 """
 
 
-class OthelloState(absstate.AbstractState):
+class OthelloState(abstract_state.AbstractState):
     state_val = [[0] * 8 for _ in range(8)]
     state_val[3][3] = 2
     state_val[3][4] = 1

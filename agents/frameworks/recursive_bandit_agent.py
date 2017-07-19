@@ -1,9 +1,9 @@
-from abstract import absagent
+from abstract import abstract_agent
 from bandits import uniform_bandit_alg
 from heuristics import zero_heuristic
 
 
-class RecursiveBanditAgentClass(absagent.AbstractAgent):
+class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
     """The agent blueprint."""
     my_name = "Recursive Bandit"
 
