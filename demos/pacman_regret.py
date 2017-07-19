@@ -8,11 +8,10 @@ spend much time on non-promising arms.
 """
 
 if __name__ == '__main__':
-    rand_agent = random_agent.RandomAgentClass()
-    h1 = rollout_heuristic.RolloutHeuristicClass(rollout_policy=rand_agent, width=1, depth=10)
+    h1 = rollout_heuristic.RolloutHeuristicClass(width=1, depth=10)
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
-    ucb_ro = ucb_rollout_agent.UCBRolloutAgentClass(depth=1, num_pulls=100, c=1.0, policy=rand_agent)
+    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100)
+    ucb_ro = ucb_rollout_agent.UCBRolloutAgentClass(depth=1, num_pulls=100, c=1.0)
 
     pacman = pacman_sim.Dealer(layout_representation='testClassic')
     pacman.run(agents=[u_ro, ucb_ro], num_trials=15, show_moves=False)

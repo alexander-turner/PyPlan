@@ -5,7 +5,7 @@ from bandits import uniform_bandit_alg
 class UniformRolloutAgentClass(rollout_agent.RolloutAgentClass):
     my_name = "Uniform Rollout Agent"
 
-    def __init__(self, depth, num_pulls, policy):
+    def __init__(self, depth, num_pulls, policy=None):
         rollout_agent.RolloutAgentClass.__init__(self, depth=depth, num_pulls=num_pulls,
                                                  policy=policy,
                                                  bandit_class=uniform_bandit_alg.UniformBanditAlgClass)

@@ -160,7 +160,7 @@ class OthelloState(absstate.AbstractState):
                         action = {'position': [i, j], 'value': self.current_state["current_player"] + 1}
                         actions_list.append(action)
 
-        # Always add null action  # TODO: remove null action
+        # Always add null action
         if len(actions_list) == 0:
             action = {'position': [-1, -1], 'value': -1}
             actions_list.append(action)

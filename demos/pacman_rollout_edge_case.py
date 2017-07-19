@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.append(os.path.abspath('..\\simulators\\pacmancode'))
 from agents import *
 from simulators import *
 
@@ -28,13 +25,10 @@ fine.
 """
 
 if __name__ == '__main__':
-    rand_agent = random_agent.RandomAgentClass()
+    uniform_rollout_d1_low_pulls = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10)
 
-    uniform_rollout_d1_low_pulls = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10, policy=rand_agent)
-
-    uniform_rollout_d1 = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100, policy=rand_agent)
-
-    uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=100, policy=rand_agent)
+    uniform_rollout_d1 = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100)
+    uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=100)
 
     pacman = pacman_sim.Dealer(layout_representation='testClassic')
     pacman.run(agents=[uniform_rollout_d1_low_pulls, uniform_rollout_d1, uniform_rollout_d10], num_trials=10)

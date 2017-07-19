@@ -1,6 +1,5 @@
 from agents import switch_bandit_agent
 from bandits import e_bandit_alg
-from heuristics import rollout_heuristic
 
 
 class EPolicySwitchAgentClass(switch_bandit_agent.SwitchBanditAgentClass):

@@ -1,5 +1,4 @@
 from agents import recursive_bandit_agent
-from heuristics import rollout_heuristic
 from bandits import uniform_bandit_alg
 
 

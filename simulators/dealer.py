@@ -58,10 +58,13 @@ class Dealer:
             If enabled, show_moves will be disabled.
         :param show_moves: whether the dealer should display the game progression.
         """
+
         if multiprocess:
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
+            """
             for agent in agents:
                 agent.heuristic.multiprocess = False  # can't use both multiprocessing methods at the same time
+            """
 
         self.reinitialize()
         self.configure(agents, num_trials, simulator_str, show_moves)
@@ -69,9 +72,11 @@ class Dealer:
         self.run_trials(multiprocess=multiprocess)
         [results, winner_list, avg_times] = self.simulation_stats()
 
+        """
         if multiprocess:
             for agent in agents:
                 agent.heuristic.multiprocess = True  # reset heuristic status
+        """
 
         # Calculate the results
         overall_reward = []
@@ -170,9 +175,7 @@ class Dealer:
         if self.show_moves:
             print(current_state)
 
-        # --------------- #
-        # Game Statistics #
-        # --------------- #
+        # Game statistics
         total_reward = [0.0] * self.player_count
         for turn in range(len(game_history)):
             total_reward = [x + y for x, y in zip(total_reward, game_history[turn][0])]

@@ -5,7 +5,7 @@ from bandits import e_bandit_alg
 class ERolloutAgentClass(rollout_agent.RolloutAgentClass):
     my_name = "Epsilon-Greedy Rollout Agent"
 
-    def __init__(self, depth, num_pulls, epsilon, policy):
+    def __init__(self, depth, num_pulls, epsilon, policy=None):
         rollout_agent.RolloutAgentClass.__init__(self, depth=depth, num_pulls=num_pulls,
                                                  policy=policy,
                                                  bandit_class=e_bandit_alg.EBanditAlgClass,
