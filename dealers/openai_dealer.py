@@ -9,7 +9,7 @@ from dealers.simulators import openai_sim
 
 class Dealer(abstract_dealer.AbstractDealer):
     def __init__(self, env_name=None, force=True, api_key=None):
-        """Initialize a Dealer object for running trials of agents on environments.
+        """An object for running agents on environments.
 
         :param env_name: a valid env key that corresponds to a particular game / task.
         :param force: whether an existing directory at demos/OpenAI results/wrapper_target/ should be overwritten
@@ -187,7 +187,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             # Don't render if it's not supported
             if self.show_moves and 'human' in self.simulator.env.metadata['render.modes']:
-                self.simulator.env.render()  # TODO: investigate CartPole-v0
+                self.simulator.env.render()
 
         stats_recorder = self.simulator.env.stats_recorder
         return {'reward': stats_recorder.rewards,
