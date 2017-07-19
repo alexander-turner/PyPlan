@@ -1,6 +1,6 @@
 from agents import *
 from heuristics import rollout_heuristic
-from simulators import pacman_sim
+from dealers import pacman_dealer
 
 """
 Policy switching carries with it the theoretical guarantee that at each time step, it will perform at least as well as 
@@ -15,5 +15,5 @@ if __name__ == '__main__':
     ss = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
     switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=3, num_pulls=15, policies=[u_ro, ss])
 
-    pacman = pacman_sim.Dealer(layout_representation='testClassic')
+    pacman = pacman_dealer.Dealer(layout_representation='testClassic')
     pacman.run(agents=[u_ro, ss, switch_agent], num_trials=15)

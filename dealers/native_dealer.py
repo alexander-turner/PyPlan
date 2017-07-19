@@ -2,7 +2,7 @@ import random
 import timeit
 import tabulate
 import multiprocessing
-from simulators import connect4_sim, othello_sim, tetris_sim, tictactoe_sim, yahtzee_sim
+from dealers.simulators import *
 
 
 class Dealer:

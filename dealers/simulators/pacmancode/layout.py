@@ -139,7 +139,7 @@ def getLayout(name, back = 2):
         if layout is None: layout = tryToLoad(name + '.lay')
     if layout is None and back >= 0:
         curdir = os.path.abspath('.')
-        os.chdir('../simulators/pacmancode')  # assumes execution from demos/
+        os.chdir('../dealers/simulators/pacmancode')  # assumes execution from demos/
         #os.chdir('..')
         layout = getLayout(name, back -1)
         os.chdir(curdir)

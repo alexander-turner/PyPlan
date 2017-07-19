@@ -1,12 +1,12 @@
 from agents import *
 from heuristics import *
-from simulators import *
+from dealers import *
 
 if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
-    openai = openai_sim.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    pacman = pacman_sim.Dealer(layout_representation='testClassic')
-    dealer = dealer.Dealer()
+    openai = openai_dealer.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+    pacman = pacman_dealer.Dealer(layout_representation='testClassic')
+    dealer = native_dealer.Dealer()
 
     h1 = rollout_heuristic.RolloutHeuristicClass(width=1, depth=10)
     h10 = rollout_heuristic.RolloutHeuristicClass(width=10, depth=10)
@@ -33,8 +33,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     #openai.run_all(agents=[u_ro], num_trials=3)
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess=True, show_moves=False, upload=False)
 
-    #pacman.run(agents=[nested_u_ro], num_trials=10, multiprocess=False, show_moves=True)
+    pacman.run(agents=[u_ro], num_trials=10)
 
-    dealer.run(simulator_str='connect4', agents=[e_ro, u_ro], num_trials=5)
+    #dealer.run(simulator_str='connect4', agents=[e_ro, u_ro], num_trials=5)
 
 
