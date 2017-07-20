@@ -77,12 +77,12 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
         # if we reach max children nodes then select randomly among children
         if len(node.children[action_index]) >= self.max_width:
             # Each key is a state
-            counts = [node.children[action_index][k][1] for k in node.children[action_index]]
+            keys = list(node.children[action_index].keys())
+            counts = [node.children[action_index][k][1] for k in keys]
             normalizer = sum(counts)
             counts = [c / normalizer for c in counts]  # list of counts proportional to total number of samples
 
             successor_index = multinomial(counts)  # randomly sample from polynomial counts - greater counts more likely
-            keys = list(node.children[action_index].keys())
             successor_node = node.children[action_index][keys[successor_index]][0]
 
             immediate_reward = successor_node.transition_reward

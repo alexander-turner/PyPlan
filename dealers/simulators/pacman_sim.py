@@ -121,7 +121,7 @@ class PacmanState(abstract_state.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(self.current_state)
+        return self.current_state.__hash__()
 
 
 class Agent(game.Agent):

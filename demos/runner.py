@@ -20,7 +20,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     ss_d2 = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgentClass(depth=5, pulls_per_node=5, heuristic=h1)
-    fsss = fsss_agent.FSSSAgentClass(depth=1, pulls_per_node=5)  # TODO investigate overhead slowness
+    fsss = fsss_agent.FSSSAgentClass(depth=1, pulls_per_node=10)  # TODO investigate overhead slowness
 
     uct = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
@@ -33,8 +33,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[fsss], num_trials=10, env_name='FrozenLake-v0', multiprocess=True, show_moves=False, upload=False)
 
-    #pacman.run(agents=[fsss, u_ro], num_trials=20, multiprocess=False, show_moves=True)
+    pacman.run(agents=[fsss], num_trials=20, multiprocess=False)
 
-    native.run(simulator_str='connect4', agents=[fsss, u_ro], num_trials=5, multiprocess=False)  # TODO Fix FSSS for list-actions
+    #native.run(simulator_str='connect4', agents=[fsss, u_ro], num_trials=5, multiprocess=False)  # TODO Fix FSSS for list-actions
 
 
