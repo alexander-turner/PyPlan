@@ -67,7 +67,7 @@ class Connect4State(abstract_state.AbstractState):
                         actions_list.append(action)
                         break
                     else:
-                        action = [curr_val, self.current_player]
+                        action = tuple([curr_val, self.current_player])
 
                     if curr_val == self.board_width * column:
                         actions_list.append(action)
