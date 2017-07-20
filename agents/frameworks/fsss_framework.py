@@ -40,8 +40,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.lower = [dict() for _ in range(self.depth + 1)]
         self.upper = [dict() for _ in range(self.depth + 1)]
 
-        self.visits = [dict() for _ in range(self.depth + 1)]
-
     def get_agent_name(self):
         return self.agent_name
 
@@ -50,7 +48,10 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         if self.depth == 0 or state.is_terminal():  # there's nothing left to do
             return None
 
+        # Reset bookkeeping
         self.num_nodes = 1
+        self.lower = [dict() for _ in range(self.depth + 1)]
+        self.upper = [dict() for _ in range(self.depth + 1)]
 
         action_list = state.get_actions()
 
@@ -64,98 +65,107 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         while True:
             self.run_trial(root_node, self.depth)
-            if self.is_done(root_node.state):
+            if self.is_done(root_node):
                 break
 
-        return self.get_best_action(root_node.state, self.depth)
+        return self.get_best_action(root_node, self.depth)
 
     def run_trial(self, node, depth):
         """
 
         :param node: points to a BanditNode object.
-        :param depth: how many more layers to generate before using the heuristic.
+        :param depth: how many more layers to generate before using the heuristic; 0-indexed.
         """
         # TODO use heaps to reduce complexity
-        num_actions = len(node.action_list)
-        if node.state not in self.visits[depth]:  # Question is state ok or do we need node?
-            self.visits[depth][node.state] = 0
-            self.lower[depth][node.state] = [0] * num_actions
-            self.upper[depth][node.state] = [0] * num_actions
+        current_player = node.state.get_current_player()
+
+        if node.times_visited == 0:
+            self.lower[depth][node.state] = {}
+            self.upper[depth][node.state] = {}
 
         if depth == 0:  # reached a leaf
-            for action in range(num_actions):
+            for action in node.action_list:
                 sim_state = node.state.clone()
-                immediate_reward = sim_state.take_action(action)  # Question use heuristic? how do we know this is representative?
-                self.lower[depth][node.state][action] = immediate_reward
-                self.upper[depth][node.state][action] = immediate_reward
-            self.lower[depth][node.state].value = max(self.lower[depth][node.state])
-            self.upper[depth][node.state].value = max(self.upper[depth][node.state])
+                immediate_reward = sim_state.take_action(action)
+                self.lower[depth][node.state][action] = immediate_reward[current_player]
+                self.upper[depth][node.state][action] = immediate_reward[current_player]
+            if len(node.action_list) > 0:
+                max_reward = max(self.lower[depth][node.state].values())  # upper and lower should be the same here
+            else:
+                max_reward = node.transition_reward  # Question use heuristic?
+            self.lower[depth][node.state]['state_value'] = max_reward
+            self.upper[depth][node.state]['state_value'] = max_reward
             return
-        elif self.visits[depth][node.state] == 0:  # have yet to visit this node at this depth
-            for action in range(num_actions):
+        elif node.times_visited == 0:  # have yet to visit this node at this depth
+            for action in node.action_list:
                 self.lower[depth][node.state][action] = float('-inf')
                 self.upper[depth][node.state][action] = float('inf')
-            sim_state = node.state.clone()
+
             for _ in range(self.pulls_per_node):  # sample C states
-                action = node.bandit.select_pull_arm()
-                sim_state.set(node.state)
-                immediate_reward = sim_state.take_action(action)  # simulate taking action
-                if sim_state not in node.children[action]:
-                    self.lower[depth][sim_state].value = float('-inf')
-                    self.upper[depth][sim_state].value = float('inf')
+                action_idx = node.bandit.select_pull_arm()
+                sim_state = node.state.clone()  # clone so that hashing works properly
+                immediate_reward = sim_state.take_action(node.action_list[action_idx])  # simulate taking action
+
+                if sim_state not in node.children[action_idx]:
+                    self.lower[depth - 1][sim_state] = {}
+                    self.lower[depth - 1][sim_state]['state_value'] = float('-inf')
+                    self.upper[depth - 1][sim_state] = {}
+                    self.upper[depth - 1][sim_state]['state_value'] = float('inf')
 
                     sim_actions = sim_state.get_actions()
-                    if sim_state.is_terminal() or depth == 1:  # indicate it's time to use the heuristic
-                        sim_bandit = None
-                    elif self.bandit_parameters is None:  # create a bandit according to how many actions are available
+                    if self.bandit_parameters is None:  # create a bandit according to how many actions are available
                         sim_bandit = self.BanditAlgClass(len(sim_actions))
                     else:
                         sim_bandit = self.BanditAlgClass(len(sim_actions), self.bandit_parameters)
 
-                    new_node = BanditNode(sim_state, immediate_reward, sim_actions, sim_bandit)
-                    node.children[action][sim_state] = new_node
+                    new_node = BanditNode(sim_state, immediate_reward[current_player], sim_actions, sim_bandit)
+                    node.children[action_idx][sim_state] = new_node
                     self.num_nodes += 1  # we've made a new BanditNode
-                node.bandit.update(action, immediate_reward)  # update the bandit with the information we gained
+                # update the bandit with the information we gained
+                node.bandit.update(action_idx, immediate_reward[current_player])
 
-        best_action = self.get_best_action(node.state, depth)
+        best_action = self.get_best_action(node, depth)
+        best_action_idx = node.action_list.index(best_action)
 
         # Find the greatest difference between the upper and lower bounds for depth-1
-        bound_differences = [tuple([s, self.upper[depth - 1][s].value - self.lower[depth - 1][s].value, ])
-                             for s in node.children[best_action]]
+        bound_differences = [tuple([s, self.upper[depth - 1][s]['state_value'] -
+                                    self.lower[depth - 1][s]['state_value']])
+                             for s in node.children[best_action_idx]]
         successor_state = (max(bound_differences, key=lambda x: x[1]))[0]  # retrieve state from tuple
-        successor_node = node.children[best_action][successor_state]
+        successor_node = node.children[best_action_idx][successor_state]
 
         self.run_trial(successor_node, depth - 1)
 
-        self.visits[depth][node.state] += 1
+        node.times_visited += 1
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
         self.lower[depth][node.state][best_action] = successor_node.transition_reward + \
-                                                     self.discount * sum([self.lower[depth - 1][s].value
-                                                                          for s in node.children[best_action]]) \
+                                                     self.discount * sum([self.lower[depth - 1][s]['state_value']
+                                                                          for s in node.children[best_action_idx]]) \
                                                      / self.pulls_per_node
         self.upper[depth][node.state][best_action] = successor_node.transition_reward + \
-                                                     self.discount * sum([self.upper[depth - 1][s].value
-                                                                          for s in node.children[best_action]]) \
+                                                     self.discount * sum([self.upper[depth - 1][s]['state_value']
+                                                                          for s in node.children[best_action_idx]]) \
                                                      / self.pulls_per_node
 
-        self.lower[depth][node.state].value = max(self.lower[depth][node.state])
-        self.upper[depth][node.state].value = max(self.upper[depth][node.state])
+        self.lower[depth][node.state]['state_value'] = max(self.lower[depth][node.state].values())
+        self.upper[depth][node.state]['state_value'] = max(self.upper[depth][node.state].values())
 
-    def is_done(self, root_state):
+    def is_done(self, root_node):
         """Returns whether we've found the best action at the root state."""
-        best_action = self.get_best_action(root_state, self.depth)
-        for idx, upper_bound in enumerate(self.upper[self.depth][root_state]):
-            if idx == best_action:
+        best_action = self.get_best_action(root_node, self.depth)
+        for action in root_node.action_list:
+            if action == best_action:
                 continue
-            if self.lower[self.depth][root_state][best_action] < upper_bound:
+            if self.lower[self.depth][root_node.state][best_action] \
+                    < self.upper[self.depth][root_node.state][action]:
                 return False
         return True
 
     def get_best_action(self, node, depth):
-        """Returns the action with the maximal upper bound for the given state and depth."""
-        upper_bounds = [self.upper[depth][state][action] for action in node.action_list]
-        best_action, _ = max(enumerate(upper_bounds), key=lambda x: x[1])  # get index of best action
+        """Returns the action with the maximal upper bound for the given node.state and depth."""
+        upper_bounds = [tuple([action, self.upper[depth][node.state][action]]) for action in node.action_list]
+        best_action = (max(upper_bounds, key=lambda x: x[1]))[0] # get index of best action
         return best_action
 
 
@@ -168,11 +178,11 @@ class BanditNode:
         self.action_list = action_list
         self.bandit = bandit
         self.num_nodes = 0
+        self.times_visited = 0
 
         """
-        Each action is associated with a dictionary that stores successor bandits/states.
-        The key for each successor is the state. 
-        The value is a list [n,c], where n is a BanditNode and c is the number of times that n has been sampled.
+        Each action is associated with a dictionary that stores successor nodes.
+        The key for each successor is the state.
         """
-        self.children = [{} for _ in range(len(action_list))]
+        self.children = [{} for _ in range(len(self.action_list))]
 
