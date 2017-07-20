@@ -58,7 +58,7 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
         current_state = state.clone()
         q_values = [[0]*state.number_of_players()]*num_actions  # for each action, for each player, initialize a q value
 
-        for i in range(self.pulls_per_node):  # use pull budget
+        for _ in range(self.pulls_per_node):  # use pull budget
             chosen_arm = bandit.select_pull_arm()
             current_state.set(state)  # reset state
             

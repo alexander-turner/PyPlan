@@ -20,6 +20,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     ss_d2 = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgentClass(depth=5, pulls_per_node=5, heuristic=h1)
+    fsss = fsss_agent.FSSSAgentClass(depth=2, pulls_per_node=20)
 
     uct = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
@@ -28,11 +29,11 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
 
-    all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, uct, e_root_uct, switch_agent, e_switch_agent]
+    all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
 
-    openai.run(agents=[uct], num_trials=10, env_name='CartPole-v0', multiprocess=False, show_moves=False, upload=False)
+    #openai.run(agents=[u_ro], num_trials=10, env_name='CartPole-v0', multiprocess=True, show_moves=False, upload=False)
 
-    #pacman.run(agents=[u_ro], num_trials=10)
+    pacman.run(agents=[fsss, ss_d2], num_trials=2, multiprocess=False)
 
     #native.run(simulator_str='connect4', agents=[e_ro, u_ro], num_trials=5)
 

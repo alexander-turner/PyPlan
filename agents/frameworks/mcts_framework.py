@@ -63,7 +63,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
     def run_trial(self, node, depth):
         """Using agent parameters, recurse up to depth layers from node in the constructed tree.
 
-        :param node: points to a BanditNode object. Will not be modified.
+        :param node: points to a BanditNode object.
         :param depth: how many more layers to generate before using the heuristic.
         :return total_reward:
         """
@@ -132,7 +132,7 @@ class BanditNode:
         The key for each successor is the state. 
         The value is a list [n,c], where n is a BanditNode and c is the number of times that n has been sampled.
         """
-        self.children = [{} for i in range(len(action_list))]
+        self.children = [{} for _ in range(len(action_list))]
 
 
 def multinomial(p):
