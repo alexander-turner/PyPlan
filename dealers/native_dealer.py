@@ -127,6 +127,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             # ensures that the system still runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
             game_outputs = pool.map(self.run_trial, range(self.num_trials))
+            pool.close()
         else:
             for sim_num in range(self.num_trials):
                 game_outputs.append(self.run_trial())

@@ -7,15 +7,17 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, discount=0.9, heuristic=None,
+    def __init__(self, depth, pulls_per_node, discount=1, heuristic=None,
                  bandit_alg_class=None, bandit_parameters=None,
                  root_bandit_alg_class=None, root_bandit_parameters=None):
         self.agent_name = self.my_name
         self.num_nodes = 1
 
         self.depth = depth
+        if depth < 1:
+            raise Exception("Depth must be at least 1.")
         self.pulls_per_node = pulls_per_node
-        self.discount = discount  # TODO what should discount be?
+        self.discount = discount
 
         if heuristic is None:
             self.heuristic = zero_heuristic.ZeroHeuristicClass()
@@ -78,29 +80,33 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         """
         # TODO use heaps to reduce complexity
         # TODO FSSS demo?
+        if node.state.is_terminal():
+            self.lower[depth][node.state]['state_value'] = node.transition_reward
+            self.upper[depth][node.state]['state_value'] = node.transition_reward
+            return
+
         current_player = node.state.get_current_player()
 
         if node.times_visited == 0:
-            self.lower[depth][node.hash] = {}
-            self.upper[depth][node.hash] = {}
+            self.lower[depth][node.state] = {}
+            self.upper[depth][node.state] = {}
 
         if depth == 0:  # reached a leaf
             for action in node.action_list:
                 sim_state = node.state.clone()
-                immediate_reward = sim_state.take_action(action)
-                self.lower[depth][node.hash][action] = immediate_reward[current_player]
-                self.upper[depth][node.hash][action] = immediate_reward[current_player]
-            if len(node.action_list) > 0:
-                max_reward = max(self.lower[depth][node.hash].values())  # upper and lower should be the same here
-            else:
-                max_reward = node.transition_reward  # Question use heuristic?
-            self.lower[depth][node.hash]['state_value'] = max_reward
-            self.upper[depth][node.hash]['state_value'] = max_reward
+                immediate_reward = sim_state.take_action(action)  # question one layer too many?
+                estimated_reward = immediate_reward + self.heuristic.evaluate(sim_state)
+                self.lower[depth][node.state][action] = estimated_reward[current_player]
+                self.upper[depth][node.state][action] = estimated_reward[current_player]
+            # upper and lower should be the same here
+            state_value = max([self.lower[depth][node.state][a] for a in node.action_list])
+            self.lower[depth][node.state]['state_value'] = state_value
+            self.upper[depth][node.state]['state_value'] = state_value
             return
         elif node.times_visited == 0:  # have yet to visit this node at this depth
             for action in node.action_list:
-                self.lower[depth][node.hash][action] = float('-inf')
-                self.upper[depth][node.hash][action] = float('inf')
+                self.lower[depth][node.state][action] = float('-inf')
+                self.upper[depth][node.state][action] = float('inf')
 
             for _ in range(self.pulls_per_node):  # sample C states
                 action_idx = node.bandit.select_pull_arm()
@@ -141,17 +147,17 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         node.times_visited += 1
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
-        self.lower[depth][node.hash][best_action] = successor_node.transition_reward + \
+        self.lower[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.lower[depth - 1][k]['state_value']
                                                                           for k in keys]) \
                                                      / self.pulls_per_node
-        self.upper[depth][node.hash][best_action] = successor_node.transition_reward + \
+        self.upper[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.upper[depth - 1][k]['state_value']
                                                                           for k in keys]) \
                                                      / self.pulls_per_node
 
-        self.lower[depth][node.hash]['state_value'] = max(self.lower[depth][node.hash].values())
-        self.upper[depth][node.hash]['state_value'] = max(self.upper[depth][node.hash].values())
+        self.lower[depth][node.state]['state_value'] = max([self.lower[depth][node.state][a] for a in node.action_list])
+        self.upper[depth][node.state]['state_value'] = max([self.upper[depth][node.state][a] for a in node.action_list])
 
     def is_done(self, root_node):
         """Returns whether we've found the best action at the root state."""
@@ -159,14 +165,14 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         for action in root_node.action_list:
             if action == best_action:
                 continue
-            if self.lower[self.depth][root_node.hash][best_action] \
-                    < self.upper[self.depth][root_node.hash][action]:
+            if self.lower[self.depth][root_node.state][best_action] \
+                    < self.upper[self.depth][root_node.state][action]:
                 return False
         return True
 
     def get_best_action(self, node, depth):
         """Returns the action with the maximal upper bound for the given node.state and depth."""
-        upper_bounds = [tuple([action, self.upper[depth][node.hash][action]]) for action in node.action_list]
+        upper_bounds = [tuple([action, self.upper[depth][node.state][action]]) for action in node.action_list]
         best_action = (max(upper_bounds, key=lambda x: x[1]))[0]  # get index of best action
         return best_action
 
@@ -179,14 +185,13 @@ class BanditNode:
         self.transition_reward = transition_reward
         self.action_list = action_list
         self.bandit = bandit
-        
+
         self.num_nodes = 0
         self.times_visited = 0
-        self.hash = self.state.__hash__()
-        
+        # self.hash = self.state.__hash__()
+
         """
         Each action is associated with a dictionary that stores successor nodes.
         The key for each successor is the state.
         """
         self.children = [{} for _ in range(len(self.action_list))]
-

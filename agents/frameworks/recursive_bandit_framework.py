@@ -74,3 +74,6 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
         best_arm_index = bandit.select_best_arm()
 
         return [q / bandit.get_num_pulls(best_arm_index) for q in q_values[best_arm_index]], action_list[best_arm_index]
+
+    #def run_pull(self, state, bandit):
+    #    """Given the bandit information, """

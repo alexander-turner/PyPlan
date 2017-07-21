@@ -127,7 +127,10 @@ class Connect4State(abstract_state.AbstractState):
         return 0
 
     def __eq__(self, other):
-        return self.state_val == other.state_val
+        if isinstance(other, int):  # another hash
+            return self.__hash__() == other
+        else:
+            return self.__hash__() == other.__hash__()
 
     def __hash__(self):
         return hash(tuple(self.state_val + [self.current_player]))

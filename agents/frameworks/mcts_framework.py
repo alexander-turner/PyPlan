@@ -1,5 +1,5 @@
-from abstract import abstract_agent
 import random
+from abstract import abstract_agent
 from bandits import uniform_bandit_alg
 from heuristics import zero_heuristic
 
@@ -97,7 +97,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
             if successor_state in node.children[action_index]:
                 successor_node = node.children[action_index][successor_state][0]
                 # increment how many times successor_state has been sampled
-                node.children[action_index][successor_state][1] += 1
+                node.children[action_index][successor_node.state][1] += 1
                 # recurse downwards into the constructed tree
                 total_reward = [x + y for (x, y) in zip(immediate_reward, self.run_trial(successor_node, depth - 1))]
             else:
@@ -109,7 +109,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
                     successor_bandit = self.BanditAlgClass(len(successor_actions), self.bandit_parameters)
 
                 successor_node = BanditNode(successor_state, immediate_reward, successor_actions, successor_bandit)
-                node.children[action_index][successor_state] = [successor_node, 1]
+                node.children[action_index][successor_node.state] = [successor_node, 1]
                 self.num_nodes += 1  # we've made a new BanditNode
 
                 total_reward = [x + y for (x, y) in zip(immediate_reward, self.heuristic.evaluate(successor_state))]
@@ -125,7 +125,9 @@ class BanditNode:
         self.transition_reward = transition_reward
         self.action_list = action_list
         self.bandit = bandit
+
         self.num_nodes = 0
+        #self.hash = self.state.__hash__()
 
         """
         Each action is associated with a dictionary that stores successor bandits/states.

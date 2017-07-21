@@ -160,7 +160,9 @@ class Dealer(abstract_dealer.AbstractDealer):
         pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
         while True:
             try:
-                return pool.map(self.run_trial, range(self.num_trials))
+                game_outputs = pool.map(self.run_trial, range(self.num_trials))
+                pool.close()
+                return game_outputs
             except WindowsError:
                 pass
             except TypeError:  # encountered a thread.Lock in video recorder

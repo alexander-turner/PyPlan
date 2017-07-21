@@ -11,7 +11,7 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
     def __init__(self, width=1, depth=10, rollout_policy=None, multiprocess=False):
         """If no policy is provided, initialize a random agent."""
         self.heuristic_name = self.my_name
-        self.width = width
+        self.width = width # TODO reset
         self.depth = depth
         if rollout_policy is None:
             self.rollout_policy = random_agent.RandomAgentClass()
@@ -25,21 +25,15 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
     def evaluate(self, state):
         """Evaluate the state using the parameters of the heuristic and the rollout policy."""
         if self.multiprocess:
-            # ensures that the system still runs smoothly
+            # -1 ensures that the system still runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
             total_rewards = pool.map(self.run_rollout, [state] * self.width)
+            pool.close()
             total_rewards = np.sum(total_rewards, axis=0)
         else:
-            sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
-            total_rewards = [0] * sim_state.number_of_players()
+            total_rewards = [0] * state.number_of_players()
             for sim_num in range(self.width):  # for each of width simulations
-                h = 0  # reset depth counter
-                sim_state.set(state)  # reset state
-                while sim_state.is_terminal() is False and h <= self.depth:  # act and track rewards as long as possible
-                    action = self.rollout_policy.select_action(sim_state)
-                    rewards = sim_state.take_action(action)
-                    total_rewards = [sum(r) for r in zip(total_rewards, rewards)]
-                    h += 1
+                total_rewards = [sum(r) for r in zip(total_rewards, self.run_rollout(state))]
 
         return [r / self.width for r in total_rewards]  # average rewards over each of width simulations
 
@@ -47,7 +41,7 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
         """Simulate a rollout, returning the rewards accumulated."""
         h = 0  # depth counter
         rewards = [0] * state.number_of_players()
-        sim_state = state.clone()  # simulate state
+        sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
         while sim_state.is_terminal() is False and h <= self.depth:  # act and track rewards as long as possible
             action = self.rollout_policy.select_action(sim_state)
             immediate_rewards = sim_state.take_action(action)

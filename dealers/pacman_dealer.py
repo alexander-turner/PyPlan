@@ -40,7 +40,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
 
         for agent in agents:
-            print('\nNow simulating {}'.format(agent.agent_name))
+            print('\nNow simulating: {}'.format(agent.agent_name))
             output = self.run_trials(agent)
             table.append([agent.agent_name,
                           numpy.mean(output['rewards']),  # average final score
@@ -62,6 +62,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             # ensures the system runs smoothly
             pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
             game_outputs = pool.map(self.run_trial, range(self.num_trials))
+            pool.close()
         else:
             for i in range(self.num_trials):
                 game_outputs.append(self.run_trial(i))
