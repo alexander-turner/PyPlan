@@ -1,13 +1,12 @@
 from abstract import abstract_agent
 from bandits import uniform_bandit_alg
-from heuristics import zero_heuristic
 
 
 class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, discount=1, heuristic=None,
+    def __init__(self, depth, num_pulls, heuristic, discount=1,
                  bandit_alg_class=None, bandit_parameters=None,
                  root_bandit_alg_class=None, root_bandit_parameters=None):
         self.agent_name = self.my_name
@@ -16,13 +15,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.depth = depth
         if depth < 1:
             raise Exception("Depth must be at least 1.")
-        self.pulls_per_node = pulls_per_node
+        self.num_pulls = num_pulls
         self.discount = discount
-
-        if heuristic is None:
-            self.heuristic = zero_heuristic.ZeroHeuristicClass()
-        else:
-            self.heuristic = heuristic
+        self.heuristic = heuristic
 
         self.bandit_parameters = bandit_parameters
 
@@ -79,7 +74,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         :param depth: how many more layers to generate before using the heuristic; 0-indexed.
         """
         # TODO use heaps to reduce complexity
-        # TODO FSSS demo?
         if node.state.is_terminal():
             self.lower[depth][node.state]['state_value'] = node.transition_reward
             self.upper[depth][node.state]['state_value'] = node.transition_reward
@@ -108,7 +102,11 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                 self.lower[depth][node.state][action] = float('-inf')
                 self.upper[depth][node.state][action] = float('inf')
 
-            for _ in range(self.pulls_per_node):  # sample C states
+            num_actions = len(node.action_list)  # TODO allow fewer than num actions?
+            if self.num_pulls < num_actions:
+                raise Exception("Insufficient pull budget for action list - must be at least {}.".format(num_actions))
+
+            for _ in range(self.num_pulls):  # sample C states
                 action_idx = node.bandit.select_pull_arm()
                 sim_state = node.state.clone()  # clone so that hashing works properly
                 immediate_reward = sim_state.take_action(node.action_list[action_idx])  # simulate taking action
@@ -150,11 +148,11 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.lower[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.lower[depth - 1][k]['state_value']
                                                                           for k in keys]) \
-                                                     / self.pulls_per_node
+                                                     / self.num_pulls
         self.upper[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.upper[depth - 1][k]['state_value']
                                                                           for k in keys]) \
-                                                     / self.pulls_per_node
+                                                     / self.num_pulls
 
         self.lower[depth][node.state]['state_value'] = max([self.lower[depth][node.state][a] for a in node.action_list])
         self.upper[depth][node.state]['state_value'] = max([self.upper[depth][node.state][a] for a in node.action_list])
@@ -188,7 +186,6 @@ class BanditNode:
 
         self.num_nodes = 0
         self.times_visited = 0
-        # self.hash = self.state.__hash__()
 
         """
         Each action is associated with a dictionary that stores successor nodes.
