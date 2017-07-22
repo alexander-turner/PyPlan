@@ -5,7 +5,7 @@ from dealers import *
 if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
     openai = openai_dealer.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
-    pacman = pacman_dealer.Dealer(layout_representation='powerClassic')
+    pacman = pacman_dealer.Dealer(layout_representation='testClassic')
     native = native_dealer.Dealer()
 
     h1 = rollout_heuristic.RolloutHeuristicClass(width=1, depth=10)

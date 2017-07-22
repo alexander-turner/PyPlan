@@ -11,7 +11,7 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
     def __init__(self, width=1, depth=10, rollout_policy=None, multiprocess=False):
         """If no policy is provided, initialize a random agent."""
         self.heuristic_name = self.my_name
-        self.width = width # TODO reset
+        self.width = width
         self.depth = depth
         if rollout_policy is None:
             self.rollout_policy = random_agent.RandomAgentClass()

@@ -12,8 +12,8 @@ class PacmanState(abstract_state.AbstractState):
 
     The simulator can be found at http://ai.berkeley.edu/project_overview.html.
 
-    Note that unlike other interfaces, this is not compatible with the dealer simulator due its reliance on the provided
-    Pacman engine.
+    The simulator processes eating pellets before ghost detection, so Pacman may make illegal-looking moves - this is
+     simply how Berkeley's underlying game rules work (and not a result of this simulator's implementation).
     """
 
     def __init__(self, dealer, layout_representation, use_random_ghost=False):
@@ -98,11 +98,11 @@ class PacmanState(abstract_state.AbstractState):
         """Take the action and update the current state accordingly."""
         new_state = self.current_state.generateSuccessor(self.get_current_player(), action)  # simulate Pacman movement
 
-        for ghostInd, ghost in enumerate(self.ghost_agents):  # simulate ghost movements
+        for ghost_idx, ghost in enumerate(self.ghost_agents):  # simulate ghost movements
             if new_state.isWin() or new_state.isLose():
                 break
             ghost_action = ghost.getAction(new_state)
-            new_state = new_state.generateSuccessor(ghostInd + 1, ghost_action)
+            new_state = new_state.generateSuccessor(ghost_idx + 1, ghost_action)
 
         reward = new_state.getScore() - self.current_state.getScore()  # reward Pacman gets
         rewards = [-1 * reward] * self.number_of_players()  # reward ghosts get
