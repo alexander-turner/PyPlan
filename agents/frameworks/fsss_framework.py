@@ -22,7 +22,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.set_value_bounds(value_bounds)
 
         # Initialize the bound array-dictionary-arrays
-        self.lower = [dict() for _ in range(self.depth + 1)]
+        self.lower = [dict() for _ in range(self.depth + 1)]  # TODO move this to within Node?
         self.upper = [dict() for _ in range(self.depth + 1)]
 
     def get_agent_name(self):
@@ -66,16 +66,14 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         current_player = node.state.get_current_player()
 
-        if node.times_visited == 0:
-            self.lower[depth][node.state] = {}
-            self.upper[depth][node.state] = {}
-
         if depth == 0:  # reached a leaf
             state_value = self.heuristic.evaluate(node.state)
-            self.lower[depth][node.state]['state value'] = state_value[current_player]
-            self.upper[depth][node.state]['state value'] = state_value[current_player]
+            self.lower[depth][node.state] = {'state value': state_value[current_player]}
+            self.upper[depth][node.state] = {'state value': state_value[current_player]}
             return
         elif node.times_visited == 0:  # have yet to visit this node at this depth
+            self.lower[depth][node.state] = {}
+            self.upper[depth][node.state] = {}
             for action in node.action_list:
                 self.lower[depth][node.state][action] = self.min_value
                 self.upper[depth][node.state][action] = self.max_value
@@ -89,10 +87,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                         self.lower[depth - 1][sim_state] = {'state value': self.min_value}
                         self.upper[depth - 1][sim_state] = {'state value': self.max_value}
 
-                        sim_actions = sim_state.get_actions()
-
-                        new_node = Node(sim_state, immediate_reward[current_player], sim_actions)
+                        new_node = Node(sim_state, immediate_reward[current_player], sim_state.get_actions())
                         node.children[action_idx][sim_state] = new_node
+
                         self.num_nodes += 1  # we've made a new Node
 
         best_action = self.get_best_action(node, depth)
