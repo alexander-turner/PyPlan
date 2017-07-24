@@ -32,7 +32,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         if state.is_terminal():  # there's nothing left to do
             return None
 
-        # Reset bookkeeping
         self.num_nodes = 1
 
         root_node = Node(state, 0, state.get_actions(), self.depth)
@@ -87,11 +86,11 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         best_action = self.get_best_action(node, depth)
         best_action_idx = node.action_list.index(best_action)
+        child_nodes = [node.children[best_action_idx][n] for n in node.children[best_action_idx]]
 
         # Find the greatest difference between the upper and lower bounds for depth-1
-        bound_differences = [tuple([n, node.children[best_action_idx][n].upper[depth - 1]['state value'] -
-                                       node.children[best_action_idx][n].lower[depth - 1]['state value']])
-                                    for n in node.children[best_action_idx]]
+        bound_differences = [tuple([n.state, n.upper[depth - 1]['state value'] - n.lower[depth - 1]['state value']])
+                                    for n in child_nodes]
         successor_key = (max(bound_differences, key=lambda x: x[1]))[0]  # retrieve key from tuple
         successor_node = node.children[best_action_idx][successor_key]
 
@@ -101,12 +100,10 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
         node.lower[depth][best_action] = successor_node.transition_reward + \
-                                         self.discount * sum([node.children[best_action_idx][n].lower[depth - 1]['state value']
-                                                              for n in node.children[best_action_idx]]) \
+                                         self.discount * sum([n.lower[depth - 1]['state value'] for n in child_nodes]) \
                                          / self.pulls_per_node
         node.upper[depth][best_action] = successor_node.transition_reward + \
-                                         self.discount * sum([node.children[best_action_idx][n].upper[depth - 1]['state value']
-                                                              for n in node.children[best_action_idx]]) \
+                                         self.discount * sum([n.upper[depth - 1]['state value'] for n in child_nodes]) \
                                          / self.pulls_per_node
 
         node.lower[depth]['state value'] = max([node.lower[depth][a] for a in node.action_list])

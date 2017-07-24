@@ -125,18 +125,20 @@ class Dealer(abstract_dealer.AbstractDealer):
             with multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1)) as pool:
                 game_outputs = pool.map(self.run_trial, range(self.num_trials))
         else:
-            old_configs = [False] * len(self.agents)
-            for agent_idx, agent in enumerate(self.agents):  # enable arm-based multiprocessing
-                if multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
-                    old_configs[agent_idx] = agent.multiprocess
-                    agent.set_multiprocess(True)
+            if multiprocess_mode == 'bandit':
+                old_configs = [False] * len(self.agents)
+                for agent_idx, agent in enumerate(self.agents):  # enable arm-based multiprocessing
+                    if hasattr(agent, 'set_multiprocess'):
+                        old_configs[agent_idx] = agent.multiprocess
+                        agent.set_multiprocess(True)
 
             for sim_num in range(self.num_trials):
                 game_outputs.append(self.run_trial())
 
-            for agent_idx, agent in enumerate(self.agents):  # reset their multiprocess information
-                if multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
-                    agent.set_multiprocess(old_configs[agent_idx])
+            if multiprocess_mode == 'bandit':
+                for agent_idx, agent in enumerate(self.agents):  # reset their multiprocess information
+                    if hasattr(agent, 'set_multiprocess'):
+                        agent.set_multiprocess(old_configs[agent_idx])
 
         for output in game_outputs:
             self.game_winner_list.append(output['winner'])

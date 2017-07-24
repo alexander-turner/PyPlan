@@ -25,8 +25,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     uct = uct_agent.UCTAgentClass(depth=2, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
-    policy_set = [u_ro, ss_d2]
-    switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
+    policy_set = [u_ro, e_ro]
+    switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=2, num_pulls=10, policies=policy_set)
     e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
@@ -34,8 +34,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     #openai.run(agents=[u_ro], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='trials',
     #           show_moves=False, upload=False)
 
-    #pacman.run(agents=[nested_u_ro, u_ro], num_trials=1, multiprocess_mode='bandit')
+    pacman.run(agents=[switch_agent, u_ro], num_trials=1, multiprocess_mode='bandit')
 
-    native.run(simulator_str='connect4', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trials')
+    #native.run(simulator_str='connect4', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trials')
 
 
