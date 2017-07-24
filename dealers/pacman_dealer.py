@@ -59,10 +59,8 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         game_outputs = []
         if self.multiprocess:
-            # ensures the system runs smoothly
-            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            game_outputs = pool.map(self.run_trial, range(self.num_trials))
-            pool.close()
+            with multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1)) as pool:
+                game_outputs = pool.map(self.run_trial, range(self.num_trials))
         else:
             for i in range(self.num_trials):
                 game_outputs.append(self.run_trial(i))

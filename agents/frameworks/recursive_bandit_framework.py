@@ -1,3 +1,4 @@
+import multiprocessing
 from abstract import abstract_agent
 from bandits import uniform_bandit_alg
 from heuristics import zero_heuristic
@@ -7,7 +8,8 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
     """The agent blueprint."""
     my_name = "Recursive Bandit"
 
-    def __init__(self, depth, pulls_per_node, heuristic=None, bandit_class=None, bandit_parameters=None):
+    def __init__(self, depth, pulls_per_node, heuristic=None, bandit_class=None, bandit_parameters=None,
+                 multiprocess=False):
         self.agent_name = self.my_name
         self.num_nodes = 1
 
@@ -25,9 +27,14 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
             self.bandit_class = bandit_class
 
         self.bandit_parameters = bandit_parameters
+        self.multiprocess = multiprocess
 
     def get_agent_name(self):
         return self.agent_name
+
+    def set_multiprocess(self, multiprocess):
+        """Change the multiprocess parameter."""
+        self.multiprocess = multiprocess
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -57,19 +64,35 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
 
         q_values = [[0]*state.number_of_players()]*num_actions  # for each action, for each player, initialize a q value
 
-        for _ in range(self.pulls_per_node):  # use pull budget
-            arm_data = self.run_pull(state, bandit, depth)
-            chosen_arm, total_reward = arm_data[0], arm_data[1]
-            # Integrate total reward with current q_values
-            q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
-            bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm
+        if self.multiprocess and depth == self.depth:
+            with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
+                remaining = self.pulls_per_node
+                while remaining > 0:
+                    pulls_to_use = min(pool._processes, remaining)
+                    outputs = pool.map(self.run_pull, [{'state': state, 'bandit': bandit, 'depth': depth}] * pulls_to_use)
+                    remaining -= pulls_to_use
+
+                    for arm_data in outputs:
+                        chosen_arm, total_reward = arm_data[0], arm_data[1]
+                        q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
+                        bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm
+        else:
+            for _ in range(self.pulls_per_node):  # use pull budget
+                arm_data = self.run_pull({'state': state, 'bandit': bandit, 'depth': depth})
+                chosen_arm, total_reward = arm_data[0], arm_data[1]
+                # Integrate total reward with current q_values
+                q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
+                bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm
 
         best_arm_index = bandit.select_best_arm()
 
         return [q / bandit.get_num_pulls(best_arm_index) for q in q_values[best_arm_index]], action_list[best_arm_index]
 
-    def run_pull(self, state, bandit, depth):
+    def run_pull(self, inputs):
         """Choose an arm to pull, execute the action, and return the chosen arm and total reward received."""
+        state = inputs['state']
+        bandit = inputs['bandit']
+        depth = inputs['depth']
         chosen_arm = bandit.select_pull_arm()
         current_state = state.clone()  # reset state
 

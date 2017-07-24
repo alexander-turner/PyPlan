@@ -63,22 +63,12 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         if multiprocess:
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
-            """
-            for agent in agents:
-                agent.heuristic.multiprocess = False  # can't use both multiprocessing methods at the same time
-            """
 
         self.reinitialize()
         self.configure(agents, num_trials, simulator_str, show_moves)
 
         self.run_trials(multiprocess=multiprocess)
         [results, winner_list, avg_times] = self.simulation_stats()
-
-        """
-        if multiprocess:
-            for agent in agents:
-                agent.heuristic.multiprocess = True  # reset heuristic status
-        """
 
         # Calculate the results
         overall_reward = []
@@ -124,10 +114,8 @@ class Dealer(abstract_dealer.AbstractDealer):
     def run_trials(self, multiprocess=True):
         game_outputs = []
         if multiprocess:
-            # ensures that the system still runs smoothly
-            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            game_outputs = pool.map(self.run_trial, range(self.num_trials))
-            pool.close()
+            with multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1)) as pool:
+                game_outputs = pool.map(self.run_trial, range(self.num_trials))
         else:
             for sim_num in range(self.num_trials):
                 game_outputs.append(self.run_trial())

@@ -8,7 +8,7 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
     """Facilitates rollout according to a user-defined policy, width, and depth."""
     my_name = "Rollout Heuristic"
 
-    def __init__(self, width=1, depth=10, rollout_policy=None, multiprocess=False):
+    def __init__(self, width=1, depth=10, rollout_policy=None):
         """If no policy is provided, initialize a random agent."""
         self.heuristic_name = self.my_name
         self.width = width
@@ -17,23 +17,15 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
             self.rollout_policy = random_agent.RandomAgentClass()
         else:
             self.rollout_policy = rollout_policy
-        self.multiprocess = multiprocess
 
     def get_heuristic_name(self):
         return self.heuristic_name
 
     def evaluate(self, state):
         """Evaluate the state using the parameters of the heuristic and the rollout policy."""
-        if self.multiprocess:
-            # -1 ensures that the system still runs smoothly
-            pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
-            total_rewards = pool.map(self.run_rollout, [state] * self.width)
-            pool.close()
-            total_rewards = np.sum(total_rewards, axis=0)
-        else:
-            total_rewards = [0] * state.number_of_players()
-            for sim_num in range(self.width):  # for each of width simulations
-                total_rewards = [sum(r) for r in zip(total_rewards, self.run_rollout(state))]
+        total_rewards = [0] * state.number_of_players()
+        for sim_num in range(self.width):  # for each of width simulations
+            total_rewards = [sum(r) for r in zip(total_rewards, self.run_rollout(state))]
 
         return [r / self.width for r in total_rewards]  # average rewards over each of width simulations
 

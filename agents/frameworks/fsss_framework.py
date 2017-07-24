@@ -6,7 +6,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, num_pulls, heuristic, discount=1,
+    def __init__(self, depth, pulls_per_node, heuristic, discount=1,
                  bandit_alg_class=None, bandit_parameters=None,
                  root_bandit_alg_class=None, root_bandit_parameters=None):
         self.agent_name = self.my_name
@@ -15,7 +15,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.depth = depth
         if depth < 1:
             raise Exception("Depth must be at least 1.")
-        self.num_pulls = num_pulls
+        self.pulls_per_node = pulls_per_node
         self.discount = discount
         self.heuristic = heuristic
 
@@ -68,7 +68,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         return self.get_best_action(root_node, self.depth)
 
     def run_trial(self, node, depth):
-        """
+        """Derive more lower and upper bounds for the given node's state value at the given depth.
 
         :param node: points to a BanditNode object.
         :param depth: how many more layers to generate before using the heuristic; 0-indexed.
@@ -86,48 +86,37 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             self.upper[depth][node.state] = {}
 
         if depth == 0:  # reached a leaf
-            for action in node.action_list:
-                sim_state = node.state.clone()
-                immediate_reward = sim_state.take_action(action)  # question one layer too many?
-                estimated_reward = immediate_reward + self.heuristic.evaluate(sim_state)
-                self.lower[depth][node.state][action] = estimated_reward[current_player]
-                self.upper[depth][node.state][action] = estimated_reward[current_player]
-            # upper and lower should be the same here
-            state_value = max([self.lower[depth][node.state][a] for a in node.action_list])
-            self.lower[depth][node.state]['state_value'] = state_value
-            self.upper[depth][node.state]['state_value'] = state_value
+            state_value = self.heuristic.evaluate(node.state)
+            self.lower[depth][node.state]['state_value'] = state_value[current_player]
+            self.upper[depth][node.state]['state_value'] = state_value[current_player]
             return
         elif node.times_visited == 0:  # have yet to visit this node at this depth
             for action in node.action_list:
                 self.lower[depth][node.state][action] = float('-inf')
                 self.upper[depth][node.state][action] = float('inf')
 
-            num_actions = len(node.action_list)  # TODO allow fewer than num actions?
-            if self.num_pulls < num_actions:
-                raise Exception("Insufficient pull budget for action list - must be at least {}.".format(num_actions))
+                action_idx = node.action_list.index(action)
+                for _ in range(self.pulls_per_node):  # sample C states
+                    sim_state = node.state.clone()  # clone so that hashing works properly
+                    immediate_reward = sim_state.take_action(action)  # simulate taking action
 
-            for _ in range(self.num_pulls):  # sample C states
-                action_idx = node.bandit.select_pull_arm()
-                sim_state = node.state.clone()  # clone so that hashing works properly
-                immediate_reward = sim_state.take_action(node.action_list[action_idx])  # simulate taking action
+                    if sim_state not in node.children[action_idx]:
+                        self.lower[depth - 1][sim_state] = {}
+                        self.lower[depth - 1][sim_state]['state_value'] = float('-inf')
+                        self.upper[depth - 1][sim_state] = {}
+                        self.upper[depth - 1][sim_state]['state_value'] = float('inf')
 
-                if sim_state not in node.children[action_idx]:
-                    self.lower[depth - 1][sim_state] = {}
-                    self.lower[depth - 1][sim_state]['state_value'] = float('-inf')
-                    self.upper[depth - 1][sim_state] = {}
-                    self.upper[depth - 1][sim_state]['state_value'] = float('inf')
+                        sim_actions = sim_state.get_actions()
+                        if self.bandit_parameters is None:  # create a bandit based on available actions
+                            sim_bandit = self.BanditAlgClass(len(sim_actions))
+                        else:
+                            sim_bandit = self.BanditAlgClass(len(sim_actions), self.bandit_parameters)
 
-                    sim_actions = sim_state.get_actions()
-                    if self.bandit_parameters is None:  # create a bandit according to how many actions are available
-                        sim_bandit = self.BanditAlgClass(len(sim_actions))
-                    else:
-                        sim_bandit = self.BanditAlgClass(len(sim_actions), self.bandit_parameters)
-
-                    new_node = BanditNode(sim_state, immediate_reward[current_player], sim_actions, sim_bandit)
-                    node.children[action_idx][sim_state] = new_node
-                    self.num_nodes += 1  # we've made a new BanditNode
-                # Update the bandit with the information we gained
-                node.bandit.update(action_idx, immediate_reward[current_player])
+                        new_node = BanditNode(sim_state, immediate_reward[current_player], sim_actions, sim_bandit)
+                        node.children[action_idx][sim_state] = new_node
+                        self.num_nodes += 1  # we've made a new BanditNode
+                    # Update the bandit with the information we gained
+                    node.bandit.update(action_idx, immediate_reward[current_player])
 
         best_action = self.get_best_action(node, depth)
         best_action_idx = node.action_list.index(best_action)
@@ -148,11 +137,11 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.lower[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.lower[depth - 1][k]['state_value']
                                                                           for k in keys]) \
-                                                     / self.num_pulls
+                                                     / self.pulls_per_node
         self.upper[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.upper[depth - 1][k]['state_value']
                                                                           for k in keys]) \
-                                                     / self.num_pulls
+                                                     / self.pulls_per_node
 
         self.lower[depth][node.state]['state_value'] = max([self.lower[depth][node.state][a] for a in node.action_list])
         self.upper[depth][node.state]['state_value'] = max([self.upper[depth][node.state][a] for a in node.action_list])
