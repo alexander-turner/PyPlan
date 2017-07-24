@@ -69,7 +69,7 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
                 remaining = self.pulls_per_node
                 while remaining > 0:
                     pulls_to_use = min(pool._processes, remaining)
-                    outputs = pool.map(self.run_pull, [{'state': state, 'bandit': bandit, 'depth': depth}] * pulls_to_use)
+                    outputs = pool.starmap(self.run_pull, [[state, bandit, depth]] * pulls_to_use)
                     remaining -= pulls_to_use
 
                     for arm_data in outputs:
@@ -78,7 +78,7 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
                         bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm
         else:
             for _ in range(self.pulls_per_node):  # use pull budget
-                arm_data = self.run_pull({'state': state, 'bandit': bandit, 'depth': depth})
+                arm_data = self.run_pull(state, bandit, depth)
                 chosen_arm, total_reward = arm_data[0], arm_data[1]
                 # Integrate total reward with current q_values
                 q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
@@ -88,11 +88,8 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
 
         return [q / bandit.get_num_pulls(best_arm_index) for q in q_values[best_arm_index]], action_list[best_arm_index]
 
-    def run_pull(self, inputs):
+    def run_pull(self, state, bandit, depth):
         """Choose an arm to pull, execute the action, and return the chosen arm and total reward received."""
-        state = inputs['state']
-        bandit = inputs['bandit']
-        depth = inputs['depth']
         chosen_arm = bandit.select_pull_arm()
         current_state = state.clone()  # reset state
 
