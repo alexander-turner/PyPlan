@@ -47,7 +47,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             self.show_moves = show_moves
 
     # TODO: fix override
-    def run(self, simulator_str, agents, num_trials=10, output_path=None, multiprocess=True, show_moves=True):
+    def run(self, simulator_str, agents, num_trials=10, output_path=None, multiprocess_mode='trials', show_moves=True):
         """Simulate the given state using the provided agents the given number of times.
 
         Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee.
@@ -56,18 +56,17 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param agents: a list of agents. Currently does not support iterating over multiple groups.
         :param num_trials: how many games should be run.
         :param output_path: a text file to which results should be written.
-        :param multiprocess: whether to use parallel processing for trial runs, instead of for rollouts.
-            If enabled, show_moves will be disabled.
+        :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
+            other options will mean no multiprocessing is executed.
         :param show_moves: whether the dealer should display the game progression.
         """
-
-        if multiprocess:
+        if multiprocess_mode == 'trials':
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
 
         self.reinitialize()
         self.configure(agents, num_trials, simulator_str, show_moves)
 
-        self.run_trials(multiprocess=multiprocess)
+        self.run_trials(multiprocess_mode=multiprocess_mode)
         [results, winner_list, avg_times] = self.simulation_stats()
 
         # Calculate the results
@@ -96,6 +95,13 @@ class Dealer(abstract_dealer.AbstractDealer):
         # Construct the table
         table = []
         headers = ["Agent Name", "Average Final Reward", "Winrate", "Average Time / Move (s)"]
+        if multiprocess_mode == 'trials':
+            multiprocessing_str = "Trial-based"
+        elif multiprocess_mode == 'bandit':
+            multiprocessing_str = "Bandit-based"
+        else:
+            multiprocessing_str = "No"
+
         for agent_idx, agent in enumerate(agents):
             table.append([agent.agent_name,  # agent name
                           overall_avg_reward[agent_idx],  # average final reward
@@ -103,22 +109,35 @@ class Dealer(abstract_dealer.AbstractDealer):
                           avg_times[agent_idx]])  # average time taken per move
 
         table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
-        table += "\n{} game{} of {} ran.\n\n".format(num_trials, "s" if num_trials > 1 else "",
-                                                     self.simulators[self.simulator_str].my_name)
+        table += "\n{} game{} of {} ran. {} multiprocessing was used.\n\n".format(num_trials,
+                                                                                  "s" if num_trials > 1 else "",
+                                                                                  self.simulators[self.simulator_str].my_name,
+                                                                                  multiprocessing_str)
         print(table)
 
         if output_path is not None:
             with open(output_path, "w") as output_file:
                 output_file.write(table)
 
-    def run_trials(self, multiprocess=True):
+    def run_trials(self, multiprocess_mode='trials'):
         game_outputs = []
-        if multiprocess:
+        if multiprocess_mode == 'trials':
             with multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1)) as pool:
                 game_outputs = pool.map(self.run_trial, range(self.num_trials))
         else:
+            old_configs = [False] * len(self.agents)
+            for agent_idx, agent in enumerate(self.agents):  # enable arm-based multiprocessing
+                if multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
+                    old_configs[agent_idx] = agent.multiprocess
+                    agent.set_multiprocess(True)
+
             for sim_num in range(self.num_trials):
                 game_outputs.append(self.run_trial())
+
+            for agent_idx, agent in enumerate(self.agents):  # reset their multiprocess information
+                if multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
+                    agent.set_multiprocess(old_configs[agent_idx])
+
         for output in game_outputs:
             self.game_winner_list.append(output['winner'])
             self.write_simulation_history(output['game history'])

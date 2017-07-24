@@ -13,12 +13,13 @@ class AbstractDealer:
     __metaclass__ = ABCMeta
 
     @abc.abstractmethod
-    def run(self, agents, num_trials=1, multiprocess=True, show_moves=False):
+    def run(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Handles data processing, initiates run_trials for each of the provided agents, and displays results.
 
         :param agents: the agents whose performance will be compared.
         :param num_trials: how many times the simulation will be run.
-        :param multiprocess: whether to speed the computation with parallel processing.
+        :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
+            other options will mean no multiprocessing is executed.
         :param show_moves: whether moves should be rendered. Disabled if multiprocess is True.
         """
         raise NotImplementedError

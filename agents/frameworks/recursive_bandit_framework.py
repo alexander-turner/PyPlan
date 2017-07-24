@@ -1,4 +1,5 @@
 import multiprocessing
+import copy
 from abstract import abstract_agent
 from bandits import uniform_bandit_alg
 from heuristics import zero_heuristic
@@ -19,7 +20,7 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
         if heuristic is None:
             self.heuristic = zero_heuristic.ZeroHeuristicClass()
         else:
-            self.heuristic = heuristic
+            self.heuristic = copy.deepcopy(heuristic)
 
         if bandit_class is None:
             self.bandit_class = uniform_bandit_alg.UniformBanditAlgClass
@@ -27,7 +28,7 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
             self.bandit_class = bandit_class
 
         self.bandit_parameters = bandit_parameters
-        self.multiprocess = multiprocess
+        self.set_multiprocess(multiprocess)
 
     def get_agent_name(self):
         return self.agent_name
@@ -35,6 +36,8 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
     def set_multiprocess(self, multiprocess):
         """Change the multiprocess parameter."""
         self.multiprocess = multiprocess
+        if self.multiprocess and hasattr(self.heuristic.rollout_policy, 'set_multiprocess'):
+                self.heuristic.rollout_policy.set_multiprocess(False)
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -63,7 +66,6 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
             bandit = self.bandit_class(num_actions, self.bandit_parameters)
 
         q_values = [[0]*state.number_of_players()]*num_actions  # for each action, for each player, initialize a q value
-
         if self.multiprocess and depth == self.depth:
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
                 remaining = self.pulls_per_node

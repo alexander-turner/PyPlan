@@ -1,14 +1,14 @@
 from abstract import abstract_agent
-from bandits import uniform_bandit_alg
 
 
 class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, heuristic, discount=1,
-                 bandit_alg_class=None, bandit_parameters=None,
-                 root_bandit_alg_class=None, root_bandit_parameters=None):
+    def __init__(self, depth, pulls_per_node, heuristic, value_bounds=(float('-inf'), float('inf')), discount=1):
+        """
+        :param value_bounds: the bounds on the minimum and maximum values for the environment.
+        """
         self.agent_name = self.my_name
         self.num_nodes = 1
 
@@ -19,19 +19,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.discount = discount
         self.heuristic = heuristic
 
-        self.bandit_parameters = bandit_parameters
-
-        if bandit_alg_class is None:
-            self.BanditAlgClass = uniform_bandit_alg.UniformBanditAlgClass
-        else:
-            self.BanditAlgClass = bandit_alg_class
-
-        if root_bandit_alg_class is None:
-            self.RootBanditAlgClass = self.BanditAlgClass
-        else:
-            self.RootBanditAlgClass = root_bandit_alg_class
-
-        self.root_bandit_parameters = root_bandit_parameters
+        self.min_value, self.max_value = value_bounds[0], value_bounds[1]
 
         # Initialize the bound array-dictionary-arrays
         self.lower = [dict() for _ in range(self.depth + 1)]
@@ -42,7 +30,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
-        if self.depth == 0 or state.is_terminal():  # there's nothing left to do
+        if state.is_terminal():  # there's nothing left to do
             return None
 
         # Reset bookkeeping
@@ -50,15 +38,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.lower = [dict() for _ in range(self.depth + 1)]
         self.upper = [dict() for _ in range(self.depth + 1)]
 
-        action_list = state.get_actions()
-
-        # create a bandit according to how many actions are available at the current state
-        if self.root_bandit_parameters is None:
-            bandit = self.RootBanditAlgClass(len(action_list))
-        else:
-            bandit = self.RootBanditAlgClass(len(action_list), self.root_bandit_parameters)
-
-        root_node = BanditNode(state, 0, action_list, bandit)
+        root_node = Node(state, 0, state.get_actions())
 
         while True:
             self.run_trial(root_node, self.depth)
@@ -70,7 +50,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     def run_trial(self, node, depth):
         """Derive more lower and upper bounds for the given node's state value at the given depth.
 
-        :param node: points to a BanditNode object.
+        :param node: points to a Node object.
         :param depth: how many more layers to generate before using the heuristic; 0-indexed.
         """
         # TODO use heaps to reduce complexity
@@ -92,8 +72,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             return
         elif node.times_visited == 0:  # have yet to visit this node at this depth
             for action in node.action_list:
-                self.lower[depth][node.state][action] = float('-inf')
-                self.upper[depth][node.state][action] = float('inf')
+                self.lower[depth][node.state][action] = self.min_value
+                self.upper[depth][node.state][action] = self.max_value
 
                 action_idx = node.action_list.index(action)
                 for _ in range(self.pulls_per_node):  # sample C states
@@ -102,26 +82,19 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
                     if sim_state not in node.children[action_idx]:
                         self.lower[depth - 1][sim_state] = {}
-                        self.lower[depth - 1][sim_state]['state_value'] = float('-inf')
+                        self.lower[depth - 1][sim_state]['state_value'] = self.min_value
                         self.upper[depth - 1][sim_state] = {}
-                        self.upper[depth - 1][sim_state]['state_value'] = float('inf')
+                        self.upper[depth - 1][sim_state]['state_value'] = self.max_value
 
                         sim_actions = sim_state.get_actions()
-                        if self.bandit_parameters is None:  # create a bandit based on available actions
-                            sim_bandit = self.BanditAlgClass(len(sim_actions))
-                        else:
-                            sim_bandit = self.BanditAlgClass(len(sim_actions), self.bandit_parameters)
 
-                        new_node = BanditNode(sim_state, immediate_reward[current_player], sim_actions, sim_bandit)
+                        new_node = Node(sim_state, immediate_reward[current_player], sim_actions)
                         node.children[action_idx][sim_state] = new_node
-                        self.num_nodes += 1  # we've made a new BanditNode
-                    # Update the bandit with the information we gained
-                    node.bandit.update(action_idx, immediate_reward[current_player])
+                        self.num_nodes += 1  # we've made a new Node
 
         best_action = self.get_best_action(node, depth)
         best_action_idx = node.action_list.index(best_action)
 
-        keys = node.children[best_action_idx].keys()
         # Find the greatest difference between the upper and lower bounds for depth-1
         bound_differences = [tuple([k, self.upper[depth - 1][k]['state_value'] -
                                     self.lower[depth - 1][k]['state_value']])
@@ -134,6 +107,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         node.times_visited += 1
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
+        keys = node.children[best_action_idx].keys()
         self.lower[depth][node.state][best_action] = successor_node.transition_reward + \
                                                      self.discount * sum([self.lower[depth - 1][k]['state_value']
                                                                           for k in keys]) \
@@ -164,14 +138,13 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         return best_action
 
 
-class BanditNode:
-    """Stores information on a state, reward for reaching the state, actions available, and the bandit to be used."""
+class Node:
+    """Stores information on a state, reward for reaching the state, and the actions available"""
 
-    def __init__(self, state, transition_reward, action_list, bandit):
+    def __init__(self, state, transition_reward, action_list):
         self.state = state
         self.transition_reward = transition_reward
         self.action_list = action_list
-        self.bandit = bandit
 
         self.num_nodes = 0
         self.times_visited = 0

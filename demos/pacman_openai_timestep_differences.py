@@ -10,8 +10,8 @@ if __name__ == '__main__':
     u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=100)
 
     pacman = pacman_dealer.Dealer(layout_representation='originalClassic')
-    pacman.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=True)
+    pacman.run(agents=[u_ro], num_trials=1, multiprocess_mode='', show_moves=True)
 
     # be patient - Ms. Pacman has much more overhead!
     openai_pacman = openai_dealer.Dealer(env_name='MsPacman-v0')
-    openai_pacman.run(agents=[u_ro], num_trials=1, multiprocess=False, show_moves=True)
+    openai_pacman.run(agents=[u_ro], num_trials=1, multiprocess_mode='', show_moves=True)

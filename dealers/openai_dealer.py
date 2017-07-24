@@ -21,7 +21,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.api_key = api_key
 
         self.num_trials = 0
-        self.multiprocess = False
+        self.multiprocess_mode = ''
         self.upload = False
         self.resume = False  # whether to add data to the output directory
 
@@ -33,7 +33,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             # Output directory location for agent performance
             self.wrapper_target = 'OpenAI results\\' + self.env_name  # cut off version name
 
-    def run_all(self, agents, num_trials, multiprocess=True, show_moves=False):
+    def run_all(self, agents, num_trials, multiprocess_mode='trials', show_moves=False):
         """Runs the agents on all available simulators."""
         all_environments = self.available_configurations()
         for env_id in all_environments:
@@ -42,9 +42,9 @@ class Dealer(abstract_dealer.AbstractDealer):
                 continue
 
             self.run(agents=agents, num_trials=num_trials, env_name=env_id,
-                     multiprocess=multiprocess, show_moves=show_moves)
+                     multiprocess_mode=multiprocess_mode, show_moves=show_moves)
 
-    def run(self, agents, num_trials, env_name=None, multiprocess=True, show_moves=True, upload=False):
+    def run(self, agents, num_trials, env_name=None, multiprocess_mode='trials', show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
 
         Returns nothing if the environment's action space is continuous.
@@ -52,13 +52,14 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
         :param env_name: the name of the environment to be run.
-        :param multiprocess: whether to use multiprocessing. Some games (such as Space Invaders) are not compatible
+        :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
+            other options will mean no multiprocessing is executed. Some games (such as Space Invaders) are not compatible
             with multiprocessing.
         :param show_moves: if the environment can render, then render each move.
         :param upload: whether to upload results to OpenAI.
         """
         self.num_trials = num_trials
-        self.multiprocess = multiprocess
+        self.multiprocess_mode = multiprocess_mode
         self.show_moves = show_moves
         self.upload = upload
 
@@ -73,12 +74,12 @@ class Dealer(abstract_dealer.AbstractDealer):
             logging.warning(e)
             return
 
-        if self.multiprocess:  # doesn't make sense to show moves while multiprocessing
+        if self.multiprocess_mode == 'trials':  # doesn't make sense to show moves while multiprocessing
             self.show_moves = False
 
         for agent in agents:
             if not isinstance(agent, abstract_agent.AbstractAgent):  # if this isn't a planning agent
-                self.multiprocess = False
+                self.multiprocess_mode = ''
                 logging.warning('Multiprocessing is disabled for agents that learn over multiple episodes.')
 
         if not self.api_key:  # can't upload if we don't have an API key!
@@ -88,6 +89,13 @@ class Dealer(abstract_dealer.AbstractDealer):
         headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
         if self.upload:
             headers.append("Link")
+
+        if multiprocess_mode == 'trials':
+            multiprocessing_str = "Trial-based"
+        elif multiprocess_mode == 'bandit':
+            multiprocessing_str = "Bandit-based"
+        else:
+            multiprocessing_str = "No"
 
         for agent in agents:
             print('\nNow simulating {}'.format(agent.agent_name))
@@ -102,8 +110,10 @@ class Dealer(abstract_dealer.AbstractDealer):
                 row.append(output['url'])
             table.append(row)
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}.".format(num_trials, "s" if num_trials > 1 else "",
-                                                       self.env_name[:-3]))
+        print("Each agent ran {} game{} of {}. {} multiprocessing was used.".format(num_trials,
+                                                                                    "s" if num_trials > 1 else "",
+                                                                                    self.env_name[:-3],
+                                                                                    multiprocessing_str))
 
     def run_trials(self, agent):
         """Run the given number of trials using the agent and the current configuration.
@@ -119,13 +129,20 @@ class Dealer(abstract_dealer.AbstractDealer):
                                                       write_upon_reset=True, force=self.force, resume=self.resume)
 
         game_outputs = []
-        if self.multiprocess:
+        if self.multiprocess_mode == 'trials':
             self.resume = True
             game_outputs = self.try_pool()
             self.resume = False  # done adding to the data
         else:
+            if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
+                old_config = agent.multiprocess
+                agent.set_multiprocess(True)
+
             for i in range(self.num_trials):
                 game_outputs.append(self.run_trial(i))
+
+            if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
+                agent.set_multiprocess(old_config)
 
         total_reward, wins, total_time, total_steps = 0, 0, 0, 0
         stats_recorder = self.simulator.env.stats_recorder
@@ -136,7 +153,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             total_steps += output['episode length']
 
             # Record episode information
-            if self.multiprocess:
+            if self.multiprocess_mode == 'trials':
                 stats_recorder.timestamps.append(output['timestamp'])
                 stats_recorder.episode_lengths.append(output['episode length'])
                 stats_recorder.episode_rewards.append(output['reward'])
