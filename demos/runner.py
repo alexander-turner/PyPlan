@@ -31,10 +31,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
 
-    openai.run(agents=[u_ro], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='trials',
-               show_moves=False, upload=False)
+    #openai.run(agents=[u_ro], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='trials',
+    #           show_moves=False, upload=False)
 
-    pacman.run(agents=[nested_u_ro, u_ro], num_trials=1, multiprocess_mode='bandit')
+    #pacman.run(agents=[nested_u_ro, u_ro], num_trials=1, multiprocess_mode='bandit')
 
     native.run(simulator_str='connect4', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trials')
 

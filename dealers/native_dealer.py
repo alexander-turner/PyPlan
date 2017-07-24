@@ -109,10 +109,10 @@ class Dealer(abstract_dealer.AbstractDealer):
                           avg_times[agent_idx]])  # average time taken per move
 
         table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
-        table += "\n{} game{} of {} ran. {} multiprocessing was used.\n\n".format(num_trials,
-                                                                                  "s" if num_trials > 1 else "",
-                                                                                  self.simulators[self.simulator_str].my_name,
-                                                                                  multiprocessing_str)
+        table += "\n{} game{} of {} ran. {} multiprocessing was used.\n".format(num_trials,
+                                                                                "s" if num_trials > 1 else "",
+                                                                                self.simulators[self.simulator_str].my_name,
+                                                                                multiprocessing_str)
         print(table)
 
         if output_path is not None:

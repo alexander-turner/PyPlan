@@ -19,7 +19,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.discount = discount
         self.heuristic = heuristic
 
-        self.min_value, self.max_value = value_bounds[0], value_bounds[1]
+        self.set_value_bounds(value_bounds)
 
         # Initialize the bound array-dictionary-arrays
         self.lower = [dict() for _ in range(self.depth + 1)]
@@ -27,6 +27,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
     def get_agent_name(self):
         return self.agent_name
+
+    def set_value_bounds(self, value_bounds):
+        self.min_value, self.max_value = value_bounds[0], value_bounds[1]
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -50,13 +53,15 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     def run_trial(self, node, depth):
         """Derive more lower and upper bounds for the given node's state value at the given depth.
 
+        The node is closed when the upper and lower bounds for the state value are the same.
+
         :param node: points to a Node object.
         :param depth: how many more layers to generate before using the heuristic; 0-indexed.
         """
         # TODO use heaps to reduce complexity
         if node.state.is_terminal():
-            self.lower[depth][node.state]['state_value'] = node.transition_reward
-            self.upper[depth][node.state]['state_value'] = node.transition_reward
+            self.lower[depth][node.state]['state value'] = node.transition_reward
+            self.upper[depth][node.state]['state value'] = node.transition_reward
             return
 
         current_player = node.state.get_current_player()
@@ -67,8 +72,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         if depth == 0:  # reached a leaf
             state_value = self.heuristic.evaluate(node.state)
-            self.lower[depth][node.state]['state_value'] = state_value[current_player]
-            self.upper[depth][node.state]['state_value'] = state_value[current_player]
+            self.lower[depth][node.state]['state value'] = state_value[current_player]
+            self.upper[depth][node.state]['state value'] = state_value[current_player]
             return
         elif node.times_visited == 0:  # have yet to visit this node at this depth
             for action in node.action_list:
@@ -81,10 +86,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                     immediate_reward = sim_state.take_action(action)  # simulate taking action
 
                     if sim_state not in node.children[action_idx]:
-                        self.lower[depth - 1][sim_state] = {}
-                        self.lower[depth - 1][sim_state]['state_value'] = self.min_value
-                        self.upper[depth - 1][sim_state] = {}
-                        self.upper[depth - 1][sim_state]['state_value'] = self.max_value
+                        self.lower[depth - 1][sim_state] = {'state value': self.min_value}
+                        self.upper[depth - 1][sim_state] = {'state value': self.max_value}
 
                         sim_actions = sim_state.get_actions()
 
@@ -96,8 +99,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         best_action_idx = node.action_list.index(best_action)
 
         # Find the greatest difference between the upper and lower bounds for depth-1
-        bound_differences = [tuple([k, self.upper[depth - 1][k]['state_value'] -
-                                    self.lower[depth - 1][k]['state_value']])
+        bound_differences = [tuple([k, self.upper[depth - 1][k]['state value'] -
+                                    self.lower[depth - 1][k]['state value']])
                              for k in node.children[best_action_idx]]
         successor_key = (max(bound_differences, key=lambda x: x[1]))[0]  # retrieve key from tuple
         successor_node = node.children[best_action_idx][successor_key]
@@ -109,19 +112,23 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
         keys = node.children[best_action_idx].keys()
         self.lower[depth][node.state][best_action] = successor_node.transition_reward + \
-                                                     self.discount * sum([self.lower[depth - 1][k]['state_value']
+                                                     self.discount * sum([self.lower[depth - 1][k]['state value']
                                                                           for k in keys]) \
                                                      / self.pulls_per_node
         self.upper[depth][node.state][best_action] = successor_node.transition_reward + \
-                                                     self.discount * sum([self.upper[depth - 1][k]['state_value']
+                                                     self.discount * sum([self.upper[depth - 1][k]['state value']
                                                                           for k in keys]) \
                                                      / self.pulls_per_node
 
-        self.lower[depth][node.state]['state_value'] = max([self.lower[depth][node.state][a] for a in node.action_list])
-        self.upper[depth][node.state]['state_value'] = max([self.upper[depth][node.state][a] for a in node.action_list])
+        self.lower[depth][node.state]['state value'] = max([self.lower[depth][node.state][a] for a in node.action_list])
+        self.upper[depth][node.state]['state value'] = max([self.upper[depth][node.state][a] for a in node.action_list])
 
     def is_done(self, root_node):
-        """Returns whether we've found the best action at the root state."""
+        """Returns whether we've found the best action at the root state.
+
+        Specifically, this is the case when the lower bound for the best action is greater than the upper bounds of all
+            non-best actions.
+        """
         best_action = self.get_best_action(root_node, self.depth)
         for action in root_node.action_list:
             if action == best_action:
