@@ -55,7 +55,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
 
         root_node = BanditNode(state, 0, action_list, bandit)
 
-        for i in range(self.num_trials):
+        for _ in range(self.num_trials):  # TODO multiprocessing
             self.run_trial(root_node, self.depth)
 
         return root_node.action_list[root_node.bandit.select_best_arm()]
@@ -67,7 +67,6 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
         :param depth: how many more layers to generate before using the heuristic.
         :return total_reward:
         """
-
         if node.bandit is None:  # leaf node
             return self.heuristic.evaluate(node.state)
 
