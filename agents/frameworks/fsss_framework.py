@@ -53,21 +53,21 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         """
         # TODO use heaps to reduce complexity
         if node.state.is_terminal():
-            node.lower['state value'] = node.transition_reward
-            node.upper['state value'] = node.transition_reward
+            node.lower[-1] = node.transition_reward
+            node.upper[-1] = node.transition_reward
             return
 
         current_player = node.state.get_current_player()
 
         if depth == 0:  # reached a leaf
             state_value = self.heuristic.evaluate(node.state)
-            node.lower['state value'] = state_value[current_player]
-            node.upper['state value'] = state_value[current_player]
+            node.lower[-1] = state_value[current_player]
+            node.upper[-1] = state_value[current_player]
             return
         elif node.times_visited == 0:  # have yet to visit this node at this depth
-            for action in node.action_list:
-                node.lower[action] = self.min_value
-                node.upper[action] = self.max_value
+            for action_idx in range(node.num_actions):
+                node.lower[action_idx] = self.min_value
+                node.upper[action_idx] = self.max_value
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
@@ -78,8 +78,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
                 if sim_state not in node.children[best_action_idx]:
                     new_node = Node(sim_state, immediate_reward[current_player], sim_state.get_actions())
-                    new_node.lower['state value'] = self.min_value
-                    new_node.upper['state value'] = self.max_value
+                    new_node.lower[-1] = self.min_value
+                    new_node.upper[-1] = self.max_value
 
                     node.children[best_action_idx][sim_state] = new_node
 
@@ -88,7 +88,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         child_nodes = [node.children[best_action_idx][n] for n in node.children[best_action_idx]]
 
         # Find the greatest difference between the upper and lower bounds for depth-1
-        bound_differences = [tuple([n.state, n.upper['state value'] - n.lower['state value']]) for n in child_nodes]
+        bound_differences = [tuple([n.state, n.upper[-1] - n.lower[-1]]) for n in child_nodes]
         successor_key = (max(bound_differences, key=lambda x: x[1]))[0]  # retrieve key from tuple
         successor_node = node.children[best_action_idx][successor_key]
 
@@ -97,15 +97,15 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         node.times_visited += 1
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
-        node.lower[best_action] = successor_node.transition_reward + self.discount * sum([n.lower['state value']
+        node.lower[best_action_idx] = successor_node.transition_reward + self.discount * sum([n.lower[-1]
                                                                                           for n in child_nodes]) \
                                                                      / self.pulls_per_node
-        node.upper[best_action] = successor_node.transition_reward + self.discount * sum([n.upper['state value']
+        node.upper[best_action_idx] = successor_node.transition_reward + self.discount * sum([n.upper[-1]
                                                                                           for n in child_nodes]) \
                                                                      / self.pulls_per_node
 
-        node.lower['state value'] = max([node.lower[a] for a in node.action_list])
-        node.upper['state value'] = max([node.upper[a] for a in node.action_list])
+        node.lower[-1] = max([node.lower[action_idx] for action_idx in range(node.num_actions)])
+        node.upper[-1] = max([node.upper[action_idx] for action_idx in range(node.num_actions)])
 
     def is_done(self, root_node):
         """Returns whether we've found the best action at the root state.
@@ -114,19 +114,20 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             non-best actions.
         """
         best_action = self.get_best_action(root_node)
-        for action in root_node.action_list:
-            if action == best_action:
+        best_action_idx = root_node.action_list.index(best_action)
+        for action_idx in range(root_node.num_actions):
+            if action_idx == best_action_idx:
                 continue
-            if root_node.lower[best_action] < root_node.upper[action]:
+            if root_node.lower[best_action_idx] < root_node.upper[action_idx]:
                 return False
         return True
 
     @staticmethod
     def get_best_action(node):
         """Returns the action with the maximal upper bound for the given node.state and depth."""
-        upper_bounds = [tuple([action, node.upper[action]]) for action in node.action_list]
-        best_action = (max(upper_bounds, key=lambda x: x[1]))[0]  # get index of best action
-        return best_action
+        upper_bounds = [tuple([action_idx, node.upper[action_idx]]) for action_idx in range(node.num_actions)]
+        best_action_idx = (max(upper_bounds, key=lambda x: x[1]))[0]  # get index of best action
+        return node.action_list[best_action_idx]
 
 
 class Node:
@@ -137,6 +138,7 @@ class Node:
         self.state = state
         self.transition_reward = transition_reward
         self.action_list = action_list
+        self.num_actions = len(self.action_list)
 
         self.num_nodes = 0
         self.times_visited = 0
@@ -145,10 +147,11 @@ class Node:
         Each action is associated with a dictionary that stores successor nodes.
         The key for each successor is the state.
         """
-        self.children = [{} for _ in range(len(self.action_list))]
+        self.children = [{} for _ in range(self.num_actions)]
 
-        self.lower = {}  # format: node.lower[action]
-        self.upper = {}  # TODO remove depth? Implied by node structure
+        # The state value is stored at lower[-1] / upper[-1]
+        self.lower = [0] * (self.num_actions + 1)
+        self.upper = [0] * (self.num_actions + 1)
 
         # action_expansions[action_idx] = how many times we've sampled the given action
-        self.action_expansions = [0] * len(self.action_list)
+        self.action_expansions = [0] * self.num_actions
