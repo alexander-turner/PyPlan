@@ -44,12 +44,17 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         return self.get_best_action(root_node)
 
     def run_trial(self, node, depth):
-        """Derive more lower and upper bounds for the given node's state value at the given depth.
+        """Each trial improves the accuracy of the bounds and closes one node.
 
-        The node is closed when the upper and lower bounds for the state value are the same.
+        A node is closed when enough the lower and upper bounds on the state value Q(s) are equal.
+
+        Each invocation involves the exploration of the s' with the largest state value bound discrepancy for the a with
+         the greatest upper bound, and ends with the closure of one new node in the tree. The selection of a* and s*
+         allows for pruning compared to Sparse Sampling. That is, if an action at the root node level looks good enough,
+         we don't need to keep closing nodes in suboptimal parts of the tree; we can just make our decision.
 
         :param node: points to a Node object.
-        :param depth: how many more layers to generate before using the heuristic; 0-indexed.
+        :param depth: how many more layers to generate before using the heuristic.
         """
         # TODO use heaps to reduce complexity
         if node.state.is_terminal():
@@ -149,7 +154,11 @@ class Node:
         """
         self.children = [{} for _ in range(self.num_actions)]
 
-        # The state value is stored at lower[-1] / upper[-1]
+        """
+        The lower and upper bounds on the estimate Q^d(s, a) of the value of taking action a in state s at depth d. 
+        
+        The state value is stored at lower[-1] / upper[-1].
+        """
         self.lower = [0] * (self.num_actions + 1)
         self.upper = [0] * (self.num_actions + 1)
 
