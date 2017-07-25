@@ -72,6 +72,9 @@ class OpenAIState(abstract_state.AbstractState):
         """Returns index of current player."""
         return 0
 
+    def get_value_bounds(self):
+        return self.env.reward_range
+
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
         self.current_observation, reward, self.done, _ = self.env.step(action)

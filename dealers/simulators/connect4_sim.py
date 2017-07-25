@@ -82,6 +82,9 @@ class Connect4State(abstract_state.AbstractState):
     def get_current_player(self):
         return self.current_player
 
+    def get_value_bounds(self):
+        return -1, 1
+
     def set_current_player(self, player_index):
         self.current_player = player_index
 

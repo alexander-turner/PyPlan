@@ -72,3 +72,8 @@ class AbstractState:
         Index values are in the range {0,...,num_players-1}.
         """
         raise NotImplementedError
+
+    @abc.abstractmethod
+    def get_value_bounds(self):
+        """Return a tuple: (minimum reward possible, maximum reward possible)."""
+        raise NotImplementedError

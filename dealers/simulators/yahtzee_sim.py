@@ -188,7 +188,6 @@ class YahtzeeState(abstract_state.AbstractState):
             for dice in range(len(value)):
                 new_roll = random.randrange(1, 7)
                 self.current_state["state_val"]["dice_config"][value[dice]] = new_roll
-
         self.change_turn()
         return reward_vector
 
@@ -240,6 +239,9 @@ class YahtzeeState(abstract_state.AbstractState):
 
     def get_current_player(self):
         return self.current_state["current_player"]
+
+    def get_value_bounds(self):
+        return 0, 50
 
     def set_current_player(self, player_index):
         self.current_state["current_player"] = player_index

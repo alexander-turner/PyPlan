@@ -36,6 +36,9 @@ class TetrisState(abstract_state.AbstractState):
     def get_current_player(self):
         return 0
 
+    def get_value_bounds(self):
+        return 5, 55
+
     def number_of_players(self):
         return self.num_players
 

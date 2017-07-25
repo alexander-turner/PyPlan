@@ -5,10 +5,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, heuristic, value_bounds=(float('-inf'), float('inf')), discount=1):
-        """
-        :param value_bounds: the bounds on the minimum and maximum values for the environment.
-        """
+    def __init__(self, depth, pulls_per_node, heuristic, discount=1):
         self.agent_name = self.my_name
         self.num_nodes = 1
 
@@ -19,7 +16,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.discount = discount
         self.heuristic = heuristic
 
-        self.set_value_bounds(value_bounds)
+        self.set_value_bounds((float('-inf'), float('inf')))
 
     def get_agent_name(self):
         return self.agent_name
@@ -31,6 +28,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         """Selects the highest-valued action for the given state."""
         if state.is_terminal():  # there's nothing left to do
             return None
+        if hasattr(state, 'get_value_bounds'):  # if the state exposes this information, set the value bounds
+            self.set_value_bounds(state.get_value_bounds())
 
         self.num_nodes = 1
 
@@ -69,7 +68,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             node.lower[-1] = state_value[current_player]
             node.upper[-1] = state_value[current_player]
             return
-        elif node.times_visited == 0:  # have yet to visit this node at this depth
+        elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
                 node.lower[action_idx] = self.min_value
                 node.upper[action_idx] = self.max_value
@@ -89,6 +88,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                     node.children[best_action_idx][sim_state] = new_node
 
                     self.num_nodes += 1  # we've made a new Node
+            node.action_expansions[best_action_idx] += self.pulls_per_node
 
         child_nodes = [node.children[best_action_idx][n] for n in node.children[best_action_idx]]
 

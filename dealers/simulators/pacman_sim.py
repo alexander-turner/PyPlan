@@ -90,9 +90,12 @@ class PacmanState(abstract_state.AbstractState):
             self.final_score = state.data.score
             pacman.ClassicGameRules.lose(self, state=state, game=game_object)
 
-    def get_current_player(self):
+    def get_current_player(self):  # TODO standardize function ordering?
         """Pacman is the only player."""
         return 0
+
+    def get_value_bounds(self):
+        return -500, 500
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
