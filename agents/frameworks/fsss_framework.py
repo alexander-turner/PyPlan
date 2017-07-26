@@ -99,8 +99,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
-        if node.action_expansions[best_action_idx] == 0:  # only generate successors for actions we explore
-            for _ in range(self.pulls_per_node):  # sample C states
+        if node.action_expansions[best_action_idx] < self.pulls_per_node:  # if we have pulls remaining
+            i = 0  # expand scope of i
+            for i in range(self.pulls_per_node - node.action_expansions[best_action_idx]):  # sample C - n_{sda*} states
                 sim_state = node.state.clone()  # clone so that hashing works properly
                 immediate_reward = sim_state.take_action(best_action)  # simulate taking action
 
@@ -110,9 +111,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                     new_node.upper[-1] = max_value
 
                     node.children[best_action_idx][sim_state] = new_node
-
                     self.num_nodes += 1  # we've made a new Node
-            node.action_expansions[best_action_idx] += self.pulls_per_node
+                    break  # we break early since a new child state means it has the greatest bound difference
+            node.action_expansions[best_action_idx] += i + 1  # account for 0-indexing
 
         child_nodes = [node.children[best_action_idx][n] for n in node.children[best_action_idx]]
 
@@ -127,11 +128,11 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
         node.lower[best_action_idx] = successor_node.transition_reward + self.discount * sum([n.lower[-1]
-                                                                                          for n in child_nodes]) \
-                                                                     / self.pulls_per_node
+                                                                                              for n in child_nodes]) \
+                                                                     / node.action_expansions[best_action_idx]
         node.upper[best_action_idx] = successor_node.transition_reward + self.discount * sum([n.upper[-1]
-                                                                                          for n in child_nodes]) \
-                                                                     / self.pulls_per_node
+                                                                                              for n in child_nodes]) \
+                                                                     / node.action_expansions[best_action_idx]
 
         node.lower[-1] = max([node.lower[action_idx] for action_idx in range(node.num_actions)])
         node.upper[-1] = max([node.upper[action_idx] for action_idx in range(node.num_actions)])

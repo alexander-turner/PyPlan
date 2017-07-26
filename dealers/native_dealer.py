@@ -155,7 +155,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         current_state.reinitialize()
 
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list
-        if self.simulators[self.simulator_str].number_of_players() > 1:
+        if current_state.number_of_players() > 1:
             current_state.set_current_player(random.randrange(self.player_count))
 
         game_history = []
@@ -192,7 +192,10 @@ class Dealer(abstract_dealer.AbstractDealer):
         for turn in range(len(game_history)):
             total_reward = [x + y for x, y in zip(total_reward, game_history[turn][0])]
 
-        winner = current_state.game_outcome
+        if h == self.simulation_horizon:  # game is not terminal
+            winner = max(enumerate(total_reward), key=lambda x: x[1])[0]  # index of highest score = player index
+        else:
+            winner = current_state.game_outcome
 
         if self.show_moves:
             print("\nRewards :", total_reward)

@@ -44,18 +44,18 @@ class PacmanState(abstract_state.AbstractState):
         self.pacman_agent = None
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
-                                                    ghostAgents=self.ghost_agents, display=self.display)
+                                                    ghostAgents=self.ghost_agents, display=self.display, quiet=True)
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
 
-        self.final_score = float("-inf")  # demarcates we have yet to obtain a final score
+        self.final_score = float("-inf")  # we have yet to obtain a final score
         self.won = False
         self.time_step_count = 0
 
     def reinitialize(self):
         """Reinitialize using the defined layout, Pacman agent, ghost agents, and display."""
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
-                                                    ghostAgents=self.ghost_agents, display=self.display)
+                                                    ghostAgents=self.ghost_agents, display=self.display, quiet=True)
         self.current_state = self.game.state
         self.final_score = float("-inf")
         self.won = False
