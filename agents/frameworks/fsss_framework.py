@@ -1,3 +1,4 @@
+import heapq
 from abstract import abstract_agent
 
 
@@ -77,10 +78,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         :param node: points to a Node object.
         :param depth: how many more layers to generate before using the heuristic.
         """
-        # TODO use heaps to reduce complexity
         if node.state.is_terminal():
-            node.lower[-1] = node.transition_reward
-            node.upper[-1] = node.transition_reward
+            node.lower_state = node.transition_reward
+            node.upper_state = node.transition_reward
             return
 
         min_value, max_value = self.compute_value_bounds(node.state.get_value_bounds(), depth)
@@ -89,13 +89,13 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         if depth == 0:  # reached a leaf
             state_value = self.heuristic.evaluate(node.state)
-            node.lower[-1] = state_value[current_player]
-            node.upper[-1] = state_value[current_player]
+            node.lower_state = state_value[current_player]
+            node.upper_state = state_value[current_player]
             return
         elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
-                node.lower[action_idx] = min_value
-                node.upper[action_idx] = max_value
+                heapq.heappush(node.lower, (-1 * min_value, action_idx))
+                heapq.heappush(node.upper, (-1 * max_value, action_idx))
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
@@ -107,8 +107,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
                 if sim_state not in node.children[best_action_idx]:
                     new_node = Node(sim_state, immediate_reward[current_player], sim_state.get_actions())
-                    new_node.lower[-1] = min_value
-                    new_node.upper[-1] = max_value
+                    new_node.lower_state = min_value
+                    new_node.upper_state = max_value
 
                     node.children[best_action_idx][sim_state] = new_node
                     self.num_nodes += 1  # we've made a new Node
@@ -118,7 +118,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         child_nodes = [node.children[best_action_idx][n] for n in node.children[best_action_idx]]
 
         # Find the greatest difference between the upper and lower bounds for depth-1
-        bound_differences = [tuple([n.state, n.upper[-1] - n.lower[-1]]) for n in child_nodes]
+        bound_differences = [tuple([n.state, n.upper_state - n.lower_state]) for n in child_nodes]
         successor_key = (max(bound_differences, key=lambda x: x[1]))[0]  # retrieve key from tuple
         successor_node = node.children[best_action_idx][successor_key]
 
@@ -127,37 +127,37 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         node.times_visited += 1
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
-        node.lower[best_action_idx] = successor_node.transition_reward + self.discount * sum([n.lower[-1]
-                                                                                              for n in child_nodes]) \
-                                                                     / node.action_expansions[best_action_idx]
-        node.upper[best_action_idx] = successor_node.transition_reward + self.discount * sum([n.upper[-1]
-                                                                                              for n in child_nodes]) \
-                                                                     / node.action_expansions[best_action_idx]
+        new_lower = successor_node.transition_reward + self.discount * sum([n.lower_state for n in child_nodes]) \
+                                                                      / node.action_expansions[best_action_idx]
+        heapq.heapreplace(node.lower, (-1 * new_lower, best_action_idx))  # pop the old best_action_idx lower; push new
 
-        node.lower[-1] = max([node.lower[action_idx] for action_idx in range(node.num_actions)])
-        node.upper[-1] = max([node.upper[action_idx] for action_idx in range(node.num_actions)])
+        new_upper = successor_node.transition_reward + self.discount * sum([n.upper_state for n in child_nodes]) \
+                                                                      / node.action_expansions[best_action_idx]
+        heapq.heapreplace(node.upper, (-1 * new_upper, best_action_idx))
 
-    def is_done(self, root_node):
+        node.lower_state = -1 * node.lower[0][0]  # [list_pos][value]; correct for heap inversion
+        node.upper_state = -1 * node.upper[0][0]
+
+    @staticmethod
+    def is_done(root_node):
         """Returns whether we've found the best action at the root state.
 
         Specifically, this is the case when the lower bound for the best action is greater than the upper bounds of all
             non-best actions.
         """
-        best_action = self.get_best_action(root_node)
-        best_action_idx = root_node.action_list.index(best_action)
-        for action_idx in range(root_node.num_actions):
-            if action_idx == best_action_idx:
-                continue
-            if root_node.lower[best_action_idx] < root_node.upper[action_idx]:
-                return False
-        return True
+        # Question what if we only have 1 action here?
+        best_lower = root_node.lower[0]  # largest (after inversion) lower bound in the heap
+        best_upper = heapq.nsmallest(2, root_node.upper)  # two largest (after inversion) upper bounds
+        if best_lower[1] == best_upper[0][1]:  # don't want to compare best_lower with its own upper bound
+            return best_lower[0] <= best_upper[1][0]  # compare to second-best
+        else:
+            return best_lower[0] <= best_upper[0][0]
 
     @staticmethod
     def get_best_action(node):
         """Returns the action with the maximal upper bound for the given node.state and depth."""
-        upper_bounds = [tuple([action_idx, node.upper[action_idx]]) for action_idx in range(node.num_actions)]
-        best_action_idx = (max(upper_bounds, key=lambda x: x[1]))[0]  # get index of best action
-        return node.action_list[best_action_idx]
+        best_upper = node.upper[0]
+        return node.action_list[best_upper[1]]
 
 
 class Node:
@@ -182,10 +182,14 @@ class Node:
         """
         The lower and upper bounds on the estimate Q^d(s, a) of the value of taking action a in state s at depth d. 
         
-        The state value is stored at lower[-1] / upper[-1].
+        Stored as tuples (-1*bound_value, action_idx) in a heap. Values are inverted for easier modification via heapq.
         """
-        self.lower = [0] * (self.num_actions + 1)
-        self.upper = [0] * (self.num_actions + 1)
+        self.lower = []
+        self.upper = []
+
+        # Bounds on the state value
+        self.lower_state = float('-inf')
+        self.upper_state = float('inf')
 
         # action_expansions[action_idx] = how many times we've sampled the given action
         self.action_expansions = [0] * self.num_actions

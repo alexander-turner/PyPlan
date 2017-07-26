@@ -33,8 +33,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[fsss], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    #pacman.run(agents=[fsss], num_trials=20, multiprocess_mode='trials')
+    pacman.run(agents=[fsss], num_trials=10, multiprocess_mode='trials')
 
-    native.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=10, multiprocess_mode='trials')
+    #native.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=10, multiprocess_mode='trials')
 
 
