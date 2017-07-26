@@ -46,7 +46,6 @@ class Dealer(abstract_dealer.AbstractDealer):
         if show_moves is not None:
             self.show_moves = show_moves
 
-    # TODO: fix override
     def run(self, simulator_str, agents, num_trials=10, output_path=None, multiprocess_mode='trials', show_moves=True):
         """Simulate the given state using the provided agents the given number of times.
 

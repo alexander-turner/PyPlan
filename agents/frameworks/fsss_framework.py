@@ -145,7 +145,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         Specifically, this is the case when the lower bound for the best action is greater than the upper bounds of all
             non-best actions.
         """
-        # Question what if we only have 1 action here?
+        if root_node.num_actions == 1:  # if there's only one action, not much of a choice to make!
+            return True
         best_lower = root_node.lower[0]  # largest (after inversion) lower bound in the heap
         best_upper = heapq.nsmallest(2, root_node.upper)  # two largest (after inversion) upper bounds
         if best_lower[1] == best_upper[0][1]:  # don't want to compare best_lower with its own upper bound

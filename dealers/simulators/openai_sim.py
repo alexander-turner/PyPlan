@@ -75,7 +75,7 @@ class OpenAIState(abstract_state.AbstractState):
             return range(self.action_space.n)
         elif isinstance(self.action_space, spaces.Tuple):
             action_spaces = self.action_space.spaces
-            ranges = tuple(tuple(range(s.n)) for s in action_spaces)  # TODO: take advantage of tuple aspect
+            ranges = tuple(tuple(range(s.n)) for s in action_spaces)
             product = tuple(itertools.product(*ranges))  # return all combinations of action dimensions
             return product
         else:
