@@ -241,7 +241,9 @@ class YahtzeeState(abstract_state.AbstractState):
         return self.current_state["current_player"]
 
     def get_value_bounds(self):
-        return 0, 50
+        return {'defeat': 0, 'min non-terminal': 0,
+                'victory': 0, 'max non-terminal': 50,
+                'pre-computed min': None, 'pre-computed max': None}
 
     def set_current_player(self, player_index):
         self.current_state["current_player"] = player_index

@@ -12,7 +12,6 @@ class FSSSAgentClass(fsss_framework.FSSSAgentClass):
 
         fsss_framework.FSSSAgentClass.__init__(self, depth=depth, pulls_per_node=pulls_per_node, heuristic=heuristic)
 
-        self.agent_name = self.my_name + \
-                          " (d={}, n={}, base policy={})".format(depth,
-                                                                                  pulls_per_node,
-                                                                                  heuristic.rollout_policy.agent_name)
+        self.agent_name = self.my_name + " (d={}, n={}, base policy={})".format(depth,
+                                                                                pulls_per_node,
+                                                                                heuristic.rollout_policy.agent_name)

@@ -95,7 +95,9 @@ class PacmanState(abstract_state.AbstractState):
         return 0
 
     def get_value_bounds(self):
-        return -500, 500
+        return {'defeat': -500, 'min non-terminal': -1,
+                'victory': 500, 'max non-terminal': 200,
+                'pre-computed min': None, 'pre-computed max': None}
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""

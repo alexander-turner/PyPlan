@@ -73,7 +73,9 @@ class OpenAIState(abstract_state.AbstractState):
         return 0
 
     def get_value_bounds(self):
-        return self.env.reward_range
+        return {'defeat': None, 'min non-terminal': None,
+                'victory': None, 'max non-terminal': None,  # TODO check this is accurate
+                'pre-computed min': self.env.reward_range[0], 'pre-computed max': self.env.reward_range[1]}
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""

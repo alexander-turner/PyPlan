@@ -76,4 +76,6 @@ class AbstractState:
     @abc.abstractmethod
     def get_value_bounds(self):
         """Return a tuple: (minimum reward possible, maximum reward possible)."""
-        raise NotImplementedError
+        return {'defeat': None, 'min non-terminal': None,
+                'victory': None, 'max non-terminal': None,
+                'pre-computed min': float('-inf'), 'pre-computed max': float('inf')}

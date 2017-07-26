@@ -5,7 +5,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, heuristic, discount=1):
+    def __init__(self, depth, pulls_per_node, heuristic, discount=.5):
         self.agent_name = self.my_name
         self.num_nodes = 1
 
@@ -16,20 +16,41 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.discount = discount
         self.heuristic = heuristic
 
-        self.set_value_bounds((float('-inf'), float('inf')))
-
     def get_agent_name(self):
         return self.agent_name
 
-    def set_value_bounds(self, value_bounds):
-        self.min_value, self.max_value = value_bounds[0], value_bounds[1]
+    def compute_value_bounds(self, value_bounds, depth):
+        """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
+        if depth == 0:
+            return None, None
+
+        discount_powers = [pow(self.discount, k) for k in range(depth)]  # so we don't compute the same thing four times
+        if value_bounds['pre-computed min'] is not None:
+            min_value = value_bounds['pre-computed min']
+        else:
+            minimums = [0] * depth
+            temp = 0
+            for i in range(depth):  # assume we get worst possible non-loss outcome for depth-1 turns, and then lose
+                minimums[i] = temp + discount_powers[i] * value_bounds['defeat']  # store result of losing at this step
+                temp += discount_powers[i] * value_bounds['min non-terminal']
+            min_value = min(minimums)
+
+        if value_bounds['pre-computed max'] is not None:
+            max_value = value_bounds['pre-computed max']
+        else:
+            maximums = [0] * depth
+            temp = 0
+            for i in range(depth):  # assume we get worst possible non-loss outcome for depth-1 turns, and then lose
+                maximums[i] = temp + discount_powers[i] * value_bounds['victory']  # store result of losing at this step
+                temp += discount_powers[i] * value_bounds['max non-terminal']
+            max_value = min(maximums)
+
+        return min_value, max_value
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
         if state.is_terminal():  # there's nothing left to do
             return None
-        if hasattr(state, 'get_value_bounds'):  # if the state exposes this information, set the value bounds
-            self.set_value_bounds(state.get_value_bounds())
 
         self.num_nodes = 1
 
@@ -61,6 +82,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             node.upper[-1] = node.transition_reward
             return
 
+        min_value, max_value = self.compute_value_bounds(node.state.get_value_bounds(), depth)
+
         current_player = node.state.get_current_player()
 
         if depth == 0:  # reached a leaf
@@ -70,8 +93,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             return
         elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
-                node.lower[action_idx] = self.min_value
-                node.upper[action_idx] = self.max_value
+                node.lower[action_idx] = min_value
+                node.upper[action_idx] = max_value
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
@@ -82,8 +105,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
                 if sim_state not in node.children[best_action_idx]:
                     new_node = Node(sim_state, immediate_reward[current_player], sim_state.get_actions())
-                    new_node.lower[-1] = self.min_value
-                    new_node.upper[-1] = self.max_value
+                    new_node.lower[-1] = min_value
+                    new_node.upper[-1] = max_value
 
                     node.children[best_action_idx][sim_state] = new_node
 

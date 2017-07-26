@@ -23,6 +23,9 @@ class TetrisState(abstract_state.AbstractState):
     def clone(self):
         return copy.deepcopy(self)
 
+    def set(self, sim):
+        self.current_state = copy.deepcopy(sim.current_state)
+
     def reinitialize(self):
         self.game_outcome = None
         self.current_state = copy.deepcopy(self.original_state)
@@ -30,69 +33,16 @@ class TetrisState(abstract_state.AbstractState):
         self.current_state["next_piece"] = random.randrange(1, 6)
         self.game_over = False
 
-    def get_current_state(self):
-        return self.current_state
-
     def get_current_player(self):
         return 0
 
     def get_value_bounds(self):
-        return 5, 55
+        return {'defeat': 0, 'min non-terminal': 5,
+                'victory': 0, 'max non-terminal': 55,
+                'pre-computed min': None, 'pre-computed max': None}
 
     def number_of_players(self):
         return self.num_players
-
-    def set(self, sim):
-        self.current_state = copy.deepcopy(sim.current_state)
-
-    def change_turn(self):
-        self.current_state["current_piece"] = int(self.current_state["next_piece"])
-        self.current_state["next_piece"] = random.randrange(1, 6)
-        self.game_over = self.is_terminal()
-
-    # Tetris-specific function
-    @staticmethod
-    def get_piece_shape(piece_number, rotation_number=0):
-        piece = None
-
-        if piece_number == 1:
-            if rotation_number == 0:
-                piece = [[1, 1], [1, 0]]
-            elif rotation_number == 1:
-                piece = [[1, 1], [0, 1]]
-            elif rotation_number == 2:
-                piece = [[0, 1], [1, 1]]
-            elif rotation_number == 3:
-                piece = [[1, 0], [1, 1]]
-        elif piece_number == 2:
-            if rotation_number == 0:
-                piece = [[1], [1], [1]]
-            elif rotation_number == 1:
-                piece = [[1, 1, 1]]
-        elif piece_number == 3:
-            if rotation_number == 0:
-                piece = [[0, 1, 0], [1, 1, 1]]
-            elif rotation_number == 1:
-                piece = [[1, 0], [1, 1], [1, 0]]
-            elif rotation_number == 2:
-                piece = [[1, 1, 1], [0, 1, 0]]
-            elif rotation_number == 3:
-                piece = [[0, 1], [1, 1], [0, 1]]
-        elif piece_number == 4:
-            if rotation_number == 0:
-                piece = [[1, 1], [1, 1]]
-        elif piece_number == 5:
-            if rotation_number == 0:
-                piece = [[0, 1, 1], [1, 1, 0]]
-            elif rotation_number == 1:
-                piece = [[1, 0], [1, 1], [0, 1]]
-        elif piece_number == 6:
-            if rotation_number == 0:
-                piece = [[1, 1, 0], [0, 1, 1]]
-            elif rotation_number == 1:
-                piece = [[0, 1], [1, 1], [1, 0]]
-
-        return piece
 
     def take_action(self, action):
         x_position = action['position'][0]
@@ -203,3 +153,52 @@ class TetrisState(abstract_state.AbstractState):
             output += str(self.current_state["current_board"][x]) + "\n"
 
         return output
+
+    def change_turn(self):
+        self.current_state["current_piece"] = int(self.current_state["next_piece"])
+        self.current_state["next_piece"] = random.randrange(1, 6)
+        self.game_over = self.is_terminal()
+
+    # Tetris-specific function
+    @staticmethod
+    def get_piece_shape(piece_number, rotation_number=0):
+        piece = None
+
+        if piece_number == 1:
+            if rotation_number == 0:
+                piece = [[1, 1], [1, 0]]
+            elif rotation_number == 1:
+                piece = [[1, 1], [0, 1]]
+            elif rotation_number == 2:
+                piece = [[0, 1], [1, 1]]
+            elif rotation_number == 3:
+                piece = [[1, 0], [1, 1]]
+        elif piece_number == 2:
+            if rotation_number == 0:
+                piece = [[1], [1], [1]]
+            elif rotation_number == 1:
+                piece = [[1, 1, 1]]
+        elif piece_number == 3:
+            if rotation_number == 0:
+                piece = [[0, 1, 0], [1, 1, 1]]
+            elif rotation_number == 1:
+                piece = [[1, 0], [1, 1], [1, 0]]
+            elif rotation_number == 2:
+                piece = [[1, 1, 1], [0, 1, 0]]
+            elif rotation_number == 3:
+                piece = [[0, 1], [1, 1], [0, 1]]
+        elif piece_number == 4:
+            if rotation_number == 0:
+                piece = [[1, 1], [1, 1]]
+        elif piece_number == 5:
+            if rotation_number == 0:
+                piece = [[0, 1, 1], [1, 1, 0]]
+            elif rotation_number == 1:
+                piece = [[1, 0], [1, 1], [0, 1]]
+        elif piece_number == 6:
+            if rotation_number == 0:
+                piece = [[1, 1, 0], [0, 1, 1]]
+            elif rotation_number == 1:
+                piece = [[0, 1], [1, 1], [1, 0]]
+
+        return piece

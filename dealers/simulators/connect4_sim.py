@@ -83,7 +83,9 @@ class Connect4State(abstract_state.AbstractState):
         return self.current_player
 
     def get_value_bounds(self):
-        return -1, 1
+        return {'defeat': -1, 'min non-terminal': 0,
+                'victory': 1, 'max non-terminal': 0,
+                'pre-computed min': -1, 'pre-computed max': 1}
 
     def set_current_player(self, player_index):
         self.current_player = player_index
