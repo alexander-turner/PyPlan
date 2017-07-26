@@ -26,8 +26,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     e_root_uct = e_root_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
 
     policy_set = [u_ro, e_ro]
-    switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=2, num_pulls=10, policies=policy_set)
-    e_switch_agent = e_policy_switch_agent.EPolicySwitchAgentClass(depth=10, num_pulls=10, policies=policy_set)
+    switch_agent = policy_switching_agent.PolicySwitchingAgentClass(depth=2, num_pulls=10, policies=policy_set)
+    e_switch_agent = e_policy_switching_agent.EPolicySwitchingAgentClass(depth=10, num_pulls=10, policies=policy_set)
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
 

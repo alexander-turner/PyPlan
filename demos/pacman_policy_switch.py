@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100)
     ss = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
-    switch_agent = policy_switch_agent.PolicySwitchAgentClass(depth=3, num_pulls=15, policies=[u_ro, ss])
+    switching_agent = policy_switching_agent.PolicySwitchingAgentClass(depth=3, num_pulls=15, policies=[u_ro, ss])
 
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
-    pacman.run(agents=[u_ro, ss, switch_agent], num_trials=15)
+    pacman.run(agents=[u_ro, ss, switching_agent], num_trials=15)
