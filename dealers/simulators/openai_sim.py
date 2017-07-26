@@ -50,7 +50,8 @@ class OpenAIState(abstract_state.AbstractState):
         self.env = gym.make(env_name)
         self.my_name = self.env.spec._env_name
 
-        self.env = wrappers.Monitor(self.env, self.dealer.wrapper_target, write_upon_reset=True, force=self.dealer.force,
+        self.env = wrappers.Monitor(self.env, self.dealer.wrapper_target, write_upon_reset=True,
+                                    force=self.dealer.force,
                                     resume=self.dealer.resume)
 
         self.action_space = self.env.action_space
@@ -61,21 +62,6 @@ class OpenAIState(abstract_state.AbstractState):
 
         self.current_observation = self.env.reset()  # initial observation
         self.done = False  # indicates if the current observation is terminal
-
-    def number_of_players(self):
-        return 1
-
-    def is_terminal(self):
-        return self.done
-
-    def get_current_player(self):
-        """Returns index of current player."""
-        return 0
-
-    def get_value_bounds(self):
-        return {'defeat': None, 'min non-terminal': None,
-                'victory': None, 'max non-terminal': None,  # TODO check this is accurate
-                'pre-computed min': self.env.reward_range[0], 'pre-computed max': self.env.reward_range[1]}
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
@@ -94,6 +80,22 @@ class OpenAIState(abstract_state.AbstractState):
             return product
         else:
             raise NotImplementedError
+
+    def number_of_players(self):
+        return 1
+
+    def get_current_player(self):
+        """Returns index of current player."""
+        return 0
+
+    def get_value_bounds(self):
+        """Environments only expose the absolute reward range, so we don't differentiate if it's terminal or not."""
+        return {'defeat': self.env.reward_range[0], 'victory': self.env.reward_range[1],
+                'min non-terminal': self.env.reward_range[0], 'max non-terminal': self.env.reward_range[1],
+                'pre-computed min': None, 'pre-computed max': None}
+
+    def is_terminal(self):
+        return self.done
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()

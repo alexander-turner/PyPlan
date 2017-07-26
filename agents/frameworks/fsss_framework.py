@@ -7,7 +7,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
     def __init__(self, depth, pulls_per_node, heuristic, discount=.5):
         self.agent_name = self.my_name
-        self.num_nodes = 1
 
         self.depth = depth
         if depth < 1:
@@ -16,23 +15,25 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.discount = discount
         self.heuristic = heuristic
 
+        self.num_nodes = 1
+        self.discount_powers = [pow(self.discount, k) for k in range(self.depth)]  # pre-compute
+
     def get_agent_name(self):
         return self.agent_name
 
     def compute_value_bounds(self, value_bounds, depth):
         """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
-        if depth == 0:
-            return None, None
+        if depth == 0:  # no more actions left to take
+            return 0, 0
 
-        discount_powers = [pow(self.discount, k) for k in range(depth)]  # so we don't compute the same thing four times
         if value_bounds['pre-computed min'] is not None:
             min_value = value_bounds['pre-computed min']
         else:
             minimums = [0] * depth
             temp = 0
-            for i in range(depth):  # assume we get worst possible non-loss outcome for depth-1 turns, and then lose
-                minimums[i] = temp + discount_powers[i] * value_bounds['defeat']  # store result of losing at this step
-                temp += discount_powers[i] * value_bounds['min non-terminal']
+            for i in range(depth):  # store result of losing at each step
+                minimums[i] = temp + self.discount_powers[i] * value_bounds['defeat']
+                temp += self.discount_powers[i] * value_bounds['min non-terminal']
             min_value = min(minimums)
 
         if value_bounds['pre-computed max'] is not None:
@@ -40,9 +41,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         else:
             maximums = [0] * depth
             temp = 0
-            for i in range(depth):  # assume we get worst possible non-loss outcome for depth-1 turns, and then lose
-                maximums[i] = temp + discount_powers[i] * value_bounds['victory']  # store result of losing at this step
-                temp += discount_powers[i] * value_bounds['max non-terminal']
+            for i in range(depth):  # store result of winning at each step
+                maximums[i] = temp + self.discount_powers[i] * value_bounds['victory']
+                temp += self.discount_powers[i] * value_bounds['max non-terminal']
             max_value = min(maximums)
 
         return min_value, max_value

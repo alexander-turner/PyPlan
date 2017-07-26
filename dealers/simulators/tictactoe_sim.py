@@ -28,8 +28,18 @@ class TicTacToeState(abstract_state.AbstractState):
         self.game_over = False
         self.my_name = "Tic-Tac-Toe"
 
-    def number_of_players(self):
-        return self.num_players
+    def reinitialize(self):
+        self.current_state = copy.deepcopy(self.original_state)
+        self.game_outcome = None
+        self.game_over = False
+
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def set(self, sim):
+        self.current_state = copy.deepcopy(sim.current_state)
+        self.game_outcome = sim.game_outcome
+        self.game_over = sim.game_over
 
     def take_action(self, action):
         position = action['position']
@@ -46,8 +56,10 @@ class TicTacToeState(abstract_state.AbstractState):
                     reward[player] -= 1.0
 
         self.change_turn()
-
         return reward
+
+    def change_turn(self):
+        self.current_state["current_player"] = (self.current_state["current_player"] + 1) % self.num_players
 
     def get_actions(self):
         actions_list = []
@@ -59,21 +71,19 @@ class TicTacToeState(abstract_state.AbstractState):
 
         return actions_list
 
-    def clone(self):
-        return copy.deepcopy(self)
+    def number_of_players(self):
+        return self.num_players
 
-    def reinitialize(self):
-        self.current_state = copy.deepcopy(self.original_state)
-        self.game_outcome = None
-        self.game_over = False
+    def get_current_player(self):
+        return self.current_state["current_player"]
 
-    def set(self, sim):
-        self.current_state = copy.deepcopy(sim.current_state)
-        self.game_outcome = sim.game_outcome
-        self.game_over = sim.game_over
+    def set_current_player(self, player_index):
+        self.current_state["current_player"] = player_index
 
-    def change_turn(self):
-        self.current_state["current_player"] = (self.current_state["current_player"] + 1) % self.num_players
+    def get_value_bounds(self):
+        return {'defeat': -1, 'victory': 1,
+                'min non-terminal': 0, 'max non-terminal': 0,
+                'pre-computed min': -1, 'pre-computed max': 1}
 
     def is_terminal(self):
         xcount = 0
@@ -182,17 +192,6 @@ class TicTacToeState(abstract_state.AbstractState):
             return game_over
         else:
             return True
-
-    def get_current_player(self):
-        return self.current_state["current_player"]
-
-    def get_value_bounds(self):
-        return {'defeat': -1, 'min non-terminal': 0,
-                'victory': 1, 'max non-terminal': 0,
-                'pre-computed min': -1, 'pre-computed max': 1}
-
-    def set_current_player(self, player_index):
-        self.current_state["current_player"] = player_index
 
     def __eq__(self, other):
         return self.current_state == other.current_state

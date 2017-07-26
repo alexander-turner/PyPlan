@@ -10,7 +10,7 @@ class AbstractState:
     be sub-optimal. This is because states that are fundamentally the same but correspond to distinct
     objects will be treated as non-equivalent.
 
-    Simulators compatible with native_dealer.py must implement set_current_player (if not single-player) and __str__.
+    Simulators compatible with native_dealer.py must implement set_current_player and __str__.
     """
     __metaclass__ = ABCMeta
 
@@ -22,9 +22,13 @@ class AbstractState:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def number_of_players(self):
-        """This method returns the number of players."""
+    def clone(self):
+        """Creates a deep copy of the state."""
+        raise NotImplementedError
 
+    @abc.abstractmethod
+    def set(self, state):
+        """Makes the object equivalent to state by copying the critical information from state."""
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -51,31 +55,35 @@ class AbstractState:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def clone(self):
-        """Creates a deep copy of the state."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def set(self, state):
-        """Makes the object equivalent to state by copying the critical information from state."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def is_terminal(self):
-        """Returns true if the object is in a terminal state."""
+    def number_of_players(self):
+        """This method returns the number of players."""
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_current_player(self):
         """Returns the index of the current player.
 
-        Index values are in the range {0,...,num_players-1}.
+        Index values are in the range {0, ..., num_players-1}.
         """
         raise NotImplementedError
 
     @abc.abstractmethod
     def get_value_bounds(self):
-        """Return a tuple: (minimum reward possible, maximum reward possible)."""
-        return {'defeat': None, 'min non-terminal': None,
-                'victory': None, 'max non-terminal': None,
+        """Returns a dictionary specifying reward parameters.
+
+        :return defeat: the reward incurred when an agent loses.
+        :return victory: the reward incurred when an agent wins.
+        :return min non-terminal: the lowest possible reward (excluding defeat).
+        :return max non-terminal: the highest possible reward (excluding victory).
+        :return pre-computed min: override value bound calculation with a pre-computed minimum value.
+            None if not applicable.
+        :return pre-computed max: override value bound calculation with a pre-computed maximum value.
+            None if not applicable."""
+        return {'defeat': None, 'victory': None,
+                'min non-terminal': None, 'max non-terminal': None,
                 'pre-computed min': float('-inf'), 'pre-computed max': float('inf')}
+
+    @abc.abstractmethod
+    def is_terminal(self):
+        """Returns true if the object is in a terminal state."""
+        raise NotImplementedError

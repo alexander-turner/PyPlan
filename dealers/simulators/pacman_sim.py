@@ -71,33 +71,8 @@ class PacmanState(abstract_state.AbstractState):
         new_sim.current_state = self.current_state
         return new_sim
 
-    def number_of_players(self):
-        return self.num_players
-
     def set(self, sim):
         self.current_state = sim.current_state
-
-    def is_terminal(self):
-        return self.current_state.isWin() or self.current_state.isLose()
-
-    def process(self, state, game_object):
-        """Wrapper to help with ending the game."""
-        if state.isWin():
-            self.final_score = state.data.score
-            self.won = True
-            pacman.ClassicGameRules.win(self, state=state, game=game_object)
-        if state.isLose():
-            self.final_score = state.data.score
-            pacman.ClassicGameRules.lose(self, state=state, game=game_object)
-
-    def get_current_player(self):  # TODO standardize function ordering?
-        """Pacman is the only player."""
-        return 0
-
-    def get_value_bounds(self):
-        return {'defeat': -500, 'min non-terminal': -1,
-                'victory': 500, 'max non-terminal': 200,
-                'pre-computed min': None, 'pre-computed max': None}
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
@@ -121,6 +96,31 @@ class PacmanState(abstract_state.AbstractState):
 
     def get_actions(self):
         return self.current_state.getLegalActions()
+
+    def number_of_players(self):
+        return self.num_players
+
+    def get_current_player(self):
+        """Pacman is the only player."""
+        return 0
+
+    def get_value_bounds(self):
+        return {'defeat': -500, 'victory': 500,
+                'min non-terminal': -1, 'max non-terminal': 200,
+                'pre-computed min': None, 'pre-computed max': None}
+
+    def is_terminal(self):
+        return self.current_state.isWin() or self.current_state.isLose()
+
+    def process(self, state, game_object):
+        """Wrapper to help with ending the game."""
+        if state.isWin():
+            self.final_score = state.data.score
+            self.won = True
+            pacman.ClassicGameRules.win(self, state=state, game=game_object)
+        if state.isLose():
+            self.final_score = state.data.score
+            pacman.ClassicGameRules.lose(self, state=state, game=game_object)
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()

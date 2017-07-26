@@ -33,16 +33,13 @@ class OthelloState(abstract_state.AbstractState):
         self.game_over = False
         self.my_name = "Othello"
 
-    def clone(self):
-        return copy.deepcopy(self)
-
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)
         self.game_outcome = None
         self.game_over = False
 
-    def get_current_state(self):
-        return self.current_state
+    def clone(self):
+        return copy.deepcopy(self)
 
     def set(self, sim):
         self.current_state = copy.deepcopy(sim.current_state)
@@ -166,6 +163,20 @@ class OthelloState(abstract_state.AbstractState):
             actions_list.append(action)
         return actions_list
 
+    def number_of_players(self):
+        return self.num_players
+
+    def get_current_player(self):
+        return self.current_state["current_player"]
+
+    def set_current_player(self, player_index):
+        self.current_state["current_player"] = player_index
+
+    def get_value_bounds(self):
+        return {'defeat': -1, 'victory': 1,
+                'min non-terminal': 0, 'max non-terminal': 0,
+                'pre-computed min': -1, 'pre-computed max': 1}
+
     def is_terminal(self):
         for_player_1 = self.get_actions(1)
         for_player_2 = self.get_actions(2)
@@ -187,20 +198,6 @@ class OthelloState(abstract_state.AbstractState):
                     self.game_outcome = 1
 
             return True
-
-    def number_of_players(self):
-        return self.num_players
-
-    def get_current_player(self):
-        return self.current_state["current_player"]
-
-    def get_value_bounds(self):
-        return {'defeat': -1, 'min non-terminal': 0,
-                'victory': 1, 'max non-terminal': 0,
-                'pre-computed min': -1, 'pre-computed max': 1}
-
-    def set_current_player(self, player_index):
-        self.current_state["current_player"] = player_index
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
