@@ -1,7 +1,9 @@
 import random
 import timeit
+import time
 import tabulate
 import multiprocessing
+import progressbar
 from abstract import abstract_dealer
 from dealers.simulators import *
 
@@ -119,10 +121,18 @@ class Dealer(abstract_dealer.AbstractDealer):
                 output_file.write(table)
 
     def run_trials(self, multiprocess_mode='trials'):
+        bar = progressbar.ProgressBar(max_value=self.num_trials)
         game_outputs = []
         if multiprocess_mode == 'trials':
             with multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1)) as pool:
-                game_outputs = pool.map(self.run_trial, range(self.num_trials))
+                remaining = self.num_trials
+                bar.update(0)
+                while remaining > 0:
+                    trials_to_execute = min(pool._processes, remaining)
+                    game_outputs += pool.map(self.run_trial, range(trials_to_execute))
+                    remaining -= trials_to_execute
+                    bar.update(self.num_trials - remaining)
+                time.sleep(0.1)  # so we don't print extra progress bar
         else:
             if multiprocess_mode == 'bandit':
                 old_configs = [False] * len(self.agents)
@@ -131,8 +141,9 @@ class Dealer(abstract_dealer.AbstractDealer):
                         old_configs[agent_idx] = agent.multiprocess
                         agent.set_multiprocess(True)
 
-            for sim_num in range(self.num_trials):
+            for _ in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial())
+            time.sleep(0.1)  # so we don't print extra progress bars
 
             if multiprocess_mode == 'bandit':
                 for agent_idx, agent in enumerate(self.agents):  # reset their multiprocess information

@@ -140,7 +140,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                 old_config = agent.multiprocess
                 agent.set_multiprocess(True)
 
-            bar = progressbar.ProgressBar(max_value=self.num_trials)
+            bar = progressbar.ProgressBar()
             for i in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial(i))
             time.sleep(0.1)  # so we don't print extra progress bars
@@ -177,11 +177,18 @@ class Dealer(abstract_dealer.AbstractDealer):
 
     def try_pool(self):
         """Sometimes the pool takes a few tries to execute; keep trying until it works."""
-        # Ensures the system runs smoothly
         pool = multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1))
+        bar = progressbar.ProgressBar(max_value=self.num_trials)
+        bar.update(0)
+        remaining = self.num_trials
+        game_outputs = []
         while True:
             try:
-                game_outputs = pool.map(self.run_trial, range(self.num_trials))
+                while remaining > 0:
+                    trials_to_execute = min(pool._processes, remaining)
+                    game_outputs += pool.map(self.run_trial, range(trials_to_execute))
+                    remaining -= trials_to_execute
+                    bar.update(self.num_trials - remaining)
                 pool.close()
                 return game_outputs
             except WindowsError:

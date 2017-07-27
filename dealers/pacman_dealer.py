@@ -78,7 +78,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                 bar.update(0)
                 while remaining > 0:
                     trials_to_execute = min(pool._processes, remaining)
-                    game_outputs = pool.map(self.run_trial, range(trials_to_execute))
+                    game_outputs += pool.map(self.run_trial, range(trials_to_execute))
                     remaining -= trials_to_execute
                     bar.update(self.num_trials - remaining)
                 time.sleep(0.1)  # so we don't print extra progress bar
