@@ -1,4 +1,5 @@
 import heapq
+import math
 from abstract import abstract_agent
 
 
@@ -46,6 +47,16 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     def set_min_max_bounds(self, state):
         """Pre-compute all possible minimum and maximum value bounds, accounting for depth and the discount factor."""
         value_bounds = state.get_value_bounds()
+        if value_bounds['evaluation function'] is not None:  # use function to evaluate each state and derive the bounds
+            eval_min, eval_max = value_bounds['evaluation function'](state)
+            self.minimums = [eval_min for _ in range(self.depth + 1)]
+            self.minimums = [eval_max for _ in range(self.depth + 1)]
+
+            self.evaluate_bounds = True
+            return
+        else:
+            self.evaluate_bounds = False
+
         discount_powers = [pow(self.discount, k) for k in range(self.depth + 1)]
         temp_min, temp_max = 0, 0  # non-terminal minimum / maximum up to this point
 
@@ -92,6 +103,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             node.upper_state = node.transition_reward
             return
 
+        if self.evaluate_bounds:  # if we have a heuristic function for each state
+            self.set_min_max_bounds(node.state)
+
         current_player = node.state.get_current_player()
 
         if depth == 0:  # reached a leaf
@@ -107,7 +121,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
 
-        if node.action_expansions[best_action_idx] < self.pulls_per_node:
+        while node.action_expansions[best_action_idx] < self.pulls_per_node:
             sim_state = node.state.clone()  # clone so that hashing works properly
             immediate_reward = sim_state.take_action(best_action)  # simulate taking action
 
@@ -125,7 +139,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         # Find the greatest difference between the upper and lower bounds for depth-1
         bound_differences = [tuple([n.state, n.upper_state - n.lower_state]) for n in child_nodes]
-        successor_key = (max(bound_differences, key=lambda x: x[1]))[0]  # retrieve key from tuple
+        successor_key, _ = max(bound_differences, key=lambda x: x[1])  # retrieve key from tuple
+
         successor_node = node.children[best_action_idx][successor_key]
 
         self.run_trial(successor_node, depth - 1)
@@ -134,20 +149,41 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
         pulls_remaining = self.pulls_per_node - node.action_expansions[best_action_idx]
 
-        lower_average = (sum([n.lower_state * n.times_sampled for n in child_nodes]) +
-                         self.minimums[depth] * pulls_remaining) \
-                        / self.pulls_per_node
-        new_lower = successor_node.transition_reward + self.discount * lower_average
-        heapq.heapreplace(node.lower, (-1 * new_lower, best_action_idx))  # pop the old best_action_idx lower; push new
+        new_lower, new_upper = self.perform_backup(child_nodes, depth, successor_node.transition_reward, pulls_remaining)
 
-        upper_average = (sum([n.upper_state * n.times_sampled for n in child_nodes]) +
-                         self.maximums[depth] * pulls_remaining) \
-                        / self.pulls_per_node
-        new_upper = successor_node.transition_reward + self.discount * upper_average
+        heapq.heapreplace(node.lower, (-1 * new_lower, best_action_idx))  # pop the old best_action_idx lower; push new
         heapq.heapreplace(node.upper, (-1 * new_upper, best_action_idx))
 
         node.lower_state = -1 * node.lower[0][0]  # [list_pos][value]; correct for heap inversion
         node.upper_state = -1 * node.upper[0][0]
+
+    def perform_backup(self, child_nodes, depth, reward, pulls_remaining):
+        """Perform the bound backup over the child nodes while handling nan/infinite values."""
+        if math.isinf(self.minimums[depth-1]):
+            if pulls_remaining > 0:
+                new_lower = self.minimums[depth-1]
+            else:
+                lower_average = sum([n.lower_state * n.times_sampled for n in child_nodes]) / self.pulls_per_node
+                new_lower = reward + self.discount * lower_average
+        else:
+            lower_average = (sum([n.lower_state * n.times_sampled for n in child_nodes]) +
+                             self.minimums[depth-1] * pulls_remaining) \
+                            / self.pulls_per_node
+            new_lower = reward + self.discount * lower_average
+
+        if math.isinf(self.maximums[depth-1]):
+            if pulls_remaining > 0:
+                new_upper = self.maximums[depth-1]
+            else:
+                upper_average = sum([n.upper_state * n.times_sampled for n in child_nodes]) / self.pulls_per_node
+                new_upper = reward + self.discount * upper_average
+        else:
+            upper_average = (sum([n.upper_state * n.times_sampled for n in child_nodes]) +
+                             self.maximums[depth-1] * pulls_remaining) \
+                            / self.pulls_per_node
+            new_upper = reward + self.discount * upper_average
+
+        return new_lower, new_upper
 
     @staticmethod
     def is_done(root_node):

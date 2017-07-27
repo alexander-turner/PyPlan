@@ -83,7 +83,8 @@ class TicTacToeState(abstract_state.AbstractState):
     def get_value_bounds(self):
         return {'defeat': -1, 'victory': 1,
                 'min non-terminal': 0, 'max non-terminal': 0,
-                'pre-computed min': -1, 'pre-computed max': 1}
+                'pre-computed min': -1, 'pre-computed max': 1,
+                'evaluation function': None}
 
     def is_terminal(self):
         xcount = 0

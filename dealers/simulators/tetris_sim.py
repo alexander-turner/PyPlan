@@ -39,7 +39,8 @@ class TetrisState(abstract_state.AbstractState):
     def get_value_bounds(self):
         return {'defeat': 0, 'min non-terminal': 5,
                 'victory': 0, 'max non-terminal': 55,
-                'pre-computed min': None, 'pre-computed max': None}
+                'pre-computed min': None, 'pre-computed max': None,
+                'evaluation function': None}
 
     def number_of_players(self):
         return self.num_players

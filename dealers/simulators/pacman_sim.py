@@ -107,7 +107,8 @@ class PacmanState(abstract_state.AbstractState):
     def get_value_bounds(self):
         return {'defeat': -500, 'victory': 500,
                 'min non-terminal': -1, 'max non-terminal': 200,
-                'pre-computed min': None, 'pre-computed max': None}
+                'pre-computed min': None, 'pre-computed max': None,
+                'evaluation function': None}
 
     def is_terminal(self):
         return self.current_state.isWin() or self.current_state.isLose()

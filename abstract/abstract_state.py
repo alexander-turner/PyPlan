@@ -78,10 +78,14 @@ class AbstractState:
         :return pre-computed min: override value bound calculation with a pre-computed minimum value.
             None if not applicable.
         :return pre-computed max: override value bound calculation with a pre-computed maximum value.
-            None if not applicable."""
+            None if not applicable.
+        :return evaluation function: a function for directly evaluating the bounds of particular states.
+            Takes a game state object as input.
+        """
         return {'defeat': None, 'victory': None,
                 'min non-terminal': None, 'max non-terminal': None,
-                'pre-computed min': float('-inf'), 'pre-computed max': float('inf')}
+                'pre-computed min': float('-inf'), 'pre-computed max': float('inf'),
+                'evaluation function': None}
 
     @abc.abstractmethod
     def is_terminal(self):

@@ -92,7 +92,8 @@ class OpenAIState(abstract_state.AbstractState):
         """Environments only expose the absolute reward range, so we don't differentiate if it's terminal or not."""
         return {'defeat': self.env.reward_range[0], 'victory': self.env.reward_range[1],
                 'min non-terminal': self.env.reward_range[0], 'max non-terminal': self.env.reward_range[1],
-                'pre-computed min': None, 'pre-computed max': None}
+                'pre-computed min': None, 'pre-computed max': None,
+                'evaluation function': None}
 
     def is_terminal(self):
         return self.done

@@ -219,7 +219,8 @@ class YahtzeeState(abstract_state.AbstractState):
     def get_value_bounds(self):
         return {'defeat': 0, 'victory': 0,
                 'min non-terminal': 0, 'max non-terminal': 50,
-                'pre-computed min': None, 'pre-computed max': None}
+                'pre-computed min': None, 'pre-computed max': None,
+                'evaluation function': None}
 
     def is_terminal(self):
         game_done = True
