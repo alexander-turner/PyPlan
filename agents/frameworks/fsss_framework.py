@@ -18,6 +18,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         self.num_nodes = 1
 
+        self.sim_name = ""
         self.minimums = [float('-inf') for _ in range(self.depth + 1)]  # the minimum value for the given depth
         self.maximums = [float('inf') for _ in range(self.depth + 1)]
 
@@ -30,7 +31,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             return None
 
         self.num_nodes = 1
-        self.set_min_max_bounds(state)
+        if self.sim_name != state.my_name:  # if we haven't already initialized bounds for this simulator
+            self.set_min_max_bounds(state)
 
         root_node = Node(state, 0)
 
@@ -42,39 +44,35 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         return self.get_best_action(root_node)
 
     def set_min_max_bounds(self, state):
-        """Pre-compute all possible minimum and maximum value bounds."""
-        for i in range(self.depth + 1):  # TODO remove redundant computation
-            self.minimums[i], self.maximums[i] = self.compute_value_bounds(state, i)
-
-    def compute_value_bounds(self, state, depth):
-        """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
-        if depth == 0:  # no more actions left to take
-            return 0, 0
-
+        """Pre-compute all possible minimum and maximum value bounds, accounting for depth and the discount factor."""
         value_bounds = state.get_value_bounds()
-        discount_powers = [pow(self.discount, k) for k in range(self.depth)]
+        discount_powers = [pow(self.discount, k) for k in range(self.depth + 1)]
+        temp_min, temp_max = 0, 0  # non-terminal minimum / maximum up to this point
 
-        if value_bounds['pre-computed min'] is not None:
-            min_value = value_bounds['pre-computed min']
-        else:
-            minimums = [0] * depth
-            temp = 0
-            for i in range(depth):  # store result of losing at each step
-                minimums[i] = temp + discount_powers[i] * value_bounds['defeat']
-                temp += discount_powers[i] * value_bounds['min non-terminal']
-            min_value = min(minimums)
+        for d in range(self.depth + 1):
+            # Compute minimums[d]
+            if value_bounds['pre-computed min'] is not None:
+                self.minimums[d] = value_bounds['pre-computed min']
+            else:
+                defeat = temp_min + discount_powers[d] * value_bounds['defeat']
+                temp_min += discount_powers[d] * value_bounds['min non-terminal']
+                to_compare = [defeat, temp_min]
+                if d > 0:
+                    to_compare.append(self.minimums[d-1])
+                self.minimums[d] = min(to_compare)
 
-        if value_bounds['pre-computed max'] is not None:
-            max_value = value_bounds['pre-computed max']
-        else:
-            maximums = [0] * depth
-            temp = 0
-            for i in range(depth):  # store result of winning at each step
-                maximums[i] = temp + discount_powers[i] * value_bounds['victory']
-                temp += discount_powers[i] * value_bounds['max non-terminal']
-            max_value = min(maximums)
+            # Compute maximums[d]
+            if value_bounds['pre-computed max'] is not None:
+                self.maximums[d] = value_bounds['pre-computed max']
+            else:
+                victory = temp_max + discount_powers[d] * value_bounds['victory']
+                temp_max += discount_powers[d] * value_bounds['max non-terminal']
+                to_compare = [victory, temp_max]
+                if d > 0:
+                    to_compare.append(self.maximums[d-1])
+                self.maximums[d] = max(to_compare)
 
-        return min_value, max_value
+        self.sim_name = state.my_name
 
     def run_trial(self, node, depth):
         """Each trial improves the accuracy of the bounds and closes one node.
