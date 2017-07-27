@@ -20,7 +20,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     ss_d2 = sparse_sampling_agent.SparseSamplingAgentClass(depth=2, pulls_per_node=20, heuristic=h1)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgentClass(depth=5, pulls_per_node=5, heuristic=h1)
-    fsss = fsss_agent.FSSSAgentClass(depth=2, pulls_per_node=100)
+    fsss = fsss_agent.FSSSAgentClass(depth=2, pulls_per_node=20)
 
     uct = uct_agent.UCTAgentClass(depth=2, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)

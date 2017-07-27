@@ -22,33 +22,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     def get_agent_name(self):
         return self.agent_name
 
-    def compute_value_bounds(self, value_bounds, depth):
-        """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
-        if depth == 0:  # no more actions left to take
-            return 0, 0
-
-        if value_bounds['pre-computed min'] is not None:
-            min_value = value_bounds['pre-computed min']
-        else:
-            minimums = [0] * depth
-            temp = 0
-            for i in range(depth):  # store result of losing at each step
-                minimums[i] = temp + self.discount_powers[i] * value_bounds['defeat']
-                temp += self.discount_powers[i] * value_bounds['min non-terminal']
-            min_value = min(minimums)
-
-        if value_bounds['pre-computed max'] is not None:
-            max_value = value_bounds['pre-computed max']
-        else:
-            maximums = [0] * depth
-            temp = 0
-            for i in range(depth):  # store result of winning at each step
-                maximums[i] = temp + self.discount_powers[i] * value_bounds['victory']
-                temp += self.discount_powers[i] * value_bounds['max non-terminal']
-            max_value = min(maximums)
-
-        return min_value, max_value
-
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
         if state.is_terminal():  # there's nothing left to do
@@ -56,7 +29,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         self.num_nodes = 1
 
-        root_node = Node(state, 0, state.get_actions())
+        root_node = Node(state, 0)
 
         while True:
             self.run_trial(root_node, self.depth)
@@ -99,21 +72,20 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
-        if node.action_expansions[best_action_idx] < self.pulls_per_node:  # if we have pulls remaining
-            i = 0  # expand scope of i
-            for i in range(self.pulls_per_node - node.action_expansions[best_action_idx]):  # sample C - n_{sda*} states
-                sim_state = node.state.clone()  # clone so that hashing works properly
-                immediate_reward = sim_state.take_action(best_action)  # simulate taking action
 
-                if sim_state not in node.children[best_action_idx]:
-                    new_node = Node(sim_state, immediate_reward[current_player], sim_state.get_actions())
-                    new_node.lower_state = min_value
-                    new_node.upper_state = max_value
+        if node.action_expansions[best_action_idx] < self.pulls_per_node:
+            sim_state = node.state.clone()  # clone so that hashing works properly
+            immediate_reward = sim_state.take_action(best_action)  # simulate taking action
 
-                    node.children[best_action_idx][sim_state] = new_node
-                    self.num_nodes += 1  # we've made a new Node
-                    break  # we break early since a new child state means it has the greatest bound difference
-            node.action_expansions[best_action_idx] += i + 1  # account for 0-indexing
+            if sim_state not in node.children[best_action_idx]:
+                new_node = Node(sim_state, immediate_reward[current_player])
+                new_node.lower_state = min_value  # TODO not precise in all cases?
+                new_node.upper_state = max_value
+
+                node.children[best_action_idx][sim_state] = new_node
+                self.num_nodes += 1  # we've made a new Node
+            node.children[best_action_idx][sim_state].times_sampled += 1
+            node.action_expansions[best_action_idx] += 1
 
         child_nodes = [node.children[best_action_idx][n] for n in node.children[best_action_idx]]
 
@@ -123,20 +95,50 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         successor_node = node.children[best_action_idx][successor_key]
 
         self.run_trial(successor_node, depth - 1)
-
         node.times_visited += 1
 
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
-        new_lower = successor_node.transition_reward + self.discount * sum([n.lower_state for n in child_nodes]) \
-                                                                      / node.action_expansions[best_action_idx]
+        pulls_remaining = self.pulls_per_node - node.action_expansions[best_action_idx]
+
+        lower_average = (sum([n.lower_state * n.times_sampled for n in child_nodes]) + pulls_remaining * min_value) \
+                        / self.pulls_per_node
+        new_lower = successor_node.transition_reward + self.discount * lower_average
         heapq.heapreplace(node.lower, (-1 * new_lower, best_action_idx))  # pop the old best_action_idx lower; push new
 
-        new_upper = successor_node.transition_reward + self.discount * sum([n.upper_state for n in child_nodes]) \
-                                                                      / node.action_expansions[best_action_idx]
+        upper_average = (sum([n.upper_state * n.times_sampled for n in child_nodes]) + pulls_remaining * max_value) \
+                        / self.pulls_per_node
+        new_upper = successor_node.transition_reward + self.discount * upper_average
         heapq.heapreplace(node.upper, (-1 * new_upper, best_action_idx))
 
         node.lower_state = -1 * node.lower[0][0]  # [list_pos][value]; correct for heap inversion
         node.upper_state = -1 * node.upper[0][0]
+
+    def compute_value_bounds(self, value_bounds, depth):
+        """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
+        if depth == 0:  # no more actions left to take
+            return 0, 0
+
+        if value_bounds['pre-computed min'] is not None:
+            min_value = value_bounds['pre-computed min']
+        else:
+            minimums = [0] * depth
+            temp = 0
+            for i in range(depth):  # store result of losing at each step
+                minimums[i] = temp + self.discount_powers[i] * value_bounds['defeat']
+                temp += self.discount_powers[i] * value_bounds['min non-terminal']
+            min_value = min(minimums)
+
+        if value_bounds['pre-computed max'] is not None:
+            max_value = value_bounds['pre-computed max']
+        else:
+            maximums = [0] * depth
+            temp = 0
+            for i in range(depth):  # store result of winning at each step
+                maximums[i] = temp + self.discount_powers[i] * value_bounds['victory']
+                temp += self.discount_powers[i] * value_bounds['max non-terminal']
+            max_value = min(maximums)
+
+        return min_value, max_value
 
     @staticmethod
     def is_done(root_node):
@@ -157,22 +159,22 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     @staticmethod
     def get_best_action(node):
         """Returns the action with the maximal upper bound for the given node.state and depth."""
-        best_upper = node.upper[0]
-        return node.action_list[best_upper[1]]
+        return node.action_list[node.upper[0][1]]  # [access largest heap element][access action index]
 
 
 class Node:
     """Stores information on a state, reward for reaching the state, and the actions available"""
 
-    def __init__(self, state, transition_reward, action_list):
+    def __init__(self, state, transition_reward):
         """Contains the state, reward obtained by reaching the state, actions at the state, children, and bounds."""
         self.state = state
         self.transition_reward = transition_reward
-        self.action_list = action_list
+        self.action_list = state.get_actions()
         self.num_actions = len(self.action_list)
 
         self.num_nodes = 0
-        self.times_visited = 0
+        self.times_visited = 0  # whether the node's bounds have been set
+        self.times_sampled = 0  # times sampled in the pull budget - indicator of weight
 
         """
         Each action is associated with a dictionary that stores successor nodes.
