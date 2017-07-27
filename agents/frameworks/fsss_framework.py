@@ -18,7 +18,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         self.num_nodes = 1
 
-        self.sim_name = ""
+        self.sim_name = ""  # the name of the simulation for which the value bounds are configured
         self.minimums = [float('-inf') for _ in range(self.depth + 1)]  # the minimum value for the given depth
         self.maximums = [float('inf') for _ in range(self.depth + 1)]
 
