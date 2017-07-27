@@ -4,7 +4,7 @@ from abstract import abstract_agent
 
 class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
-    my_name = "FSSS Agent"
+    my_name = "FSSS Agent"  # TODO benchmark optimizations
 
     def __init__(self, depth, pulls_per_node, heuristic, discount=.5):
         self.agent_name = self.my_name
@@ -17,7 +17,9 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         self.heuristic = heuristic
 
         self.num_nodes = 1
-        self.discount_powers = [pow(self.discount, k) for k in range(self.depth)]  # pre-compute
+
+        self.minimums = [float('-inf') for _ in range(self.depth + 1)]  # the minimum value for the given depth
+        self.maximums = [float('inf') for _ in range(self.depth + 1)]
 
     def get_agent_name(self):
         return self.agent_name
@@ -28,6 +30,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             return None
 
         self.num_nodes = 1
+        self.set_min_max_bounds(state)
 
         root_node = Node(state, 0)
 
@@ -37,6 +40,41 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                 break
 
         return self.get_best_action(root_node)
+
+    def set_min_max_bounds(self, state):
+        """Pre-compute all possible minimum and maximum value bounds."""
+        for i in range(self.depth + 1):  # TODO remove redundant computation
+            self.minimums[i], self.maximums[i] = self.compute_value_bounds(state, i)
+
+    def compute_value_bounds(self, state, depth):
+        """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
+        if depth == 0:  # no more actions left to take
+            return 0, 0
+
+        value_bounds = state.get_value_bounds()
+        discount_powers = [pow(self.discount, k) for k in range(self.depth)]
+
+        if value_bounds['pre-computed min'] is not None:
+            min_value = value_bounds['pre-computed min']
+        else:
+            minimums = [0] * depth
+            temp = 0
+            for i in range(depth):  # store result of losing at each step
+                minimums[i] = temp + discount_powers[i] * value_bounds['defeat']
+                temp += discount_powers[i] * value_bounds['min non-terminal']
+            min_value = min(minimums)
+
+        if value_bounds['pre-computed max'] is not None:
+            max_value = value_bounds['pre-computed max']
+        else:
+            maximums = [0] * depth
+            temp = 0
+            for i in range(depth):  # store result of winning at each step
+                maximums[i] = temp + discount_powers[i] * value_bounds['victory']
+                temp += discount_powers[i] * value_bounds['max non-terminal']
+            max_value = min(maximums)
+
+        return min_value, max_value
 
     def run_trial(self, node, depth):
         """Each trial improves the accuracy of the bounds and closes one node.
@@ -56,8 +94,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             node.upper_state = node.transition_reward
             return
 
-        min_value, max_value = self.compute_value_bounds(node.state.get_value_bounds(), depth)
-
         current_player = node.state.get_current_player()
 
         if depth == 0:  # reached a leaf
@@ -67,8 +103,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             return
         elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
-                heapq.heappush(node.lower, (-1 * min_value, action_idx))
-                heapq.heappush(node.upper, (-1 * max_value, action_idx))
+                heapq.heappush(node.lower, (-1 * self.minimums[depth], action_idx))
+                heapq.heappush(node.upper, (-1 * self.maximums[depth], action_idx))
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
@@ -79,8 +115,8 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
             if sim_state not in node.children[best_action_idx]:
                 new_node = Node(sim_state, immediate_reward[current_player])
-                new_node.lower_state = min_value  # TODO not precise in all cases?
-                new_node.upper_state = max_value
+                new_node.lower_state = self.minimums[depth-1]
+                new_node.upper_state = self.maximums[depth-1]
 
                 node.children[best_action_idx][sim_state] = new_node
                 self.num_nodes += 1  # we've made a new Node
@@ -100,45 +136,20 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         # Bounds for best action in this state are the reward plus the discounted average of child bounds
         pulls_remaining = self.pulls_per_node - node.action_expansions[best_action_idx]
 
-        lower_average = (sum([n.lower_state * n.times_sampled for n in child_nodes]) + pulls_remaining * min_value) \
+        lower_average = (sum([n.lower_state * n.times_sampled for n in child_nodes]) +
+                         self.minimums[depth] * pulls_remaining) \
                         / self.pulls_per_node
         new_lower = successor_node.transition_reward + self.discount * lower_average
         heapq.heapreplace(node.lower, (-1 * new_lower, best_action_idx))  # pop the old best_action_idx lower; push new
 
-        upper_average = (sum([n.upper_state * n.times_sampled for n in child_nodes]) + pulls_remaining * max_value) \
+        upper_average = (sum([n.upper_state * n.times_sampled for n in child_nodes]) +
+                         self.maximums[depth] * pulls_remaining) \
                         / self.pulls_per_node
         new_upper = successor_node.transition_reward + self.discount * upper_average
         heapq.heapreplace(node.upper, (-1 * new_upper, best_action_idx))
 
         node.lower_state = -1 * node.lower[0][0]  # [list_pos][value]; correct for heap inversion
         node.upper_state = -1 * node.upper[0][0]
-
-    def compute_value_bounds(self, value_bounds, depth):
-        """Computes the value bounds based on reward information, accounting for depth and the discount factor."""
-        if depth == 0:  # no more actions left to take
-            return 0, 0
-
-        if value_bounds['pre-computed min'] is not None:
-            min_value = value_bounds['pre-computed min']
-        else:
-            minimums = [0] * depth
-            temp = 0
-            for i in range(depth):  # store result of losing at each step
-                minimums[i] = temp + self.discount_powers[i] * value_bounds['defeat']
-                temp += self.discount_powers[i] * value_bounds['min non-terminal']
-            min_value = min(minimums)
-
-        if value_bounds['pre-computed max'] is not None:
-            max_value = value_bounds['pre-computed max']
-        else:
-            maximums = [0] * depth
-            temp = 0
-            for i in range(depth):  # store result of winning at each step
-                maximums[i] = temp + self.discount_powers[i] * value_bounds['victory']
-                temp += self.discount_powers[i] * value_bounds['max non-terminal']
-            max_value = min(maximums)
-
-        return min_value, max_value
 
     @staticmethod
     def is_done(root_node):

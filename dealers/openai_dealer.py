@@ -1,4 +1,6 @@
 import time
+
+import progressbar
 import tabulate
 import multiprocessing
 import logging
@@ -138,8 +140,10 @@ class Dealer(abstract_dealer.AbstractDealer):
                 old_config = agent.multiprocess
                 agent.set_multiprocess(True)
 
-            for i in range(self.num_trials):
+            bar = progressbar.ProgressBar(max_value=self.num_trials)
+            for i in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial(i))
+            time.sleep(0.1)  # so we don't print extra progress bars
 
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 agent.set_multiprocess(old_config)

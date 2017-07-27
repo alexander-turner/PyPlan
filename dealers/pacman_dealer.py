@@ -1,10 +1,11 @@
-from abstract import abstract_dealer
-from dealers.simulators import pacman_sim
 import multiprocessing
 import time
 import os
 import tabulate
 import numpy
+from abstract import abstract_dealer
+from dealers.simulators import pacman_sim
+import progressbar
 
 
 class Dealer(abstract_dealer.AbstractDealer):
@@ -49,11 +50,13 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         for agent in agents:
             print('\nNow simulating: {}'.format(agent.agent_name))
+            time.sleep(0.1)
             output = self.run_trials(agent)
             table.append([agent.agent_name,
                           numpy.mean(output['rewards']),  # average final score
                           output['wins'] / num_trials,  # win percentage
                           output['average move time']])
+        time.sleep(0.1)
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}. {} multiprocessing was used.".format(num_trials,
                                                                                     "s" if num_trials > 1 else "",
@@ -67,17 +70,27 @@ class Dealer(abstract_dealer.AbstractDealer):
         """
         self.simulator.set_agent(agent)
 
+        bar = progressbar.ProgressBar(max_value=self.num_trials)
         game_outputs = []
         if self.multiprocess_mode == 'trials':
             with multiprocessing.Pool(processes=(multiprocessing.cpu_count() - 1)) as pool:
-                game_outputs = pool.map(self.run_trial, range(self.num_trials))
-        else:
-            # enable arm-based multiprocessing
+                remaining = self.num_trials
+                bar.update(0)
+                while remaining > 0:
+                    trials_to_execute = min(pool._processes, remaining)
+                    game_outputs = pool.map(self.run_trial, range(trials_to_execute))
+                    remaining -= trials_to_execute
+                    bar.update(self.num_trials - remaining)
+                time.sleep(0.1)  # so we don't print extra progress bar
+        else:  # enable arm-based multiprocessing
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 old_config = agent.multiprocess
                 agent.set_multiprocess(True)
-            for i in range(self.num_trials):
+
+            for i in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial(i))
+            time.sleep(0.1)  # so we don't print extra progress bars
+
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 agent.set_multiprocess(old_config)
 
