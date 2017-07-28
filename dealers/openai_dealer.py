@@ -221,7 +221,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         stats_recorder = self.simulator.env.stats_recorder
         return {'reward': stats_recorder.rewards,
-                'won': rewards[0] > 0,  # the agent won if last reward observed > 0
+                'won': rewards[0] > self.simulator.env.spec.reward_threshold,
                 'total time': total_time,
                 'episode length': stats_recorder.total_steps,
                 'timestamp': stats_recorder.timestamps[0],
