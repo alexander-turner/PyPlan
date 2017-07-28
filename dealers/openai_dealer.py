@@ -213,7 +213,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             action = self.simulator.agent.act()
             total_time += time.time() - begin
 
-            rewards = self.simulator.take_action(action)
+            self.simulator.take_action(action)
 
             # Don't render if it's not supported
             if self.show_moves and 'human' in self.simulator.env.metadata['render.modes']:
@@ -221,7 +221,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         stats_recorder = self.simulator.env.stats_recorder
         return {'reward': stats_recorder.rewards,
-                'won': rewards[0] > self.simulator.env.spec.reward_threshold,
+                'won': stats_recorder.rewards > self.simulator.env.spec.reward_threshold,
                 'total time': total_time,
                 'episode length': stats_recorder.total_steps,
                 'timestamp': stats_recorder.timestamps[0],
