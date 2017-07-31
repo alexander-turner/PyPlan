@@ -9,11 +9,10 @@ class RolloutHeuristicClass(abstract_heuristic.AbstractHeuristic):
     my_name = "Rollout Heuristic"
 
     def __init__(self, width=1, depth=10, rollout_policy=None):
-        """If no policy is provided, initialize a random agent."""
         self.heuristic_name = self.my_name
         self.width = width
         self.depth = depth
-        if rollout_policy is None:
+        if rollout_policy is None:  # if no policy is provided, initialize a random agent
             self.rollout_policy = random_agent.RandomAgentClass()
         else:
             self.rollout_policy = rollout_policy

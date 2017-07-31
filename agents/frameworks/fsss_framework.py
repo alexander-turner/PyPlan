@@ -37,7 +37,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         root_node = Node(state, 0)
 
-        while True:
+        for _ in range(self.num_trials):
             self.run_trial(root_node, self.depth)
             if self.is_done(root_node):
                 break
@@ -121,7 +121,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
 
-        while node.action_expansions[best_action_idx] < self.pulls_per_node:
+        if node.action_expansions[best_action_idx] < self.pulls_per_node:
             sim_state = node.state.clone()  # clone so that hashing works properly
             immediate_reward = sim_state.take_action(best_action)  # simulate taking action
 
@@ -140,7 +140,6 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
         # Find the greatest difference between the upper and lower bounds for depth-1
         bound_differences = [tuple([n.state, n.upper_state - n.lower_state]) for n in child_nodes]
         successor_key, _ = max(bound_differences, key=lambda x: x[1])  # retrieve key from tuple
-
         successor_node = node.children[best_action_idx][successor_key]
 
         self.run_trial(successor_node, depth - 1)

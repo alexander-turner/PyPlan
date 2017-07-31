@@ -38,20 +38,12 @@ class Dealer(abstract_dealer.AbstractDealer):
     def run_all(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Runs the agents on all available simulators."""
         all_environments = self.available_configurations()
-        for env_id in all_environments:
-            if self.should_skip(env_id):  # duplicate games / games that hang
-                print("Filtered game - skipping {}.".format(env_id))
+        for env_name in all_environments:
+            if self.should_skip(env_name):  # duplicate games / games that hang
                 continue
 
-            if not self.can_multiprocess(env_id):  # certain environments have ctypes not compatible with multiprocess
-                previous_mode = self.multiprocess_mode
-                self.multiprocess_mode = ''
-
-            self.run(agents=agents, num_trials=num_trials, env_name=env_id,
+            self.run(agents=agents, num_trials=num_trials, env_name=env_name,
                      multiprocess_mode=multiprocess_mode, show_moves=show_moves)
-
-            if not self.can_multiprocess(env_id):
-                self.multiprocess_mode = previous_mode
 
     def run(self, agents, num_trials, env_name=None, multiprocess_mode='trials', show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
@@ -62,8 +54,8 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param num_trials: how many trials to be run.
         :param env_name: the name of the environment to be run.
         :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
-            other options will mean no multiprocessing is executed. Some games (such as Space Invaders) are not compatible
-            with multiprocessing.
+            other options will mean no multiprocessing is executed. Some games (such as Space Invaders) are not
+            compatible with multiprocessing - in these cases, multiprocessing will be temporarily disabled.
         :param show_moves: if the environment can render, then render each move.
         :param upload: whether to upload results to OpenAI.
         """
@@ -83,6 +75,11 @@ class Dealer(abstract_dealer.AbstractDealer):
             logging.warning(e)
             return
 
+        can_multiprocess = self.can_multiprocess(env_name)
+        if not can_multiprocess:  # certain environments have ctypes not compatible with multiprocess
+            previous_mode = self.multiprocess_mode
+            self.multiprocess_mode = ''
+
         if self.multiprocess_mode == 'trials':  # doesn't make sense to show moves while multiprocessing
             self.show_moves = False
 
@@ -94,23 +91,29 @@ class Dealer(abstract_dealer.AbstractDealer):
         if not self.api_key:  # can't upload if we don't have an API key!
             self.upload = False
 
+        # Prepare to output the table
         table = []
         headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
         if self.upload:
             headers.append("Link")
 
-        if multiprocess_mode == 'trials':
-            multiprocessing_str = "Trial-based"
-        elif multiprocess_mode == 'bandit':
-            multiprocessing_str = "Bandit-based"
+        if can_multiprocess:
+            if multiprocess_mode == 'trials':
+                multiprocessing_prefix = "Trial-based"
+            elif multiprocess_mode == 'bandit':
+                multiprocessing_prefix = "Bandit-based"
+            else:
+                multiprocessing_prefix = "No"
+            multiprocessing_str = multiprocessing_prefix + " multiprocessing was used."
         else:
-            multiprocessing_str = "No"
+            multiprocessing_str = "Multiprocessing disabled for this environment."
 
         unsolved = self.simulator.env.spec.reward_threshold is None
         unsolved_str = "This environment has no specific victory threshold, so all winrates are 0."
 
         for agent in agents:
             print('\n{} | Now simulating {}'.format(env_name, agent.agent_name))
+            time.sleep(0.1)  # so we don't print extra progress bars
 
             output = self.run_trials(agent)
 
@@ -124,10 +127,13 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}."
-              " {} multiprocessing was used."
+              " {}"
               " {}".format(num_trials, "s" if num_trials > 1 else "", self.env_name[:-3],
                            multiprocessing_str,
                            unsolved_str if unsolved else ""))
+
+        if not can_multiprocess:
+            self.multiprocess_mode = previous_mode
 
     def run_trials(self, agent):
         """Run the given number of trials using the agent and the current configuration.
@@ -255,17 +261,17 @@ class Dealer(abstract_dealer.AbstractDealer):
         return configurations
 
     @staticmethod
-    def should_skip(env_id):
+    def should_skip(env_name):
         """Returns True if the environment should be skipped."""
         skip_games = []  # problematic games
-        skip_keywords = ["Deterministic", "Frameskip", "ram"]  # todo remove
+        skip_keywords = ["Deterministic", "Frameskip", "ram", "-v4"]  # todo remove v4
         for key in skip_games + skip_keywords:
-            if str.find(env_id, key) != -1:
+            if str.find(env_name, key) != -1:
                 return True
 
     @staticmethod
-    def can_multiprocess(env_id):
-        skip_games = ["CartPole"]
+    def can_multiprocess(env_name):
+        skip_games = ["AirRaid", "CartPole"]  # question atari games can't multiprocess?
         for key in skip_games:
-            if str.find(env_id, key) != -1:
+            if str.find(env_name, key) != -1:
                 return True
