@@ -6,11 +6,12 @@ class FSSSAgentClass(fsss_framework.FSSSAgentClass):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "Forward Search Sparse Sampling Agent"
 
-    def __init__(self, depth, pulls_per_node, heuristic=None):
+    def __init__(self, depth, pulls_per_node, num_trials, heuristic=None):
         if heuristic is None:
             heuristic = rollout_heuristic.RolloutHeuristicClass(width=1, depth=10)  # default to random rollout
 
-        fsss_framework.FSSSAgentClass.__init__(self, depth=depth, pulls_per_node=pulls_per_node, heuristic=heuristic)
+        fsss_framework.FSSSAgentClass.__init__(self, depth=depth, pulls_per_node=pulls_per_node,
+                                               num_trials=num_trials, heuristic=heuristic)
 
         self.agent_name = self.my_name + " (d={}, n={}, base policy={})".format(depth,
                                                                                 pulls_per_node,

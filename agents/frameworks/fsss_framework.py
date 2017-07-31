@@ -7,7 +7,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     my_name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, heuristic, discount=.5):
+    def __init__(self, depth, pulls_per_node, num_trials, heuristic, discount=.5):
         self.agent_name = self.my_name
 
         self.depth = depth
@@ -15,6 +15,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             raise Exception("Depth must be at least 1.")
         self.pulls_per_node = pulls_per_node
         self.discount = discount
+        self.num_trials = num_trials
         self.heuristic = heuristic
 
         self.num_nodes = 1
@@ -37,7 +38,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
 
         root_node = Node(state, 0)
 
-        for _ in range(self.num_trials):
+        for i in range(self.num_trials):
             self.run_trial(root_node, self.depth)
             if self.is_done(root_node):
                 break

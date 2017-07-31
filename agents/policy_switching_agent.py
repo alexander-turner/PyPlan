@@ -1,5 +1,5 @@
 from agents import switching_bandit_framework
-from bandits import uniform_bandit_alg
+from bandits import uniform_bandit_alg  # TODO fix alg suffix
 
 
 class PolicySwitchingAgentClass(switching_bandit_framework.SwitchingBanditAgentClass):

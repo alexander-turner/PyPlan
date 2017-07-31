@@ -2,7 +2,7 @@ from agents import rollout_agent, random_agent
 from bandits import uniform_bandit_alg
 
 
-class UniformRolloutAgentClass(rollout_agent.RolloutAgentClass):
+class UniformRolloutAgentClass(rollout_agent.RolloutAgentClass):  # TODO fix class names
     my_name = "Uniform Rollout Agent"
 
     def __init__(self, depth, num_pulls, policy=None):
