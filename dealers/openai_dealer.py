@@ -35,7 +35,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             # Output directory location for agent performance
             self.wrapper_target = 'OpenAI results\\' + self.env_name  # cut off version name
 
-    def run_all(self, agents, num_trials, multiprocess_mode='trials', show_moves=False):
+    def run_all(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Runs the agents on all available simulators."""
         all_environments = self.available_configurations()
         for env_id in all_environments:
@@ -43,8 +43,15 @@ class Dealer(abstract_dealer.AbstractDealer):
                 print("Filtered game - skipping {}.".format(env_id))
                 continue
 
+            if not self.can_multiprocess(env_id):  # certain environments have ctypes not compatible with multiprocess
+                previous_mode = self.multiprocess_mode
+                self.multiprocess_mode = ''
+
             self.run(agents=agents, num_trials=num_trials, env_name=env_id,
                      multiprocess_mode=multiprocess_mode, show_moves=show_moves)
+
+            if not self.can_multiprocess(env_id):
+                self.multiprocess_mode = previous_mode
 
     def run(self, agents, num_trials, env_name=None, multiprocess_mode='trials', show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
@@ -99,8 +106,11 @@ class Dealer(abstract_dealer.AbstractDealer):
         else:
             multiprocessing_str = "No"
 
+        unsolved = self.simulator.env.spec.reward_threshold is None
+        unsolved_str = "This environment has no specific victory threshold, so all winrates are 0."
+
         for agent in agents:
-            print('\nNow simulating {}'.format(agent.agent_name))
+            print('\n{} | Now simulating {}'.format(env_name, agent.agent_name))
 
             output = self.run_trials(agent)
 
@@ -111,11 +121,13 @@ class Dealer(abstract_dealer.AbstractDealer):
             if self.upload:
                 row.append(output['url'])
             table.append(row)
+
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}. {} multiprocessing was used.".format(num_trials,
-                                                                                    "s" if num_trials > 1 else "",
-                                                                                    self.env_name[:-3],
-                                                                                    multiprocessing_str))
+        print("Each agent ran {} game{} of {}."
+              " {} multiprocessing was used."
+              " {}".format(num_trials, "s" if num_trials > 1 else "", self.env_name[:-3],
+                           multiprocessing_str,
+                           unsolved_str if unsolved else ""))
 
     def run_trials(self, agent):
         """Run the given number of trials using the agent and the current configuration.
@@ -219,9 +231,12 @@ class Dealer(abstract_dealer.AbstractDealer):
             if self.show_moves and 'human' in self.simulator.env.metadata['render.modes']:
                 self.simulator.env.render()
 
+        victory_threshold = self.simulator.env.spec.reward_threshold
+        if victory_threshold is None:  # if it's an unsolved environment - no specific victory threshold
+            victory_threshold = float('inf')
         stats_recorder = self.simulator.env.stats_recorder
         return {'reward': stats_recorder.rewards,
-                'won': stats_recorder.rewards > self.simulator.env.spec.reward_threshold,
+                'won': stats_recorder.rewards > victory_threshold,
                 'total time': total_time,
                 'episode length': stats_recorder.total_steps,
                 'timestamp': stats_recorder.timestamps[0],
@@ -231,7 +246,7 @@ class Dealer(abstract_dealer.AbstractDealer):
     def available_configurations():
         """Lists all available environments.
 
-        To print nicely, use the pprint module.
+        To print nicely, use the pprint module on the output.
         """
         configurations = []
         for e in gym.envs.registry.all():
@@ -240,10 +255,17 @@ class Dealer(abstract_dealer.AbstractDealer):
         return configurations
 
     @staticmethod
-    def should_skip(game_id):
-        """Returns True if the game should be skipped."""
-        skip_games = ["Assault", "BankHeist", "BeamRider-v4", "CartPole", "CliffWalking"]  # problematic games
-        skip_keywords = ["Deterministic", "Frameskip", "ram"]
+    def should_skip(env_id):
+        """Returns True if the environment should be skipped."""
+        skip_games = []  # problematic games
+        skip_keywords = ["Deterministic", "Frameskip", "ram"]  # todo remove
         for key in skip_games + skip_keywords:
-            if str.find(game_id, key) != -1:
+            if str.find(env_id, key) != -1:
+                return True
+
+    @staticmethod
+    def can_multiprocess(env_id):
+        skip_games = ["CartPole"]
+        for key in skip_games:
+            if str.find(env_id, key) != -1:
                 return True

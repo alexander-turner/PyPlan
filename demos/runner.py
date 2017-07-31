@@ -11,7 +11,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     h1 = rollout_heuristic.RolloutHeuristicClass(width=1, depth=10)
     h10 = rollout_heuristic.RolloutHeuristicClass(width=10, depth=10)
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=100)
+    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=1)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=2, num_pulls=10, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgentClass(depth=1, num_pulls=10, epsilon=0.5)
@@ -31,8 +31,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
 
-    openai.run(agents=[u_ro, fsss], num_trials=10, env_name='FrozenLake-v0',
-               multiprocess_mode='trials', show_moves=False, upload=False)
+    openai.run_all(agents=[u_ro], multiprocess_mode='trials')
+
+    #openai.run(agents=[u_ro, fsss], num_trials=10, env_name='FrozenLake-v0',
+    #           multiprocess_mode='trials', show_moves=False, upload=False)
 
     #pacman.run(agents=[fsss], num_trials=10, multiprocess_mode='trials')
 

@@ -5,7 +5,7 @@ from abstract import abstract_agent
 
 class FSSSAgentClass(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
-    my_name = "FSSS Agent"  # TODO benchmark optimizations
+    my_name = "FSSS Agent"
 
     def __init__(self, depth, pulls_per_node, heuristic, discount=.5):
         self.agent_name = self.my_name
