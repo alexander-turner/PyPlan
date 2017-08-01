@@ -21,7 +21,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
-    fsss = fsss_agent.FSSSAgent(depth=2, pulls_per_node=10, num_trials=1000)
+    fsss = fsss_agent.FSSSAgent(depth=2, pulls_per_node=20, num_trials=1000)
 
     policy_set = [u_ro, e_ro]
     switch_agent = policy_switching_agent.PolicySwitchingAgent(depth=2, num_pulls=10, policies=policy_set)
@@ -31,12 +31,11 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run_all(agents=[u_ro], multiprocess_mode='trials')
 
-    openai.run(agents=[u_ro], num_trials=10, env_name='FrozenLake-v0',
-               multiprocess_mode='trials', show_moves=False, upload=False)
+    #openai.run(agents=[u_ro], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    pacman.run(agents=[fsss], num_trials=10, multiprocess_mode='trials')
+    pacman.run(agents=[fsss], num_trials=10, multiprocess_mode='trils')
 
-    native.run(simulator_str='yahtzee', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trial', show_moves=False)
+    #native.run(simulator_str='yahtzee', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trial', show_moves=False)
 
 
 

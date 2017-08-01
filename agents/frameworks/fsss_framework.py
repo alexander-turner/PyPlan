@@ -38,7 +38,8 @@ class FSSSFramework(abstract_agent.AbstractAgent):
             if self.is_done(root_node):
                 break
 
-        return self.get_best_action(root_node)
+        best_lower_action_idx = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])[0][2]
+        return root_node.action_list[best_lower_action_idx]  # self.get_best_action(root_node)  # todo lower bound?
 
     def set_min_max_bounds(self, state):
         """Pre-compute all possible minimum and maximum value bounds, accounting for depth and the discount factor."""
@@ -111,8 +112,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
             return
         elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
-                heapq.heappush(node.lower, (-1 * self.minimums[depth], action_idx))
-                heapq.heappush(node.upper, (-1 * self.maximums[depth], action_idx))
+                heapq.heappush(node.bounds, (-1 * self.maximums[depth], -1 * self.minimums[depth], action_idx))
 
         best_action = self.get_best_action(node)
         best_action_idx = node.action_list.index(best_action)
@@ -146,11 +146,10 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
         new_lower, new_upper = self.perform_backup(child_nodes, depth, successor_node.transition_reward, pulls_remaining)
 
-        heapq.heapreplace(node.lower, (-1 * new_lower, best_action_idx))  # pop the old best_action_idx lower; push new
-        heapq.heapreplace(node.upper, (-1 * new_upper, best_action_idx))
+        heapq.heapreplace(node.bounds, (-1 * new_upper, -1 * new_lower, best_action_idx))  # pop and push # todo equal values means best action isn't necessarily top of heap
 
-        node.lower_state = -1 * node.lower[0][0]  # [list_pos][value]; correct for heap inversion
-        node.upper_state = -1 * node.upper[0][0]
+        node.lower_state = -1 * node.bounds[0][1]  # [list_pos][value]; correct for heap inversion
+        node.upper_state = -1 * node.bounds[0][0]
 
     def perform_backup(self, child_nodes, depth, reward, pulls_remaining):
         """Perform the bound backup over the child nodes while handling nan/infinite values."""
@@ -189,17 +188,20 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         """
         if root_node.num_actions == 1:  # if there's only one action, not much of a choice to make!
             return True
-        best_lower = root_node.lower[0]  # largest (after inversion) lower bound in the heap
-        best_upper = heapq.nsmallest(2, root_node.upper)  # two largest (after inversion) upper bounds
-        if best_lower[1] == best_upper[0][1]:  # don't want to compare best_lower with its own upper bound
-            return best_lower[0] <= best_upper[1][0]  # compare to second-best
+        best_lower = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])  # largest (after inversion) lower bound in the heap
+        best_upper = heapq.nsmallest(2, root_node.bounds)  # two largest (after inversion) upper bounds
+        if best_lower[0][2] == best_upper[0][2]:  # don't want to compare best_lower with its own upper bound
+            return best_lower[0][1] <= best_upper[1][0]  # compare to second-best
         else:
-            return best_lower[0] <= best_upper[0][0]
+            return best_lower[0][1] <= best_upper[0][0]
 
     @staticmethod
     def get_best_action(node):
-        """Returns the action with the maximal upper bound for the given node.state and depth."""
-        return node.action_list[node.upper[0][1]]  # [access largest heap element][access action index]
+        """Returns the action with the maximal upper bound for the given node.state and depth.
+
+        If we can't guarantee the node is closed and need to get an approximately-best action, use best lower bound.
+        """
+        return node.action_list[node.bounds[0][2]]  # [access largest heap element][access action index]
 
 
 class Node:
@@ -225,10 +227,9 @@ class Node:
         """
         The lower and upper bounds on the estimate Q^d(s, a) of the value of taking action a in state s at depth d. 
         
-        Stored as tuples (-1*bound_value, action_idx) in a heap. Values are inverted for easier modification via heapq.
+        Stored as tuples (-1*upper, -1*lower, action_idx) in a heap. Values are inverted to lower time complexity.
         """
-        self.lower = []
-        self.upper = []
+        self.bounds = []
 
         # Bounds on the state value
         self.lower_state = float('-inf')

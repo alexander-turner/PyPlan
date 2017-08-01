@@ -40,7 +40,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.multiprocess_mode = multiprocess_mode
 
         table = []
-        headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]
+        headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]  # todo variance
         if multiprocess_mode == 'trials':
             multiprocessing_str = "Trial-based"
         elif multiprocess_mode == 'bandit':
@@ -60,7 +60,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}. {} multiprocessing was used.".format(num_trials,
                                                                                     "s" if num_trials > 1 else "",
-                                                                                    self.simulator.name,
+                                                                                    self.simulator.env_name,
                                                                                     multiprocessing_str))
 
     def run_trials(self, agent):
