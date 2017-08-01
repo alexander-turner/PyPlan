@@ -3,29 +3,24 @@ import math
 from abstract import abstract_agent
 
 
-class FSSSAgentClass(abstract_agent.AbstractAgent):
+class FSSSFramework(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
-    my_name = "FSSS Agent"
+    name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, num_trials, heuristic, discount=.5):
-        self.agent_name = self.my_name
-
+    def __init__(self, depth, pulls_per_node, num_trials, evaluation, discount=.5):
         self.depth = depth
         if depth < 1:
             raise Exception("Depth must be at least 1.")
         self.pulls_per_node = pulls_per_node
         self.discount = discount
         self.num_trials = num_trials
-        self.heuristic = heuristic
+        self.evaluation = evaluation
 
         self.num_nodes = 1
 
-        self.sim_name = ""  # the name of the simulation for which the value bounds are configured
+        self.env_name = ""  # the name of the environment for which the value bounds are configured
         self.minimums = [float('-inf') for _ in range(self.depth + 1)]  # the minimum value for the given depth
         self.maximums = [float('inf') for _ in range(self.depth + 1)]
-
-    def get_agent_name(self):
-        return self.agent_name
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -33,7 +28,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
             return None
 
         self.num_nodes = 1
-        if self.sim_name != state.my_name:  # if we haven't already initialized bounds for this simulator
+        if self.env_name != state.env_name:  # if we haven't already initialized bounds for this simulator
             self.set_min_max_bounds(state)
 
         root_node = Node(state, 0)
@@ -84,7 +79,7 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
                     to_compare.append(self.maximums[d-1])
                 self.maximums[d] = max(to_compare)
 
-        self.sim_name = state.my_name
+        self.env_name = state.env_name
 
     def run_trial(self, node, depth):
         """Each trial improves the accuracy of the bounds and closes one node.
@@ -97,20 +92,20 @@ class FSSSAgentClass(abstract_agent.AbstractAgent):
          we don't need to keep closing nodes in suboptimal parts of the tree; we can just make our decision.
 
         :param node: points to a Node object.
-        :param depth: how many more layers to generate before using the heuristic.
+        :param depth: how many more layers to generate before using the state evaluation function.
         """
         if node.state.is_terminal():
             node.lower_state = node.transition_reward
             node.upper_state = node.transition_reward
             return
 
-        if self.evaluate_bounds:  # if we have a heuristic function for each state
+        if self.evaluate_bounds:  # if we have a bound-evaluation function for each state
             self.set_min_max_bounds(node.state)
 
         current_player = node.state.get_current_player()
 
         if depth == 0:  # reached a leaf
-            state_value = self.heuristic.evaluate(node.state)
+            state_value = self.evaluation.evaluate(node.state)
             node.lower_state = state_value[current_player]
             node.upper_state = state_value[current_player]
             return

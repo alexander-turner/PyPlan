@@ -49,10 +49,10 @@ class Dealer(abstract_dealer.AbstractDealer):
             multiprocessing_str = "No"
 
         for agent in agents:
-            print('\nNow simulating: {}'.format(agent.agent_name))
+            print('\nNow simulating: {}'.format(agent.name))
             time.sleep(0.1)
             output = self.run_trials(agent)
-            table.append([agent.agent_name,
+            table.append([agent.name,
                           numpy.mean(output['rewards']),  # average final score
                           output['wins'] / num_trials,  # win percentage
                           output['average move time']])
@@ -60,7 +60,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
         print("Each agent ran {} game{} of {}. {} multiprocessing was used.".format(num_trials,
                                                                                     "s" if num_trials > 1 else "",
-                                                                                    self.simulator.my_name,
+                                                                                    self.simulator.name,
                                                                                     multiprocessing_str))
 
     def run_trials(self, agent):

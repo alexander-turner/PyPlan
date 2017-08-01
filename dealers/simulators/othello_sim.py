@@ -31,7 +31,7 @@ class OthelloState(abstract_state.AbstractState):
         self.num_players = 2
         self.game_outcome = None
         self.game_over = False
-        self.my_name = "Othello"
+        self.env_name = "Othello"
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)

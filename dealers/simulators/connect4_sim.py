@@ -13,7 +13,7 @@ class Connect4State(abstract_state.AbstractState):
         self.current_player = 0
 
         self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
-        self.my_name = "Connect 4"
+        self.env_name = "Connect 4"
 
     def reinitialize(self):
         self.state_val = [0, 0]

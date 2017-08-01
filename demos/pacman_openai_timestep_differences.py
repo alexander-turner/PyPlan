@@ -7,7 +7,7 @@ Although Pacman and Ms. Pacman are nearly identical games, the latter's simulato
 """
 
 if __name__ == '__main__':
-    u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=100)
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
 
     pacman = pacman_dealer.Dealer(layout_representation='originalClassic')
     pacman.run(agents=[u_ro], num_trials=1, multiprocess_mode='', show_moves=True)

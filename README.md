@@ -7,7 +7,7 @@ PyPlan is an easily-extensible library of planning algorithms and environments, 
 Running a one-step greedy bandit algorithm on [Berkeley's Pacman simulator](http://ai.berkeley.edu/project_overview.html) is as simple as:
 
 ```
-u_ro = uniform_rollout_agent.UniformRolloutAgentClass(depth=0, num_pulls=100)
+u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
 
 pacman = pacman_sim.Dealer(layout_representation='originalClassic')
 pacman.run(agents=[u_ro], num_trials=10)

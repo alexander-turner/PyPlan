@@ -1,1 +1,1 @@
-__all__ = ['e_bandit_alg', 'ucb_bandit_alg', 'uniform_bandit_alg']
+__all__ = ['e_bandit', 'ucb_bandit', 'uniform_bandit']

@@ -25,10 +25,10 @@ fine.
 """
 
 if __name__ == '__main__':
-    uniform_rollout_d1_low_pulls = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=10)
+    uniform_rollout_d1_low_pulls = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=10)
 
-    uniform_rollout_d1 = uniform_rollout_agent.UniformRolloutAgentClass(depth=1, num_pulls=100)
-    uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgentClass(depth=10, num_pulls=100)
+    uniform_rollout_d1 = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=100)
+    uniform_rollout_d10 = uniform_rollout_agent.UniformRolloutAgent(depth=10, num_pulls=100)
 
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
     pacman.run(agents=[uniform_rollout_d1_low_pulls, uniform_rollout_d1, uniform_rollout_d10], num_trials=10)

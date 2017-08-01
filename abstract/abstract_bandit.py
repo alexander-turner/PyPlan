@@ -2,9 +2,10 @@ import abc
 from abc import ABCMeta
 
 
-class AbstractBanditAlg:
+class AbstractBandit:
     """The main class for implementing bandit algorithms."""
     __metaclass__ = ABCMeta
+    name = ""
 
     @abc.abstractmethod
     def get_bandit_name(self):

@@ -1,30 +1,29 @@
 import random
 from abstract import abstract_agent
-from bandits import uniform_bandit_alg
-from heuristics import zero_heuristic
+from bandits import uniform_bandit
+from evaluations import zero_evaluation
 
 
-class MCTSAgentClass(abstract_agent.AbstractAgent):
-    my_name = "MCTS Agent"
+class MCTSFramework(abstract_agent.AbstractAgent):
+    name = "MCTS Agent"
 
-    def __init__(self, depth, max_width, num_trials, heuristic=None, bandit_alg_class=None, bandit_parameters=None,
+    def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_alg_class=None, bandit_parameters=None,
                  root_bandit_alg_class=None, root_bandit_parameters=None):
-        self.agent_name = self.my_name
         self.num_nodes = 1
 
         self.depth = depth
         self.max_width = max_width
         self.num_trials = num_trials
 
-        if heuristic is None:
-            self.heuristic = zero_heuristic.ZeroHeuristicClass()
+        if evaluation is None:
+            self.evaluation = zero_evaluation.ZeroEvaluation()
         else:
-            self.heuristic = heuristic
+            self.evaluation = evaluation
 
         self.bandit_parameters = bandit_parameters
 
         if bandit_alg_class is None:
-            self.BanditAlgClass = uniform_bandit_alg.UniformBanditAlgClass
+            self.BanditAlgClass = uniform_bandit.UniformBandit
         else:
             self.BanditAlgClass = bandit_alg_class
 
@@ -34,9 +33,6 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
             self.RootBanditAlgClass = root_bandit_alg_class
 
         self.root_bandit_parameters = root_bandit_parameters
-
-    def get_agent_name(self):
-        return self.agent_name
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -55,7 +51,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
 
         root_node = BanditNode(state, 0, action_list, bandit)
 
-        for _ in range(self.num_trials):  # TODO multiprocessing
+        for _ in range(self.num_trials):
             self.run_trial(root_node, self.depth)
 
         return root_node.action_list[root_node.bandit.select_best_arm()]
@@ -64,11 +60,11 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
         """Using agent parameters, recurse up to depth layers from node in the constructed tree.
 
         :param node: points to a BanditNode object.
-        :param depth: how many more layers to generate before using the heuristic.
+        :param depth: how many more layers to generate before using the evaluation function.
         :return total_reward:
         """
         if node.bandit is None:  # leaf node
-            return self.heuristic.evaluate(node.state)
+            return self.evaluation.evaluate(node.state)
 
         current_player = node.state.get_current_player()
         action_index = node.bandit.select_pull_arm()
@@ -100,7 +96,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
                 # recurse downwards into the constructed tree
                 total_reward = [x + y for (x, y) in zip(immediate_reward, self.run_trial(successor_node, depth - 1))]
             else:
-                if successor_state.is_terminal() or depth == 1:  # indicate it's time to use the heuristic
+                if successor_state.is_terminal() or depth == 1:  # indicate it's time to use the evaluation fn
                     successor_bandit = None
                 elif self.bandit_parameters is None:  # create a bandit according to how many actions are available
                     successor_bandit = self.BanditAlgClass(len(successor_actions))
@@ -111,7 +107,7 @@ class MCTSAgentClass(abstract_agent.AbstractAgent):
                 node.children[action_index][successor_node.state] = [successor_node, 1]
                 self.num_nodes += 1  # we've made a new BanditNode
 
-                total_reward = [x + y for (x, y) in zip(immediate_reward, self.heuristic.evaluate(successor_state))]
+                total_reward = [x + y for (x, y) in zip(immediate_reward, self.evaluation.evaluate(successor_state))]
 
         node.bandit.update(action_index, total_reward[current_player])
         return total_reward
@@ -126,7 +122,6 @@ class BanditNode:
         self.bandit = bandit
 
         self.num_nodes = 0
-        #self.hash = self.state.__hash__()
 
         """
         Each action is associated with a dictionary that stores successor bandits/states.

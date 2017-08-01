@@ -2,20 +2,13 @@ from abstract import abstract_agent
 import random
 
 
-class RandomAgentClass(abstract_agent.AbstractAgent):
+class RandomAgent(abstract_agent.AbstractAgent):
     """An agent which randomly chooses from the available actions at each state."""
-    my_name = "Random Agent"
-
-    def __init__(self, rollout_policy=None):
-        self.agent_name = self.my_name
-        self.rollout_policy = rollout_policy
+    name = "Random Agent"
 
     @staticmethod
     def create_copy():
-        return RandomAgentClass()
-
-    def get_agent_name(self):
-        return self.agent_name
+        return RandomAgent()
 
     def select_action(self, state):
         """Randomly select a valid action."""

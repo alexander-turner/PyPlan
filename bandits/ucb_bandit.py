@@ -1,17 +1,22 @@
-from abstract import abstract_bandit_alg
-import random
+from abstract import abstract_bandit
+import math
 
 
-class EBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
-    """Pulls the most rewarding arm with (1 - epsilon) probability; else, another arm is pulled at random.
+class UCBBandit(abstract_bandit.AbstractBandit):
+    """Balances exploration and exploitation while minimizing time spent on sub-optimal arms.
 
-    Compared to the uniform bandit, less time is spent on non-promising arms.
+    arm value := avg reward + exploration bonus that decreases as an arm is pulled more.
     """
-    my_name = "e-Greedy Bandit Algorithm"
 
-    def __init__(self, num_arms, epsilon=0.5):
+    my_name = "UCB Bandit Algorithm"
+
+    def __init__(self, num_arms, c=1.0):
+        """Initialize the bandit with the given parameters.
+
+        :param c: multiplier for the exploration constant in the UCB equation.
+        """
         self.num_arms = num_arms
-        self.epsilon = epsilon
+        self.c = c
         self.average_reward = [0] * num_arms
         self.num_pulls = [0]*num_arms
         self.total_pulls = 0
@@ -20,7 +25,7 @@ class EBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
         return self.my_name
 
     def initialize(self):
-        """Reset the bandit while retaining the name, number of arms, and epsilon value."""
+        """Reset the bandit while retaining the name, number of arms, and C value."""
         self.average_reward = [0] * self.num_arms
         self.num_pulls = [0]*self.num_arms
         self.total_pulls = 0
@@ -32,7 +37,7 @@ class EBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
         self.total_pulls += 1
 
     def select_best_arm(self):
-        """Returns the arm with the best average reward."""
+        """Returns arm with the best average reward."""
         best_arm = None
         best_average = None
 
@@ -45,20 +50,23 @@ class EBanditAlgClass(abstract_bandit_alg.AbstractBanditAlg):
         return best_arm
 
     def select_pull_arm(self):
-        """Returns the arm with the best average reward with 1-epsilon probability; else, returns random non-best arm.
+        """If each arm has been pulled at least once, returns arm with minimal cumulative regret.
+
+        If there is an arm that has yet to be pulled, pull that arm.
         """
         if self.num_arms <= 1:  # return the only arm that we can
             return 0
 
         if self.total_pulls >= self.num_arms:  # if we've pulled each arm at least once
-            best_arm = self.select_best_arm()
-            rand_val = random.random()
-            if rand_val < self.epsilon:
-                non_best = list(range(self.num_arms))
-                non_best.remove(best_arm)
-                return random.choice(non_best)  # pull a random non-best arm with 1-epsilon probability
-            else:  # pull the best arm with 1-epsilon probability
-                return best_arm
+            best_arm = 0
+            best_UCB = self.average_reward[0] + self.c * math.sqrt(math.log(self.total_pulls) / self.num_pulls[0])
+
+            for i in range(1, self.num_arms):  # calculate cumulative regret for each arm
+                UCB = self.average_reward[i] + self.c * math.sqrt(math.log(self.total_pulls) / self.num_pulls[i])
+                if UCB > best_UCB:
+                    best_arm = i
+                    best_UCB = UCB
+            return best_arm
         else:  # pull the first arm that has yet to be pulled
             return self.total_pulls
 

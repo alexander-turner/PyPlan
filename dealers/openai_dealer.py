@@ -112,12 +112,12 @@ class Dealer(abstract_dealer.AbstractDealer):
         unsolved_str = "This environment has no specific victory threshold, so all winrates are 0."
 
         for agent in agents:
-            print('\n{} | Now simulating {}'.format(env_name, agent.agent_name))
+            print('\n{} | Now simulating {}'.format(env_name, agent.name))
             time.sleep(0.1)  # so we don't print extra progress bars
 
             output = self.run_trials(agent)
 
-            row = [agent.agent_name,  # agent name
+            row = [agent.name,  # agent name
                    output['average reward'],  # average final score
                    output['success rate'],  # win percentage
                    output['average move time']]  # average time taken per move

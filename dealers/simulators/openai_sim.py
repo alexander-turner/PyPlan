@@ -48,7 +48,7 @@ class OpenAIState(abstract_state.AbstractState):
     def load_env(self, env_name):
         self.sim_name = env_name
         self.env = gym.make(env_name)
-        self.my_name = self.env.spec._env_name
+        self.env_name = self.env.spec._env_name
 
         self.env = wrappers.Monitor(self.env, self.dealer.wrapper_target, write_upon_reset=True,
                                     force=self.dealer.force,

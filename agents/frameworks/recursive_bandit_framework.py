@@ -1,43 +1,33 @@
 import multiprocessing
 import copy
 from abstract import abstract_agent
-from bandits import uniform_bandit_alg
-from heuristics import zero_heuristic
+from bandits import uniform_bandit
+from evaluations import zero_evaluation
 
 
-class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
+class RecursiveBanditFramework(abstract_agent.AbstractAgent):
     """The agent blueprint."""
-    my_name = "Recursive Bandit"
+    name = "Recursive Bandit"
 
-    def __init__(self, depth, pulls_per_node, heuristic=None, bandit_class=None, bandit_parameters=None,
+    def __init__(self, depth, pulls_per_node, evaluation=None, bandit_class=None, bandit_parameters=None,
                  multiprocess=False):
-        self.agent_name = self.my_name
         self.num_nodes = 1
 
         self.depth = depth
         self.pulls_per_node = pulls_per_node
 
-        if heuristic is None:
-            self.heuristic = zero_heuristic.ZeroHeuristicClass()
+        if evaluation is None:
+            self.evaluation = zero_evaluation.ZeroEvaluation()
         else:
-            self.heuristic = copy.deepcopy(heuristic)
+            self.evaluation = copy.deepcopy(evaluation)
 
         if bandit_class is None:
-            self.bandit_class = uniform_bandit_alg.UniformBanditAlgClass
+            self.bandit_class = uniform_bandit.UniformBandit
         else:
             self.bandit_class = bandit_class
 
         self.bandit_parameters = bandit_parameters
-        self.set_multiprocess(multiprocess)
-
-    def get_agent_name(self):
-        return self.agent_name
-
-    def set_multiprocess(self, multiprocess):
-        """Change the multiprocess parameter."""
         self.multiprocess = multiprocess
-        if self.multiprocess and hasattr(self.heuristic.rollout_policy, 'set_multiprocess'):
-                self.heuristic.rollout_policy.set_multiprocess(False)
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -53,7 +43,7 @@ class RecursiveBanditAgentClass(abstract_agent.AbstractAgent):
         self.num_nodes += 1
 
         if depth == 0 or state.is_terminal():
-            return self.heuristic.evaluate(state), None  # no more depth, so default to the heuristic
+            return self.evaluation.evaluate(state), None  # no more depth, so default to the evaluation fn
 
         current_player = state.get_current_player()
         action_list = state.get_actions()

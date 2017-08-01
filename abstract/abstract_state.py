@@ -14,7 +14,7 @@ class AbstractState:
     """
     __metaclass__ = ABCMeta
 
-    my_name = ""  # the name of the environment
+    env_name = ""  # the name of the environment
 
     @abc.abstractmethod
     def reinitialize(self):

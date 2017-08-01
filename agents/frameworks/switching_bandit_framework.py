@@ -1,15 +1,14 @@
 import multiprocessing
 from abstract import abstract_agent
-from bandits import uniform_bandit_alg
+from bandits import uniform_bandit
 
 
-class SwitchingBanditAgentClass(abstract_agent.AbstractAgent):
+class SwitchingBanditFramework(abstract_agent.AbstractAgent):
     """An agent that takes a list of policies and returns the value of the best one at a given state."""
-    my_name = "Policy Switching Bandit"
+    name = "Policy-Switching Bandit Agent"
 
     def __init__(self, depth, pulls_per_node, policies, bandit_class=None, bandit_parameters=None, multiprocess=False):
         """Initialize a policy-switching bandit that follows each selected policy for depth steps per trajectory."""
-        self.agent_name = self.my_name
         self.num_nodes = 1
 
         self.depth = depth
@@ -18,15 +17,12 @@ class SwitchingBanditAgentClass(abstract_agent.AbstractAgent):
         self.policies = policies
 
         if bandit_class is None:
-            self.bandit_class = uniform_bandit_alg.UniformBanditAlgClass
+            self.bandit_class = uniform_bandit.UniformBandit
         else:
             self.bandit_class = bandit_class
 
         self.bandit_parameters = bandit_parameters
         self.set_multiprocess(multiprocess)
-
-    def get_agent_name(self):
-        return self.agent_name
 
     def set_multiprocess(self, multiprocess):
         """Change the multiprocess parameter."""

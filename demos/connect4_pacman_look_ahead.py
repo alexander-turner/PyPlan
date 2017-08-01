@@ -6,13 +6,13 @@ Compare the performance of look-ahead algorithms with different parameters.
 """
 
 if __name__ == '__main__':
-    ss_d3 = sparse_sampling_agent.SparseSamplingAgentClass(depth=3, pulls_per_node=5)
-    ss_d5 = sparse_sampling_agent.SparseSamplingAgentClass(depth=5, pulls_per_node=5)
+    ss_d3 = sparse_sampling_agent.SparseSamplingAgent(depth=3, pulls_per_node=5)
+    ss_d5 = sparse_sampling_agent.SparseSamplingAgent(depth=5, pulls_per_node=5)
 
-    uct = uct_agent.UCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
-    e_root_uct = e_root_uct_agent.ERootUCTAgentClass(depth=10, max_width=1, num_trials=1000, c=1)
+    uct = uct_agent.UCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
+    e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
 
-    fsss = fsss_agent.FSSSAgentClass(depth=3, pulls_per_node=10, num_trials=1000)
+    fsss = fsss_agent.FSSSAgent(depth=3, pulls_per_node=10, num_trials=1000)
 
     dealer = native_dealer.Dealer()
     dealer.run(simulator_str='connect4', agents=[ss_d3, ss_d5], num_trials=10)

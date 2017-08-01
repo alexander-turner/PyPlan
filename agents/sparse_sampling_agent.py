@@ -1,12 +1,12 @@
 from agents import recursive_bandit_framework
-from bandits import uniform_bandit_alg
+from bandits import uniform_bandit
 
 
-class SparseSamplingAgentClass(recursive_bandit_framework.RecursiveBanditAgentClass):
-    my_name = "Sparse Sampling Agent"
+class SparseSamplingAgent(recursive_bandit_framework.RecursiveBanditFramework):
+    name = "Sparse Sampling Agent"
 
-    def __init__(self, depth, pulls_per_node, heuristic=None):
-        recursive_bandit_framework.RecursiveBanditAgentClass.__init__(self, depth=depth, pulls_per_node=pulls_per_node,
-                                                                      heuristic=heuristic,
-                                                                      bandit_class=uniform_bandit_alg.UniformBanditAlgClass)
-        self.agent_name = self.my_name + " (d={}, pulls per node={})".format(depth, pulls_per_node)
+    def __init__(self, depth, pulls_per_node, evaluation=None):
+        recursive_bandit_framework.RecursiveBanditFramework.__init__(self, depth=depth, pulls_per_node=pulls_per_node,
+                                                                     evaluation=evaluation,
+                                                                     bandit_class=uniform_bandit.UniformBandit)
+        self.name += " (d={}, pulls per node={})".format(depth, pulls_per_node)

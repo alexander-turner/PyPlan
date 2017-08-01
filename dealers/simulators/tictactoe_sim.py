@@ -26,7 +26,7 @@ class TicTacToeState(abstract_state.AbstractState):
         self.num_players = 2
         self.game_outcome = None
         self.game_over = False
-        self.my_name = "Tic-Tac-Toe"
+        self.env_name = "Tic-Tac-Toe"
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)

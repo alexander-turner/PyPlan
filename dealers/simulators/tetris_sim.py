@@ -18,7 +18,7 @@ class TetrisState(abstract_state.AbstractState):
         self.num_players = 1
         self.game_outcome = None
         self.game_over = False
-        self.my_name = "Tetris"
+        self.env_name = "Tetris"
 
     def clone(self):
         return copy.deepcopy(self)

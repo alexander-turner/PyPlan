@@ -28,7 +28,7 @@ class PacmanState(abstract_state.AbstractState):
             self.layout = layout.getLayout(layout_representation)
         else:  # we've been directly given a layout
             self.layout = layout_representation
-        self.my_name = "Pacman"
+        self.env_name = "Pacman"
 
         if self.dealer.use_graphics:
             self.display = graphicsDisplay.PacmanGraphics()
