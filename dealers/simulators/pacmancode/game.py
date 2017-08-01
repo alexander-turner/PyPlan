@@ -565,7 +565,7 @@ class Game:
         sys.stderr = OLD_STDERR
 
 
-    def run( self, do_render=True ):
+    def run( self, do_render=True, simulation_horizon=sys.maxsize ):
         """
         Main control loop for game play.
         """
@@ -616,7 +616,10 @@ class Game:
         agentIndex = self.startingIndex
         numAgents = len( self.agents )
 
-        while not self.gameOver:
+        #while not self.gameOver:
+        for i in range(simulation_horizon):
+            if self.gameOver:
+                break
             # Fetch the next agent
             agent = self.agents[agentIndex]
             move_time = 0

@@ -19,8 +19,8 @@ class Dealer(abstract_dealer.AbstractDealer):
                   'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
                   'yahtzee': yahtzee_sim.YahtzeeState()}
 
-    def __init__(self, sim_horizon=50):
-        self.simulation_horizon = sim_horizon
+    def __init__(self, simulation_horizon=500):
+        self.simulation_horizon = simulation_horizon
 
         self.simulation_history = []  # the moves taken in each simulation
         self.game_winner_list = []  # a list of which agent index won which game
@@ -110,10 +110,11 @@ class Dealer(abstract_dealer.AbstractDealer):
                           avg_times[agent_idx]])  # average time taken per move
 
         table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
-        table += "\n{} game{} of {} ran. " \
-                 "{} multiprocessing was used.\n".format(num_trials,
+        table += "\n{} game{} of {} ran; maximum turn count was {}." \
+                 " {} multiprocessing was used.\n".format(num_trials,
                                                          "s" if num_trials > 1 else "",
                                                          self.simulators[self.simulator_str].env_name,
+                                                         self.simulation_horizon,
                                                          multiprocessing_str)
         print(table)
 

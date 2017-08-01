@@ -39,7 +39,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
                 break
 
         best_lower_action_idx = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])[0][2]
-        return root_node.action_list[best_lower_action_idx]  # self.get_best_action(root_node)  # todo lower bound?
+        return root_node.action_list[best_lower_action_idx]  # self.get_best_action(root_node)
 
     def set_min_max_bounds(self, state):
         """Pre-compute all possible minimum and maximum value bounds, accounting for depth and the discount factor."""
@@ -146,7 +146,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
         new_lower, new_upper = self.perform_backup(child_nodes, depth, successor_node.transition_reward, pulls_remaining)
 
-        heapq.heapreplace(node.bounds, (-1 * new_upper, -1 * new_lower, best_action_idx))  # pop and push # todo equal values means best action isn't necessarily top of heap
+        heapq.heapreplace(node.bounds, (-1 * new_upper, -1 * new_lower, best_action_idx))  # pop and push
 
         node.lower_state = -1 * node.bounds[0][1]  # [list_pos][value]; correct for heap inversion
         node.upper_state = -1 * node.bounds[0][0]
@@ -188,7 +188,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         """
         if root_node.num_actions == 1:  # if there's only one action, not much of a choice to make!
             return True
-        best_lower = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])  # largest (after inversion) lower bound in the heap
+        best_lower = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])  # largest (after inversion) lower bound
         best_upper = heapq.nsmallest(2, root_node.bounds)  # two largest (after inversion) upper bounds
         if best_lower[0][2] == best_upper[0][2]:  # don't want to compare best_lower with its own upper bound
             return best_lower[0][1] <= best_upper[1][0]  # compare to second-best

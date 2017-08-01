@@ -8,7 +8,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
     native = native_dealer.Dealer()
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=1)
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=10, epsilon=0.5)
@@ -31,11 +31,11 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run_all(agents=[u_ro], multiprocess_mode='trials')
 
-    #openai.run(agents=[u_ro], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='trials', show_moves=False, upload=False)
+    #openai.run(agents=[u_ro], num_trials=1, env_name='FrozenLake-v0', multiprocess_mode='trial', show_moves=False, upload=False)
 
-    pacman.run(agents=[fsss], num_trials=10, multiprocess_mode='trils')
+    #pacman.run(agents=[u_ro], num_trials=10, multiprocess_mode='trials')
 
-    #native.run(simulator_str='yahtzee', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trial', show_moves=False)
+    native.run(simulator_str='yahtzee', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trial', show_moves=False)
 
 
 

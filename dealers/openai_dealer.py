@@ -10,7 +10,7 @@ from dealers.simulators import openai_sim
 
 
 class Dealer(abstract_dealer.AbstractDealer):
-    def __init__(self, env_name=None, force=True, api_key=None):
+    def __init__(self, simulation_horizon=5, env_name=None, force=True, api_key=None):
         """An object for running agents on environments.
 
         :param env_name: a valid env key that corresponds to a particular game / task.
@@ -18,6 +18,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param api_key: API key for uploading results to OpenAI Gym. Note that submissions are only scored if they are
             run for at least 100 trials.
         """
+        self.simulation_horizon = simulation_horizon
         self.change_wrapper(env_name)
         self.force = force
         self.api_key = api_key
@@ -126,9 +127,9 @@ class Dealer(abstract_dealer.AbstractDealer):
             table.append(row)
 
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}."
+        print("Each agent ran {} game{} of {}; maximum turn count was {}."
               " {}"
-              " {}".format(num_trials, "s" if num_trials > 1 else "", self.env_name[:-3],
+              " {}".format(num_trials, "s" if num_trials > 1 else "", self.env_name[:-3], self.simulation_horizon,
                            multiprocessing_str,
                            unsolved_str if unsolved else ""))
 
@@ -226,7 +227,9 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.simulator.reinitialize()
 
         total_time = 0
-        while not self.simulator.is_terminal():
+        for _ in range(self.simulation_horizon):
+            if self.simulator.is_terminal():
+                break
             begin = time.time()
             action = self.simulator.agent.act()
             total_time += time.time() - begin
@@ -237,9 +240,13 @@ class Dealer(abstract_dealer.AbstractDealer):
             if self.show_moves and 'human' in self.simulator.env.metadata['render.modes']:
                 self.simulator.env.render()
 
+        if not self.simulator.is_terminal():
+            self.simulator.env.close()
+
         victory_threshold = self.simulator.env.spec.reward_threshold
         if victory_threshold is None:  # if it's an unsolved environment - no specific victory threshold
             victory_threshold = float('inf')
+
         stats_recorder = self.simulator.env.stats_recorder
         return {'reward': stats_recorder.rewards,
                 'won': stats_recorder.rewards > victory_threshold,

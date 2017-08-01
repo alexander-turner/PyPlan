@@ -48,7 +48,6 @@ class PacmanState(abstract_state.AbstractState):
         self.current_state = self.game.state
         self.num_players = self.game.state.getNumAgents()
 
-        self.final_score = float("-inf")  # we have yet to obtain a final score
         self.won = False
         self.time_step_count = 0
 
@@ -57,7 +56,6 @@ class PacmanState(abstract_state.AbstractState):
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
                                                     ghostAgents=self.ghost_agents, display=self.display, quiet=True)
         self.current_state = self.game.state
-        self.final_score = float("-inf")
         self.won = False
         self.time_step_count = 0  # how many total turns have elapsed
 
@@ -116,11 +114,9 @@ class PacmanState(abstract_state.AbstractState):
     def process(self, state, game_object):
         """Wrapper to help with ending the game."""
         if state.isWin():
-            self.final_score = state.data.score
             self.won = True
             pacman.ClassicGameRules.win(self, state=state, game=game_object)
         if state.isLose():
-            self.final_score = state.data.score
             pacman.ClassicGameRules.lose(self, state=state, game=game_object)
 
     def __eq__(self, other):

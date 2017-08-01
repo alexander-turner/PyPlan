@@ -9,15 +9,18 @@ import progressbar
 
 
 class Dealer(abstract_dealer.AbstractDealer):
-    def __init__(self, layout_representation, multiprocess_mode='trials', show_moves=False, use_graphics=True):
+    def __init__(self, layout_representation, simulation_horizon=500, multiprocess_mode='trials', show_moves=False,
+                 use_graphics=True):
         """Initialize the given layout.
 
         :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
+        :param simulation_horizon: the maximum number of turns that can elapse per trial.
         :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
             other options will mean no multiprocessing is executed.
         :param show_moves: whether moves should be rendered. Disabled if multiprocess is True.
         :param use_graphics: whether to use the graphics or the text display.
         """
+        self.simulation_horizon = simulation_horizon
         self.multiprocess_mode = multiprocess_mode
         self.show_moves = show_moves
         self.use_graphics = use_graphics
@@ -58,10 +61,12 @@ class Dealer(abstract_dealer.AbstractDealer):
                           output['average move time']])
         time.sleep(0.1)
         print("\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f"))
-        print("Each agent ran {} game{} of {}. {} multiprocessing was used.".format(num_trials,
-                                                                                    "s" if num_trials > 1 else "",
-                                                                                    self.simulator.env_name,
-                                                                                    multiprocessing_str))
+        print("Each agent ran {} game{} of {}; maximum turn count was {}."
+              " {} multiprocessing was used.".format(num_trials,
+                                                     "s" if num_trials > 1 else "",
+                                                     self.simulator.env_name,
+                                                     self.simulation_horizon,
+                                                     multiprocessing_str))
 
     def run_trials(self, agent):
         """Run a given number of games using the current configuration, recording and returning performance statistics.
@@ -81,7 +86,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                     game_outputs += pool.map(self.run_trial, range(trials_to_execute))
                     remaining -= trials_to_execute
                     bar.update(self.num_trials - remaining)
-                time.sleep(0.1)  # so we don't print extra progress bar
+                    time.sleep(0.1)  # so we don't print extra progress bars
         else:  # enable arm-based multiprocessing
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 old_config = agent.multiprocess
@@ -89,7 +94,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             for i in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial(i))
-            time.sleep(0.1)  # so we don't print extra progress bars
+            time.sleep(0.1)
 
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 agent.set_multiprocess(old_config)
@@ -113,10 +118,10 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.simulator.reinitialize()  # reset the game
 
         start_time = time.time()
-        self.simulator.game.run(self.show_moves)
+        self.simulator.game.run(self.show_moves, self.simulation_horizon)
         time_taken = time.time() - start_time
 
-        return {'reward': self.simulator.final_score, 'won': self.simulator.won,
+        return {'reward': self.simulator.game.state.data.score, 'won': self.simulator.won,
                 'average move time': time_taken / self.simulator.time_step_count}
 
     @staticmethod
