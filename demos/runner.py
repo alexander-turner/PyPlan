@@ -31,11 +31,11 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run_all(agents=[u_ro], multiprocess_mode='trials')
 
-    #openai.run(agents=[u_ro], num_trials=1, env_name='FrozenLake-v0', multiprocess_mode='trial', show_moves=False, upload=False)
+    #openai.run(agents=[u_ro], num_trials=1, env_name='FrozenLake-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
     #pacman.run(agents=[u_ro], num_trials=10, multiprocess_mode='trials')
 
-    native.run(simulator_str='yahtzee', agents=[fsss, u_ro], num_trials=10, multiprocess_mode='trial', show_moves=False)
+    native.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=2, multiprocess_mode='trials', show_moves=False)
 
 
 

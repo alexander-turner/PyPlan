@@ -1,8 +1,8 @@
 import multiprocessing
 import time
 import os
+import statistics
 import tabulate
-import numpy
 from abstract import abstract_dealer
 from dealers.simulators import pacman_sim
 import progressbar
@@ -43,7 +43,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.multiprocess_mode = multiprocess_mode
 
         table = []
-        headers = ["Agent Name", "Average Final Score", "Winrate", "Average Time / Move (s)"]  # todo variance
+        headers = ["Agent Name", "Average Final Reward", "Reward Variance", "Winrate", "Average Time / Move (s)"]
         if multiprocess_mode == 'trials':
             multiprocessing_str = "Trial-based"
         elif multiprocess_mode == 'bandit':
@@ -56,7 +56,8 @@ class Dealer(abstract_dealer.AbstractDealer):
             time.sleep(0.1)
             output = self.run_trials(agent)
             table.append([agent.name,
-                          numpy.mean(output['rewards']),  # average final score
+                          statistics.mean(output['rewards']),  # average final score
+                          statistics.variance(output['rewards']) if self.num_trials > 1 else 0.0,
                           output['wins'] / num_trials,  # win percentage
                           output['average move time']])
         time.sleep(0.1)

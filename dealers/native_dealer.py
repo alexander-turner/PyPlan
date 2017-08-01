@@ -1,4 +1,5 @@
 import random
+import statistics
 import timeit
 import time
 import tabulate
@@ -95,7 +96,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         # Construct the table
         table = []
-        headers = ["Agent Name", "Average Final Reward", "Winrate", "Average Time / Move (s)"]
+        headers = ["Agent Name", "Average Final Reward", "Reward Variance", "Winrate", "Average Time / Move (s)"]
         if multiprocess_mode == 'trials':
             multiprocessing_str = "Trial-based"
         elif multiprocess_mode == 'bandit':
@@ -104,18 +105,20 @@ class Dealer(abstract_dealer.AbstractDealer):
             multiprocessing_str = "No"
 
         for agent_idx, agent in enumerate(agents):
+            agent_rewards = [r[agent_idx] for r in overall_reward]
             table.append([agent.name,  # agent name
                           overall_avg_reward[agent_idx],  # average final reward
+                          statistics.variance(agent_rewards, overall_avg_reward[agent_idx]),
                           win_counts[agent_idx] / num_trials,  # win percentage
                           avg_times[agent_idx]])  # average time taken per move
 
         table = "\n" + tabulate.tabulate(table, headers, tablefmt="grid", floatfmt=".4f")
         table += "\n{} game{} of {} ran; maximum turn count was {}." \
                  " {} multiprocessing was used.\n".format(num_trials,
-                                                         "s" if num_trials > 1 else "",
-                                                         self.simulators[self.simulator_str].env_name,
-                                                         self.simulation_horizon,
-                                                         multiprocessing_str)
+                                                          "s" if num_trials > 1 else "",
+                                                          self.simulators[self.simulator_str].env_name,
+                                                          self.simulation_horizon,
+                                                          multiprocessing_str)
         print(table)
 
         if output_path is not None:

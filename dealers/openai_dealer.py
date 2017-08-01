@@ -1,6 +1,6 @@
 import time
-
 import progressbar
+import statistics
 import tabulate
 import multiprocessing
 import logging
@@ -10,7 +10,7 @@ from dealers.simulators import openai_sim
 
 
 class Dealer(abstract_dealer.AbstractDealer):
-    def __init__(self, simulation_horizon=5, env_name=None, force=True, api_key=None):
+    def __init__(self, simulation_horizon=500, env_name=None, force=True, api_key=None):
         """An object for running agents on environments.
 
         :param env_name: a valid env key that corresponds to a particular game / task.
@@ -94,7 +94,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         # Prepare to output the table
         table = []
-        headers = ["Agent Name", "Average Episode Reward", "Success Rate", "Average Time / Move (s)"]
+        headers = ["Agent Name", "Average Episode Reward", "Reward Variance", "Success Rate", "Average Time / Move (s)"]
         if self.upload:
             headers.append("Link")
 
@@ -117,9 +117,10 @@ class Dealer(abstract_dealer.AbstractDealer):
             time.sleep(0.1)  # so we don't print extra progress bars
 
             output = self.run_trials(agent)
-
+            episode_rewards = self.simulator.env.stats_recorder.episode_rewards
             row = [agent.name,  # agent name
-                   output['average reward'],  # average final score
+                   statistics.mean(episode_rewards),  # average final score
+                   statistics.variance(episode_rewards) if self.num_trials > 1 else 0.0,  # can't do singleton variance
                    output['success rate'],  # win percentage
                    output['average move time']]  # average time taken per move
             if self.upload:
@@ -167,10 +168,9 @@ class Dealer(abstract_dealer.AbstractDealer):
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 agent.set_multiprocess(old_config)
 
-        total_reward, wins, total_time, total_steps = 0, 0, 0, 0
+        wins, total_time, total_steps = 0, 0, 0
         stats_recorder = self.simulator.env.stats_recorder
         for output in game_outputs:
-            total_reward += output['reward']
             wins += output['won']
             total_time += output['total time']
             total_steps += output['episode length']
@@ -189,8 +189,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         if self.upload:
             url = gym.upload(self.wrapper_target, api_key=self.api_key)
 
-        return {'average reward': total_reward / self.num_trials,
-                'success rate': wins / self.num_trials,
+        return {'success rate': wins / self.num_trials,
                 'average move time': total_time / total_steps,
                 'url': url}
 
@@ -240,14 +239,14 @@ class Dealer(abstract_dealer.AbstractDealer):
             if self.show_moves and 'human' in self.simulator.env.metadata['render.modes']:
                 self.simulator.env.render()
 
+        stats_recorder = self.simulator.env.stats_recorder
         if not self.simulator.is_terminal():
-            self.simulator.env.close()
+            stats_recorder.flush()
 
         victory_threshold = self.simulator.env.spec.reward_threshold
         if victory_threshold is None:  # if it's an unsolved environment - no specific victory threshold
             victory_threshold = float('inf')
 
-        stats_recorder = self.simulator.env.stats_recorder
         return {'reward': stats_recorder.rewards,
                 'won': stats_recorder.rewards > victory_threshold,
                 'total time': total_time,
@@ -281,4 +280,4 @@ class Dealer(abstract_dealer.AbstractDealer):
         skip_games = ["AirRaid", "CartPole"]  # question atari games can't multiprocess?
         for key in skip_games:
             if str.find(env_name, key) != -1:
-                return True
+                return False
