@@ -1,5 +1,6 @@
 import time
 import progressbar
+import pyglet
 import statistics
 import tabulate
 import multiprocessing
@@ -42,9 +43,11 @@ class Dealer(abstract_dealer.AbstractDealer):
         for env_name in all_environments:
             if self.should_skip(env_name):  # duplicate games / games that hang
                 continue
-
-            self.run(agents=agents, num_trials=num_trials, env_name=env_name,
-                     multiprocess_mode=multiprocess_mode, show_moves=show_moves)
+            try:
+                self.run(agents=agents, num_trials=num_trials, env_name=env_name,
+                         multiprocess_mode=multiprocess_mode, show_moves=show_moves)
+            except (gym.error.DependencyNotInstalled, ModuleNotFoundError):  # MuJoCo / Box2D not installed
+                continue
 
     def run(self, agents, num_trials, env_name=None, multiprocess_mode='trials', show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
@@ -75,6 +78,10 @@ class Dealer(abstract_dealer.AbstractDealer):
         except ValueError as e:  # If the action space is continuous
             logging.warning(e)
             return
+
+        self.victory_threshold = self.simulator.env.spec.reward_threshold
+        if self.victory_threshold is None:  # if it's an unsolved environment - no specific victory threshold
+            self.victory_threshold = float('inf')
 
         can_multiprocess = self.can_multiprocess(env_name)
         if not can_multiprocess:  # certain environments have ctypes not compatible with multiprocess
@@ -209,7 +216,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                     bar.update(self.num_trials - remaining)
                 pool.close()
                 return game_outputs
-            except WindowsError:
+            except WindowsError:  # just try again
                 pass
             except TypeError:  # encountered a thread.Lock in video recorder
                 self.simulator.env.video_recorder = None  # we aren't displaying moves during multiprocessing anyways
@@ -225,8 +232,9 @@ class Dealer(abstract_dealer.AbstractDealer):
         """
         self.simulator.reinitialize()
 
+        can_render = self.can_render(self.env_name)
         total_time = 0
-        for _ in range(self.simulation_horizon):
+        for _ in range(self.simulation_horizon):  # todo check video
             if self.simulator.is_terminal():
                 break
             begin = time.time()
@@ -236,19 +244,15 @@ class Dealer(abstract_dealer.AbstractDealer):
             self.simulator.take_action(action)
 
             # Don't render if it's not supported
-            if self.show_moves and 'human' in self.simulator.env.metadata['render.modes']:
+            if self.show_moves and 'human' in self.simulator.env.metadata['render.modes'] and can_render:
                 self.simulator.env.render()
 
         stats_recorder = self.simulator.env.stats_recorder
         if not self.simulator.is_terminal():
-            stats_recorder.flush()
-
-        victory_threshold = self.simulator.env.spec.reward_threshold
-        if victory_threshold is None:  # if it's an unsolved environment - no specific victory threshold
-            victory_threshold = float('inf')
+            stats_recorder.save_complete()
 
         return {'reward': stats_recorder.rewards,
-                'won': stats_recorder.rewards > victory_threshold,
+                'won': stats_recorder.rewards > self.victory_threshold,
                 'total time': total_time,
                 'episode length': stats_recorder.total_steps,
                 'timestamp': stats_recorder.timestamps[0],
@@ -269,15 +273,24 @@ class Dealer(abstract_dealer.AbstractDealer):
     @staticmethod
     def should_skip(env_name):
         """Returns True if the environment should be skipped."""
-        skip_games = []  # problematic games
+        skip_environments = []  # problematic environments
         skip_keywords = ["Deterministic", "Frameskip", "ram", "-v4"]  # todo remove v4
-        for key in skip_games + skip_keywords:
+        for key in skip_environments + skip_keywords:
             if str.find(env_name, key) != -1:
                 return True
 
     @staticmethod
-    def can_multiprocess(env_name):
-        skip_games = ["AirRaid", "CartPole"]  # question atari games can't multiprocess?
-        for key in skip_games:
+    def can_render(env_name):
+        incompatible_environments = ["BeamRider", "Breakout", "CartPole"]
+        for key in incompatible_environments:
             if str.find(env_name, key) != -1:
                 return False
+        return True
+
+    @staticmethod
+    def can_multiprocess(env_name):
+        incompatible_environments = ["CartPole"]  # question atari games can't multiprocess?
+        for key in incompatible_environments:
+            if str.find(env_name, key) != -1:
+                return False
+        return True

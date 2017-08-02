@@ -13,4 +13,5 @@ class FSSSAgent(fsss_framework.FSSSFramework):
         fsss_framework.FSSSFramework.__init__(self, depth=depth, pulls_per_node=pulls_per_node,
                                               num_trials=num_trials, evaluation=evaluation)
 
-        self.name += " (d={}, n={}, base policy={})".format(depth, pulls_per_node, evaluation.rollout_policy.name)
+        self.name += " (d={}, n={}, trials={}, base policy={})".format(depth, pulls_per_node, num_trials,
+                                                                       evaluation.rollout_policy.name)

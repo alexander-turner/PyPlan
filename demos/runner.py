@@ -8,7 +8,8 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
     native = native_dealer.Dealer()
 
-    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
+    random = random_agent.RandomAgent()
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=1)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=10, epsilon=0.5)
@@ -29,13 +30,13 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
 
-    #openai.run_all(agents=[u_ro], multiprocess_mode='trials')
+    openai.run_all(agents=[random], multiprocess_mode='trials') 
 
-    #openai.run(agents=[u_ro], num_trials=1, env_name='FrozenLake-v0', multiprocess_mode='trials', show_moves=False, upload=False)
+    #openai.run(agents=[random], num_trials=1, env_name='JamesBond-v0', multiprocess_mode='trias', show_moves=True, upload=False)
 
     #pacman.run(agents=[u_ro], num_trials=10, multiprocess_mode='trials')
 
-    native.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=2, multiprocess_mode='trials', show_moves=False)
+    #native.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=100, multiprocess_mode='trials', show_moves=False)
 
 
 
