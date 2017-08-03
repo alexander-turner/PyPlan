@@ -49,7 +49,8 @@ class Dealer(abstract_dealer.AbstractDealer):
             except (gym.error.DependencyNotInstalled, ModuleNotFoundError):  # MuJoCo / Box2D not installed
                 continue
 
-    def run(self, agents, num_trials, env_name=None, multiprocess_mode='trials', show_moves=True, upload=False):
+    def run(self, agents, num_trials, env_name=None, simulation_horizon=None,
+            multiprocess_mode='trials', show_moves=True, upload=False):
         """Run the given number of trials on the specified agents, comparing their performance.
 
         Returns nothing if the environment's action space is continuous.
@@ -57,6 +58,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param agents: the agents with which to run trials. Should be instances of AbstractAgent.
         :param num_trials: how many trials to be run.
         :param env_name: the name of the environment to be run.
+        :param simulation_horizon: the desired simulation horizon.
         :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
             other options will mean no multiprocessing is executed. Some games (such as Space Invaders) are not
             compatible with multiprocessing - in these cases, multiprocessing will be temporarily disabled.
@@ -64,6 +66,8 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param upload: whether to upload results to OpenAI.
         """
         self.num_trials = num_trials
+        if simulation_horizon is not None:
+            self.simulation_horizon = simulation_horizon
         self.multiprocess_mode = multiprocess_mode
         self.show_moves = show_moves
         self.upload = upload
@@ -83,11 +87,6 @@ class Dealer(abstract_dealer.AbstractDealer):
         if self.victory_threshold is None:  # if it's an unsolved environment - no specific victory threshold
             self.victory_threshold = float('inf')
 
-        can_multiprocess = self.can_multiprocess(env_name)
-        if not can_multiprocess:  # certain environments have ctypes not compatible with multiprocess
-            previous_mode = self.multiprocess_mode
-            self.multiprocess_mode = ''
-
         if self.multiprocess_mode == 'trials':  # doesn't make sense to show moves while multiprocessing
             self.show_moves = False
 
@@ -105,16 +104,13 @@ class Dealer(abstract_dealer.AbstractDealer):
         if self.upload:
             headers.append("Link")
 
-        if can_multiprocess:
-            if multiprocess_mode == 'trials':
-                multiprocessing_prefix = "Trial-based"
-            elif multiprocess_mode == 'bandit':
-                multiprocessing_prefix = "Bandit-based"
-            else:
-                multiprocessing_prefix = "No"
-            multiprocessing_str = multiprocessing_prefix + " multiprocessing was used."
+        if multiprocess_mode == 'trials':
+            multiprocessing_prefix = "Trial-based"
+        elif multiprocess_mode == 'bandit':
+            multiprocessing_prefix = "Bandit-based"
         else:
-            multiprocessing_str = "Multiprocessing disabled for this environment."
+            multiprocessing_prefix = "No"
+        multiprocessing_str = multiprocessing_prefix + " multiprocessing was used."
 
         unsolved = self.simulator.env.spec.reward_threshold is None
         unsolved_str = "This environment has no specific victory threshold, so all winrates are 0."
@@ -140,9 +136,6 @@ class Dealer(abstract_dealer.AbstractDealer):
               " {}".format(num_trials, "s" if num_trials > 1 else "", self.env_name[:-3], self.simulation_horizon,
                            multiprocessing_str,
                            unsolved_str if unsolved else ""))
-
-        if not can_multiprocess:
-            self.multiprocess_mode = previous_mode
 
     def run_trials(self, agent):
         """Run the given number of trials using the agent and the current configuration.
@@ -234,7 +227,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         can_render = self.can_render(self.env_name)
         total_time = 0
-        for _ in range(self.simulation_horizon):  # todo check video
+        for _ in range(self.simulation_horizon):
             if self.simulator.is_terminal():
                 break
             begin = time.time()
@@ -274,7 +267,7 @@ class Dealer(abstract_dealer.AbstractDealer):
     def should_skip(env_name):
         """Returns True if the environment should be skipped."""
         skip_environments = []  # problematic environments
-        skip_keywords = ["Deterministic", "Frameskip", "ram", "-v4"]  # todo remove v4
+        skip_keywords = ["Deterministic", "Frameskip", "ram", "-v4"]
         for key in skip_environments + skip_keywords:
             if str.find(env_name, key) != -1:
                 return True
@@ -282,14 +275,6 @@ class Dealer(abstract_dealer.AbstractDealer):
     @staticmethod
     def can_render(env_name):
         incompatible_environments = ["BeamRider", "Breakout", "CartPole"]
-        for key in incompatible_environments:
-            if str.find(env_name, key) != -1:
-                return False
-        return True
-
-    @staticmethod
-    def can_multiprocess(env_name):
-        incompatible_environments = ["CartPole"]  # question atari games can't multiprocess?
         for key in incompatible_environments:
             if str.find(env_name, key) != -1:
                 return False

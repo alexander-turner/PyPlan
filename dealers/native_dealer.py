@@ -27,7 +27,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.game_winner_list = []  # a list of which agent index won which game
         self.avg_move_time = []  # average time taken by each player per move
 
-        self.simulator_str = ''
+        self.env_name = ''
         self.agents = []
         self.player_count = 0
         self.num_trials = 0
@@ -45,18 +45,18 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.player_count = len(agents)
         self.num_trials = num_trials
         if simulator_str:
-            self.simulator_str = simulator_str
+            self.env_name = simulator_str
         if show_moves is not None:
             self.show_moves = show_moves
 
-    def run(self, simulator_str, agents, num_trials=10, output_path=None, multiprocess_mode='trials', show_moves=True):
+    def run(self, agents, num_trials, env_name, output_path=None, multiprocess_mode='trials', show_moves=True):
         """Simulate the given state using the provided agents the given number of times.
 
         Compatible with: Connect4, Othello, Tetris, Tic-tac-toe, and Yahtzee.
 
-        :param simulator_str: a string indicating which simulator to use.
         :param agents: a list of agents. Currently does not support iterating over multiple groups.
         :param num_trials: how many games should be run.
+        :param env_name: a string indicating which simulator to use.
         :param output_path: a text file to which results should be written.
         :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
             other options will mean no multiprocessing is executed.
@@ -66,7 +66,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             show_moves = False  # no point in showing output if it's going to be jumbled up by multiple games at once
 
         self.reinitialize()
-        self.configure(agents, num_trials, simulator_str, show_moves)
+        self.configure(agents, num_trials, env_name, show_moves)
 
         self.run_trials(multiprocess_mode=multiprocess_mode)
         [results, winner_list, avg_times] = self.simulation_stats()
@@ -116,7 +116,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         table += "\n{} game{} of {} ran; maximum turn count was {}." \
                  " {} multiprocessing was used.\n".format(num_trials,
                                                           "s" if num_trials > 1 else "",
-                                                          self.simulators[self.simulator_str].env_name,
+                                                          self.simulators[self.env_name].env_name,
                                                           self.simulation_horizon,
                                                           multiprocessing_str)
         print(table)
@@ -166,7 +166,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         :param sim_num: placeholder parameter that allows use with multiprocessing.Pool.
         """
-        current_state = self.simulators[self.simulator_str].clone()
+        current_state = self.simulators[self.env_name].clone()
         current_state.reinitialize()
 
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list

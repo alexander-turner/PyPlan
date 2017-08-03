@@ -4,7 +4,7 @@ from evaluations import *
 
 if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
-    openai = openai_dealer.Dealer(api_key='sk_brIgt2t3TLGjd0IFrWW9rw')
+    openai = openai_dealer.Dealer()
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
     native = native_dealer.Dealer()
 
@@ -22,21 +22,23 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
-    fsss = fsss_agent.FSSSAgent(depth=2, pulls_per_node=20, num_trials=1000)
+    fsss = fsss_agent.FSSSAgent(depth=3, pulls_per_node=20, num_trials=1000)
+    fsss_d5 = fsss_agent.FSSSAgent(depth=5, pulls_per_node=20, num_trials=1000)
+    fsss_d10 = fsss_agent.FSSSAgent(depth=10, pulls_per_node=20, num_trials=1000)
+    fsss_d20 = fsss_agent.FSSSAgent(depth=20, pulls_per_node=20, num_trials=1000)
 
     policy_set = [u_ro, e_ro]
     switch_agent = policy_switching_agent.PolicySwitchingAgent(depth=2, num_pulls=10, policies=policy_set)
     e_switch_agent = e_policy_switching_agent.EPolicySwitchingAgent(depth=10, num_pulls=10, policies=policy_set)
 
-    all_agents = [u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent, e_switch_agent]
+    all_agents = [random, u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent,
+                  e_switch_agent]
 
-    openai.run_all(agents=[random], multiprocess_mode='trials') 
+    #openai.run(agents=[fsss], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trias', show_moves=False, upload=False)
 
-    #openai.run(agents=[random], num_trials=1, env_name='JamesBond-v0', multiprocess_mode='trias', show_moves=True, upload=False)
+    pacman.run(agents=[fsss_d5, fsss_d10, fsss_d20], num_trials=9, multiprocess_mode='trials')
 
-    #pacman.run(agents=[u_ro], num_trials=10, multiprocess_mode='trials')
-
-    #native.run(simulator_str='yahtzee', agents=[e_ro, u_ro], num_trials=100, multiprocess_mode='trials', show_moves=False)
+    #native.run(agents=[e_ro, u_ro], num_trials=100, env_name='yahtzee', multiprocess_mode='trials', show_moves=False)
 
 
 
