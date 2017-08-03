@@ -4,7 +4,7 @@ import os
 import statistics
 import tabulate
 from abstract import abstract_dealer
-from dealers.simulators import pacman_sim
+from dealers.simulators import pacman
 import progressbar
 
 
@@ -27,7 +27,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         self.num_trials = 0
 
-        self.simulator = pacman_sim.PacmanState(dealer=self, layout_representation=layout_representation)
+        self.simulator = pacman.PacmanState(dealer=self, layout_representation=layout_representation)
 
     def run(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested).

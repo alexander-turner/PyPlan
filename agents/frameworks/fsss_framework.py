@@ -40,7 +40,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
                 break
 
         best_lower_action_idx = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])[0][2]
-        return root_node.action_list[best_lower_action_idx]  # self.get_best_action(root_node)
+        return root_node.action_list[best_lower_action_idx]  # lower bound is better since we can't guarantee is_done
 
     def set_min_max_bounds(self, state):
         """Pre-compute all possible minimum and maximum value bounds, accounting for depth and the discount factor."""
@@ -227,8 +227,7 @@ class Node:
 
         """
         The lower and upper bounds on the estimate Q^d(s, a) of the value of taking action a in state s at depth d. 
-        
-        Stored as tuples (-1*upper, -1*lower, action_idx) in a heap. Values are inverted to lower time complexity.
+        Stored as tuples (-1 * upper, -1 * lower, action_idx) in a heap. Values are inverted to lower time complexity.
         """
         self.bounds = []
 

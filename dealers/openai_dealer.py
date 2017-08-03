@@ -1,13 +1,12 @@
 import time
 import progressbar
-import pyglet
 import statistics
 import tabulate
 import multiprocessing
 import logging
 import gym
 from abstract import abstract_agent, abstract_dealer
-from dealers.simulators import openai_sim
+from dealers.simulators import openai
 
 
 class Dealer(abstract_dealer.AbstractDealer):
@@ -29,7 +28,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.upload = False
         self.resume = False  # whether to add data to the output directory
 
-        self.simulator = openai_sim.OpenAIState(dealer=self, env_name=env_name)
+        self.simulator = openai.OpenAIState(dealer=self, env_name=env_name)
 
     def change_wrapper(self, env_name):
         self.env_name = env_name

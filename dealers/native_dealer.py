@@ -16,9 +16,9 @@ class Dealer(abstract_dealer.AbstractDealer):
     Generally, if the simulator isn't using any external frameworks to run, it should interface with this class,
     rather than its own (à la openai_sim.py's implementation).
     """
-    simulators = {'connect4': connect4_sim.Connect4State(), 'othello': othello_sim.OthelloState(),
-                  'tetris': tetris_sim.TetrisState(), 'tictactoe': tictactoe_sim.TicTacToeState(),
-                  'yahtzee': yahtzee_sim.YahtzeeState()}
+    simulators = {'connect4': connect4.Connect4State(), 'othello': othello.OthelloState(),
+                  'tetris': tetris.TetrisState(), 'tictactoe': tictactoe.TicTacToeState(),
+                  'yahtzee': yahtzee.YahtzeeState()}
 
     def __init__(self, simulation_horizon=500):
         self.simulation_horizon = simulation_horizon
