@@ -28,3 +28,8 @@ agents/.DS_Store
 abstract/.DS_Store
 .idea/PyPlan.iml
 *.bak
+*.gz
+*.exe
+*.mp4
+*.json~~
+*.json~~~
