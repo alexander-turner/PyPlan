@@ -230,7 +230,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             if self.simulator.is_terminal():
                 break
             begin = time.time()
-            action = self.simulator.agent.act()
+            action = self.simulator.agent.select_action(self.simulator)
             total_time += time.time() - begin
 
             self.simulator.take_action(action)

@@ -36,12 +36,11 @@ class PacmanState(abstract_state.AbstractState):
             self.display = textDisplay.PacmanGraphics()
         self.show_moves = True
 
+        self.pacman_agent = None
         if use_random_ghost:
             self.ghost_agents = [ghostAgents.RandomGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
         else:
             self.ghost_agents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
-
-        self.pacman_agent = None
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
                                                     ghostAgents=self.ghost_agents, display=self.display, quiet=True)
@@ -129,11 +128,11 @@ class PacmanState(abstract_state.AbstractState):
 class Agent(game.Agent):
     """A wrapper to let the policy interface with the Pacman engine."""
 
-    def __init__(self, policy, pac_state):
+    def __init__(self, policy, parent):
         self.policy = policy
-        self.pac_state = pac_state  # pointer to parent PacmanState structure
+        self.parent = parent  # pointer to parent PacmanState structure
 
     def getAction(self, state):
-        self.pac_state.current_state = state
-        self.pac_state.time_step_count += 1
-        return self.policy.select_action(self.pac_state)
+        self.parent.current_state = state
+        self.parent.time_step_count += 1
+        return self.policy.select_action(self.parent)

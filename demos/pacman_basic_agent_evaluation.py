@@ -3,7 +3,7 @@ from dealers import pacman_dealer
 from dealers.simulators import pacmancode
 
 """
-We use Dealers to run agents on problem domains and compare their performance. Below, we run three agents for five
+Dealers run agents on simulators and compare their performance. Below, we run three agents for five
 trials each. By running agents on a state many times, we can approximate the value of their policy at that state. 
 In this case, we're comparing how well the agents do at the start state of a small Pacman box which contains one ghost.
 """
@@ -13,4 +13,4 @@ if __name__ == '__main__':
     greedy = pacmancode.pacmanAgents.GreedyAgent()  # simulates each legal action once and chooses the best
 
     pacman = pacman_dealer.Dealer(layout_representation='testClassic')
-    pacman.run(agents=[random, left_turn, greedy], num_trials=5, multiprocess_mode='none', show_moves=True)
+    pacman.run(agents=[random, left_turn, greedy], num_trials=5, multiprocess_mode='', show_moves=True)

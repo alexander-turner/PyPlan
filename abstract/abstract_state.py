@@ -23,7 +23,7 @@ class AbstractState:
 
     @abc.abstractmethod
     def clone(self):
-        """Creates a deep copy of the state."""
+        """Creates a deep copy of itself."""
         raise NotImplementedError
 
     @abc.abstractmethod
@@ -89,5 +89,5 @@ class AbstractState:
 
     @abc.abstractmethod
     def is_terminal(self):
-        """Returns true if the object is in a terminal state."""
+        """Returns true if in a terminal state."""
         raise NotImplementedError

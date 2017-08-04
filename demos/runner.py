@@ -34,9 +34,9 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     all_agents = [random, u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent,
                   e_switch_agent]
 
-    #openai.run(agents=[fsss], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trias', show_moves=False, upload=False)
+    #openai.run(agents=[random], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    pacman.run(agents=[fsss_d5, fsss_d10, fsss_d20], num_trials=9, multiprocess_mode='trials')
+    pacman.run(agents=[u_ro], num_trials=9, multiprocess_mode='trials')
 
     #native.run(agents=[e_ro, u_ro], num_trials=100, env_name='yahtzee', multiprocess_mode='trials', show_moves=False)
 

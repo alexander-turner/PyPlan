@@ -8,13 +8,7 @@ from abstract import abstract_state
 
 
 class OpenAIState(abstract_state.AbstractState):
-    """An interface to run bandit algorithms on the OpenAI environment library.
-
-    The simulator can be found at https://github.com/openai/gym.
-
-    Note that unlike other interfaces, this is not compatible with the dealer simulator due its reliance on the openAI
-    engine.
-    """
+    """An interface to run bandit algorithms on the OpenAI Gym environment library."""
 
     def __init__(self, dealer, env_name=None):
         """Initialize an interface with the specified OpenAI simulation task and policy.
@@ -25,7 +19,6 @@ class OpenAIState(abstract_state.AbstractState):
         self.dealer = dealer
         if env_name:
             self.load_env(env_name)
-        self.agent = None
 
     def reinitialize(self):
         """Reinitialize the environment."""
@@ -43,7 +36,7 @@ class OpenAIState(abstract_state.AbstractState):
         self.done = sim.done
 
     def set_agent(self, agent):
-        self.agent = Agent(agent, self)
+        self.agent = agent
 
     def load_env(self, env_name):
         self.sim_name = env_name
@@ -75,9 +68,7 @@ class OpenAIState(abstract_state.AbstractState):
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
         self.current_observation, reward, self.done, _ = self.env.step(action)
-        rewards = [-1 * reward] * self.number_of_players()  # reward other agents get
-        rewards[0] *= -1  # correct agent reward
-        return rewards
+        return [reward]
 
     def get_actions(self):
         if isinstance(self.action_space, spaces.Discrete):
@@ -115,15 +106,3 @@ class OpenAIState(abstract_state.AbstractState):
             return hash(self.current_observation.data.tobytes())
         else:
             return hash(self.current_observation)
-
-
-class Agent(object):
-    """An agent that interfaces between a policy and the OpenAI environment."""
-
-    def __init__(self, policy, parent):
-        self.policy = policy
-        self.parent = parent  # pointer to the agent's parent structure
-
-    def act(self):
-        """Despite what its name may suggest, act only determines what action to take."""
-        return self.policy.select_action(self.parent)
