@@ -15,6 +15,7 @@ class PacmanState(abstract_state.AbstractState):
     The simulator processes eating pellets before ghost detection, so Pacman may make illegal-looking moves - this is
      simply how Berkeley's underlying game rules work (and not a result of this simulator's implementation).
     """
+    env_name = "Pacman"
 
     def __init__(self, dealer, layout_representation, use_random_ghost=False):
         """Initialize an interface to the Pacman game simulator.
@@ -22,13 +23,12 @@ class PacmanState(abstract_state.AbstractState):
         :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
         :param use_random_ghost: whether to use the random or the directional ghost agent.
         """
-        self.dealer = dealer
+        self.dealer = dealer  # pointer to parent dealer
 
         if isinstance(layout_representation, str):
             self.layout = layout.getLayout(layout_representation)
         else:  # we've been directly given a layout
             self.layout = layout_representation
-        self.env_name = "Pacman"
 
         if self.dealer.use_graphics:
             self.display = graphicsDisplay.PacmanGraphics()
