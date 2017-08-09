@@ -3,16 +3,13 @@ from abstract import abstract_bandit
 
 class UniformBandit(abstract_bandit.AbstractBandit):
     """Pulls each arm an approximately equal number of times (difference is at most 1)."""
-    my_name = "Uniform Bandit"
+    name = "Uniform Bandit"
 
     def __init__(self, num_arms):
         self.num_arms = num_arms
         self.reward = [0]*num_arms
         self.num_pulls = [0]*num_arms
         self.total_pulls = 0
-
-    def get_bandit_name(self):
-        return self.my_name
 
     def initialize(self):
         """Reset the bandit while retaining the name and number of arms."""

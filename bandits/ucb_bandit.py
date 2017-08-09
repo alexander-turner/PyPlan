@@ -8,7 +8,7 @@ class UCBBandit(abstract_bandit.AbstractBandit):
     arm value := avg reward + exploration bonus that decreases as an arm is pulled more.
     """
 
-    my_name = "UCB Bandit Algorithm"
+    name = "UCB Bandit Algorithm"
 
     def __init__(self, num_arms, c=1.0):
         """Initialize the bandit with the given parameters.
@@ -20,9 +20,6 @@ class UCBBandit(abstract_bandit.AbstractBandit):
         self.average_reward = [0] * num_arms
         self.num_pulls = [0]*num_arms
         self.total_pulls = 0
-
-    def get_bandit_name(self):
-        return self.my_name
 
     def initialize(self):
         """Reset the bandit while retaining the name, number of arms, and C value."""

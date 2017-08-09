@@ -1,3 +1,4 @@
+import copy
 import operator
 import dealers.simulators.chesscode.pieces as pieces  # rules and constructors for the pieces
 
@@ -23,7 +24,7 @@ class Board:
         self.current_state[new_position[0]][new_position[1]] = piece
 
     def is_occupied(self, position):
-        return self.current_state[position[0]][position[1]] != ' '
+        return isinstance(self.current_state[position[0]][position[1]], pieces.Piece)
 
     def in_bounds(self, position):
         return self.bounds['top'] <= position[0] < self.bounds['bottom'] and\
@@ -63,7 +64,7 @@ class Board:
 
         Assumes that the move takes place on a line (whether it be horizontal, vertical, or diagonal).
         """
-        current = list(start)  # so we can modify values
+        current = copy.deepcopy(start)
         position_change = list(map(operator.sub, new_position, start))
 
         if position_change[0] != 0:
@@ -81,7 +82,7 @@ class Board:
             current[0] += row_change
             current[1] += col_change
 
-            if not self.is_occupied(current):
+            if self.is_occupied(current):
                 return False
 
             if current == new_position:  # simulate a do-while
@@ -99,11 +100,13 @@ class Board:
         return False  # todo finish - simulate?
 
     def __str__(self):
+        board_str = ''
         for row in range(self.height):
             row_str = ''
             for col in range(self.width):
-                row_str += self.current_state[row][col]
-            print(row_str)
+                row_str += self.current_state[row][col].__str__()
+            board_str += row_str + '\n'
+        return board_str
 
 
 class Player:
@@ -152,5 +155,5 @@ class Player:
     def get_moves(self):  # TODO castling, pawn promotion, en passant
         actions = []  # list of tuples (piece, new_position)
         for piece in self.pieces:
-            actions.append(piece.get_actions(self.board))
+            actions += piece.get_actions(self.board)
         return actions

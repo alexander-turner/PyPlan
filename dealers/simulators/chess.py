@@ -28,13 +28,14 @@ class ChessState(abstract_state.AbstractState):
 
     def take_action(self, action):
         self.current_state.update_board(action)
+        action[0].has_moved = True  # mark that the piece has been moved (for castling purposes)
         self.current_player = (self.current_player + 1) % self.num_players
 
         current_player = self.current_state.players[self.get_current_color()]
         actions = self.get_actions()
 
         if len(actions) == 0:
-            if current_player.in_check: # current player lost
+            if current_player.in_check:  # current player lost
                 self.game_outcome = (self.current_player + 1) % self.num_players  # other player won
                 rewards = [1 for _ in range(self.num_players)]
                 rewards[self.current_player] *= -1
