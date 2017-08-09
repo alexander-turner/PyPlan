@@ -1,1 +1,1 @@
-__all__ = ["connect4", "openai", "othello", "pacman", "tetris", "tictactoe", "yahtzee"]
+__all__ = ["chess", "connect4", "openai", "othello", "pacman", "tetris", "tictactoe", "yahtzee"]
