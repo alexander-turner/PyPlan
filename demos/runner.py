@@ -23,9 +23,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
     fsss = fsss_agent.FSSSAgent(depth=3, pulls_per_node=20, num_trials=1000)
-    fsss_d5 = fsss_agent.FSSSAgent(depth=5, pulls_per_node=20, num_trials=1000)
-    fsss_d10 = fsss_agent.FSSSAgent(depth=10, pulls_per_node=20, num_trials=1000)
-    fsss_d20 = fsss_agent.FSSSAgent(depth=20, pulls_per_node=20, num_trials=1000)
 
     policy_set = [u_ro, e_ro]
     switch_agent = policy_switching_agent.PolicySwitchingAgent(depth=2, num_pulls=10, policies=policy_set)
@@ -38,7 +35,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[u_ro], num_trials=9, multiprocess_mode='trials')
 
-    native.run(agents=[uct, u_ro], num_trials=100, env_name='chess', multiprocess_mode='', show_moves=False)
+    native.run(agents=[e_ro, u_ro], num_trials=100, env_name='chess', multiprocess_mode='', show_moves=True)
 
 
 

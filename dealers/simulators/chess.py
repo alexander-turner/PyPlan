@@ -24,10 +24,8 @@ class ChessState(abstract_state.AbstractState):
         self.resources = {}
 
     def clone(self):
-        resources = copy.copy(self.resources)
-        self.resources = None  # since we can't deepcopy this
-        new_state = copy.deepcopy(self)
-        self.resources = resources
+        new_state = copy.copy(self)
+        new_state.current_state = copy.deepcopy(self.current_state)
         return new_state
 
     def set(self, state):
@@ -37,7 +35,7 @@ class ChessState(abstract_state.AbstractState):
         
     def take_action(self, action):  # todo negative reward if piece lost?
         reward = self.current_state.update_board(action)
-        action[0].has_moved = True  # mark that the piece has been moved (for castling purposes)
+        action.has_moved = True  # mark that the piece has been moved (for castling purposes)
 
         previous_player = self.current_player
         self.current_player = (self.current_player + 1) % self.num_players
@@ -115,7 +113,7 @@ class ChessState(abstract_state.AbstractState):
         self.resources['background'] = pygame.transform.scale(image, (self.width, self.height))
 
         for abbreviation in self.current_state.piece_values.keys():
-            for color in ['white', 'black']:
+            for color in ('white', 'black'):
                 name = abbreviation + color  # construct image name
                 image = pygame.image.load_extended(os.path.join(path, name + '.png'))
                 self.resources[name] = pygame.transform.scale(image, (tile_size, tile_size))

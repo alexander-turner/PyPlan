@@ -31,13 +31,13 @@ class Piece:
                 new_position[0] += row_change
                 new_position[1] += col_change
                 if not board.in_bounds(new_position) or board.is_occupied(new_position):
-                    if board.is_legal((self, new_position)):
-                        actions.append(copy.deepcopy(new_position))  # can move into enemy piece
+                    if board.is_legal(Action(self, new_position)):
+                        actions.append(copy.deepcopy(new_position))  # can move into enemy piece  TODO normal copy?
                     break
                 else:
                     actions.append(copy.deepcopy(new_position))
 
-        return ((self, action) for action in actions)  # so we know which piece is being moved
+        return (Action(self, action) for action in actions)  # so we know which piece is being moved
 
     # question is_legal function?
 
@@ -55,29 +55,29 @@ class Pawn(Piece):
 
         # Move forward one if the square isn't occupied
         new_position = board.compute_position(self.position, (movement_direction, 0))
-        if not board.is_occupied(new_position) and board.is_legal((self, new_position)):
-            actions.append((self, new_position))
+        if not board.is_occupied(new_position) and board.is_legal(Action(self, new_position)):
+            actions.append(Action(self, new_position))
 
         # If we're in the initial position and the square two ahead is empty, we can move there
         new_position = board.compute_position(self.position, (movement_direction, 0))
         if not self.has_moved and not board.is_occupied(new_position) and \
-           board.is_legal((self, new_position)):
-            actions.append((self, new_position))
+           board.is_legal(Action(self, new_position)):
+            actions.append(Action(self, new_position))
 
         # Check if enemy piece is at diagonals
         diagonals = ((movement_direction, -1), (movement_direction, 1))
         for diagonal in diagonals:
             new_position = board.compute_position(self.position, diagonal)
             if board.in_bounds(new_position) and board.is_occupied(new_position) and \
-                    not board.is_same_color(self, new_position) and board.is_legal((self, new_position)):
-                actions.append((self, new_position))
+                    not board.is_same_color(self, new_position) and board.is_legal(Action(self, new_position)):
+                actions.append(Action(self, new_position))
 
         return actions
 
     def append_if_valid(self, position_change, lst, board):
         """If the move to the given position is valid, append the resultant action to lst."""
         new_position = board.compute_position(self.position, position_change)
-        new_action = (self, new_position)
+        new_action = Action(self, new_position)
         if board.is_legal(new_action):
             lst.append(new_action)
 
@@ -92,7 +92,7 @@ class Knight(Piece):
     abbreviation = 'n'
 
     def get_actions(self, board):
-        moves = [(self, board.compute_position(self.position, delta)) for delta in self.deltas]
+        moves = [Action(self, board.compute_position(self.position, delta)) for delta in self.deltas]
         return filter(board.is_legal, moves)
 
 
@@ -112,3 +112,18 @@ class King(Piece):
     can_diagonal = True
     can_orthogonal = True
     abbreviation = 'k'
+
+
+class Action:
+    has_moved = False  # whether this piece has moved from its starting position
+
+    def __init__(self, piece, new_position, special_type=None):
+        """Initialize a Move object.
+
+        :param piece: a pointer to the piece to be moved.
+        :param new_position: the position to which the piece will move.
+        :param special_type: what type (castling / en passant / pawn promotion) of special move, if any, this is.
+        """
+        self.piece = piece
+        self.new_position = new_position
+        self.special_type = special_type

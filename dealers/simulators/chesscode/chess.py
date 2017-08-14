@@ -23,30 +23,52 @@ class Board:
 
         :return reward: the value of the piece taken; else 0.
         """
-        piece = action[0]
-        new_position = action[1]
 
         reward = 0
-        if self.is_occupied(new_position):  # remove captured piece, if necessary
-            removed_piece = self.current_state[new_position[0]][new_position[1]]
-            self.players[removed_piece.color].pieces.remove(removed_piece)  # TODO fix board falling out of alignment with pieces (nonsensical moves)
+        if self.is_occupied(action.new_position):  # remove captured piece, if necessary
+            removed_piece = self.current_state[action.new_position[0]][action.new_position[1]]
+            self.players[removed_piece.color].pieces.remove(removed_piece)
             reward = self.piece_values[removed_piece.__str__().lower()]
 
         # Update board
-        self.current_state[piece.position[0]][piece.position[1]] = ' '
-        piece.position = new_position
-        self.current_state[new_position[0]][new_position[1]] = piece
+        self.current_state[action.piece.position[0]][action.piece.position[1]] = ' '
+        action.piece.position = action.new_position  # TODO isn't updating index in pieces, just in the move
+        self.current_state[action.new_position[0]][action.new_position[1]] = action.piece
+
+        # Debugging - check that every position is occupied
+        for row in range(self.height):
+            for col in range(self.width):
+                position = (row, col)
+                if not self.is_occupied(position):
+                    continue
+
+                piece = self.current_state[row][col]
+
+                in_white, in_black = True, True
+                try:
+                    self.players['white'].pieces.index(piece)
+                except:
+                    in_white = False
+
+                try:
+                    self.players['black'].pieces.index(piece)
+                except:
+                    in_black = False
+
+                # We've found a piece that exists on the board but not in either piece set
+                if not in_white and not in_black:
+                    raise Exception
 
         return reward
 
-    def is_legal(self, move):
+    def is_legal(self, action):
         """Returns True if piece can take the action.
 
-        :param move: a tuple (piece, new_position).
+        :param action: a tuple (piece, new_position).
         """
-        piece = move[0]
+        piece = action.piece
         start = piece.position  # where the move starts
-        new_position = move[1]
+        new_position = action.new_position
 
         # Check whether the destination is in-bounds
         if not self.in_bounds(new_position):
@@ -200,7 +222,6 @@ class Player:
             self.board.current_state[back_row][col] = piece
 
     # TODO cache moves after first generation, wipe when update_board called?
-    # TODO Move class?
     def get_actions(self):  # TODO castling, pawn promotion, en passant
         actions = []  # list of tuples (piece, new_position)
         for piece in self.pieces:
