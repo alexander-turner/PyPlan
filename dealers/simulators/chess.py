@@ -14,12 +14,14 @@ class ChessState(abstract_state.AbstractState):
         self.current_player = 0
         self.game_outcome = None  # 0 - player1 is winner, 'draw' - draw, 1 - player2 is winner, None - game not over
 
-        self.top = None  # for use with tkinter
+        self.resources = {}  # image resources for pygame
 
     def reinitialize(self):
         self.current_state = chess.Board()
         self.current_player = 0
         self.game_outcome = None
+
+        self.resources = {}
 
     def clone(self):
         new_state = copy.copy(self)
@@ -82,32 +84,39 @@ class ChessState(abstract_state.AbstractState):
             pygame.init()
             self.width, self.height = 360, 360
             self.screen = pygame.display.set_mode((self.width, self.height))
+            self.load_resources("..\\dealers\\simulators\\chesscode\\sprites")
 
-        path = "..\\dealers\\simulators\\chesscode\\sprites"
         tile_size = int(self.width / self.current_state.width)  # assume width == height
 
-        background = pygame.image.load_basic(os.path.join(path, "board.bmp"))
-        background = pygame.transform.scale(background, (self.width, self.height))
+        self.screen.blit(self.resources['background'], self.resources['background'].get_rect())
 
-        self.screen.blit(background, background.get_rect())
-
-        all_pieces = self.current_state.players['white'].pieces + self.current_state.players['black'].pieces
-        for piece in all_pieces:
-            image_path = piece.__str__().lower() + piece.color + ".png"  # construct image name
-
+        for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:
             # Load the image, scale it, and put it on the correct tile
-            piece_image = pygame.image.load_extended(os.path.join(path, image_path))  # todo cache images - dont load
-            piece_image = pygame.transform.scale(piece_image, (tile_size, tile_size))
+            name = piece.__str__().lower() + piece.color  # construct image name
+            image = self.resources[name]
 
-            piece_rect = piece_image.get_rect()
+            piece_rect = image.get_rect()
             piece_rect.move_ip(tile_size * piece.position[1], tile_size * piece.position[0])  # move in-place
 
             # Draw the piece
-            self.screen.blit(piece_image, piece_rect)
+            self.screen.blit(image, piece_rect)
 
         pygame.display.flip()  # update visible display
         if self.is_terminal():
             pygame.quit()
+
+    def load_resources(self, path):
+        """Load the requisite images for chess rendering from the given path."""
+        tile_size = int(self.width / self.current_state.width)  # assume width == height
+
+        image = pygame.image.load_basic(os.path.join(path, "board.bmp"))
+        self.resources['background'] = pygame.transform.scale(image, (self.width, self.height))
+
+        for abbreviation in self.current_state.piece_values.keys():
+            for color in ['white', 'black']:
+                name = abbreviation + color  # construct image name
+                image = pygame.image.load_extended(os.path.join(path, name + '.png'))
+                self.resources[name] = pygame.transform.scale(image, (tile_size, tile_size))
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
