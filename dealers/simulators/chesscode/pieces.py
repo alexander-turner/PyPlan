@@ -1,28 +1,32 @@
 import copy
 
+
 class Piece:
     # Movement blueprints
     orthogonal = ((-1, 0), (0, -1), (1, 0), (0, 1))
     diagonal = ((-1, -1), (-1, 1), (1, -1), (1, 1))
 
     range = 8
-    can_orthogonal = False  # indicates which movement directions are available to piece
+    can_orthogonal = False  # indicates which movement directions are available
     can_diagonal = False
+
+    has_moved = False  # whether the piece has moved in this game
+    abbreviation = ''  # lower-case letter that represents the piece
 
     def __init__(self, position, color):
         self.position = position
         self.color = color
 
-    def get_actions(self, board):
-        directions = []
+        self.directions = []
         if self.can_orthogonal:
-            directions += self.orthogonal
+            self.directions += self.orthogonal
         if self.can_diagonal:
-            directions += self.diagonal
+            self.directions += self.diagonal
 
+    def get_actions(self, board):
         actions = []
-        for row_change, col_change in directions:
-            new_position = copy.deepcopy(self.position)  # todo fix incorrect piece position
+        for row_change, col_change in self.directions:
+            new_position = copy.deepcopy(self.position)
             for i in range(self.range):
                 new_position[0] += row_change
                 new_position[1] += col_change
@@ -35,87 +39,76 @@ class Piece:
 
         return ((self, action) for action in actions)  # so we know which piece is being moved
 
+    # question is_legal function?
+
+    def __str__(self):
+        return self.abbreviation.upper() if self.color == 'white' else self.abbreviation
+
 
 class Pawn(Piece):
-    def __init__(self, position, color):
-        super().__init__(position, color)
-        self.start_row = position[0]
+    abbreviation = 'p'
 
     def get_actions(self, board):
         """Return legal actions for the given board."""
-        actions = []
         movement_direction = board.movement_direction[self.color]
+        actions = []
 
-        # Move forward one
-        self.append_if_valid((movement_direction, 0), actions, board)
+        # Move forward one if the square isn't occupied
+        new_position = board.compute_position(self.position, (movement_direction, 0))
+        if not board.is_occupied(new_position) and board.is_legal((self, new_position)):
+            actions.append((self, new_position))
 
-        # If we're in the initial position, we can move forward two
-        if self.position[0] == self.start_row:
-            self.append_if_valid((movement_direction * 2, 0), actions, board)
+        # If we're in the initial position and the square two ahead is empty, we can move there
+        new_position = board.compute_position(self.position, (movement_direction, 0))
+        if not self.has_moved and not board.is_occupied(new_position) and \
+           board.is_legal((self, new_position)):
+            actions.append((self, new_position))
 
         # Check if enemy piece is at diagonals
-        left_diagonal = (movement_direction, - 1)
-        new_position = list(map(sum, zip(self.position, left_diagonal)))
-        if board.in_bounds(new_position) and board.is_occupied(new_position) and \
-                not board.is_same_color(self, new_position):
-            self.append_if_valid(left_diagonal, actions, board)
-
-        right_diagonal = (movement_direction, 1)
-        new_position = list(map(sum, zip(self.position, right_diagonal)))
-        if board.in_bounds(new_position) and board.is_occupied(new_position) and \
-                board.is_same_color(self, new_position):
-            self.append_if_valid(right_diagonal, actions, board)
+        diagonals = ((movement_direction, -1), (movement_direction, 1))
+        for diagonal in diagonals:
+            new_position = board.compute_position(self.position, diagonal)
+            if board.in_bounds(new_position) and board.is_occupied(new_position) and \
+                    not board.is_same_color(self, new_position) and board.is_legal((self, new_position)):
+                actions.append((self, new_position))
 
         return actions
 
     def append_if_valid(self, position_change, lst, board):
         """If the move to the given position is valid, append the resultant action to lst."""
-        new_position = list(map(sum, zip(self.position, position_change)))
+        new_position = board.compute_position(self.position, position_change)
         new_action = (self, new_position)
         if board.is_legal(new_action):
             lst.append(new_action)
 
-    def __str__(self):
-        return 'P' if self.color == 'white' else 'p'
-
 
 class Rook(Piece):
     can_orthogonal = True
-
-    def __str__(self):
-        return 'R' if self.color == 'white' else 'r'
+    abbreviation = 'r'
 
 
 class Knight(Piece):
     deltas = ((2, 1), (2, -1), (-2, -1), (-2, 1), (1, 2), (1, -2), (-1, 2), (-1, -2))
+    abbreviation = 'n'
 
     def get_actions(self, board):
-        moves = [(self, delta) for delta in self.deltas]
+        moves = [(self, board.compute_position(self.position, delta)) for delta in self.deltas]
         return filter(board.is_legal, moves)
-
-    def __str__(self):
-        return 'N' if self.color == 'white' else 'n'
 
 
 class Bishop(Piece):
     can_diagonal = True
-
-    def __str__(self):
-        return 'B' if self.color == 'white' else 'b'
+    abbreviation = 'b'
 
 
 class Queen(Piece):
     can_diagonal = True
     can_orthogonal = True
-
-    def __str__(self):
-        return 'Q' if self.color == 'white' else 'q'
+    abbreviation = 'q'
 
 
 class King(Piece):
     range = 1
     can_diagonal = True
     can_orthogonal = True
-
-    def __str__(self):
-        return 'K' if self.color == 'white' else 'k'
+    abbreviation = 'k'

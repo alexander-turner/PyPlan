@@ -8,7 +8,9 @@ class Board:
     height = 8
     width = 8
     bounds = {'top': 0, 'bottom': height - 1, 'left': 0, 'right': width - 1}
-    movement_direction = {'white': 1, 'black': -1}  # which direction pawns of the given color can move
+    movement_direction = {'white': -1, 'black': 1}  # which direction pawns of the given color can move
+
+    piece_values = {'p': 1, 'n': 4, 'b': 3.5, 'r': 7, 'q': 13.5, 'k': 1000}  # values from Kurzdorfer 2003
 
     def __init__(self):
         self.current_state = [[' ' for _ in range(self.width)] for _ in range(self.height)]
@@ -17,18 +19,25 @@ class Board:
             self.players[color].set_pieces()  # have the player set its pieces on the board
 
     def update_board(self, action):
-        """Updates the board by taking the provided action (which is assumed to be legal)."""
+        """Updates the board by taking the provided action (which is assumed to be legal).
+
+        :return reward: the value of the piece taken; else 0.
+        """
         piece = action[0]
         new_position = action[1]
+
+        reward = 0
+        if self.is_occupied(new_position):  # remove captured piece, if necessary
+            removed_piece = self.current_state[new_position[0]][new_position[1]]
+            self.players[removed_piece.color].pieces.remove(removed_piece)  # TODO fix board falling out of alignment with pieces (nonsensical moves)
+            reward = self.piece_values[removed_piece.__str__().lower()]
+
+        # Update board
         self.current_state[piece.position[0]][piece.position[1]] = ' '
+        piece.position = new_position
         self.current_state[new_position[0]][new_position[1]] = piece
 
-    def is_occupied(self, position):
-        return isinstance(self.current_state[position[0]][position[1]], pieces.Piece)
-
-    def in_bounds(self, position):
-        return self.bounds['top'] <= position[0] < self.bounds['bottom'] and\
-               self.bounds['left'] <= position[1] < self.bounds['right']
+        return reward
 
     def is_legal(self, move):
         """Returns True if piece can take the action.
@@ -48,16 +57,27 @@ class Board:
             return False
 
         # If there's a piece at end, check if it's on same team / a king (who cannot be captured directly)
-        if not self.is_occupied(new_position) and \
-                (self.is_same_color(piece, new_position) or
-                 isinstance(self.current_state[new_position[0]][new_position[1]], pieces.King)):
-            return False
-
-        # Be sure we aren't leaving our king in check
-        if self.is_checked(piece.color, new_position):
+        if self.is_occupied(new_position) and (self.is_same_color(piece, new_position) or
+                                               isinstance(self.current_state[new_position[0]][new_position[1]],
+                                                          pieces.King)):
             return False
 
         return True
+
+        # Be sure we aren't leaving our king in check
+        sim_state = copy.deepcopy(self)
+        sim_state.update_board(move)
+        if sim_state.is_checked(piece.color, do_recurse=False):  # TODO fix - boolean param to avoid loops?
+            return False
+
+        return True
+
+    def in_bounds(self, position):
+        return self.bounds['top'] <= position[0] < self.bounds['bottom'] and\
+               self.bounds['left'] <= position[1] < self.bounds['right']
+
+    def is_occupied(self, position):
+        return isinstance(self.current_state[position[0]][position[1]], pieces.Piece)
 
     def has_line_of_sight(self, start, new_position):
         """Returns true if the piece at start has a clear line of sight to its destination.
@@ -82,22 +102,50 @@ class Board:
             current[0] += row_change
             current[1] += col_change
 
-            if self.is_occupied(current):
-                return False
-
             if current == new_position:  # simulate a do-while
                 break
+
+            if self.is_occupied(current):
+                return False
 
         return True
 
     def is_same_color(self, piece, new_position):
-        if not self.is_occupied(piece.position) or not self.is_occupied(new_position):
+        if not self.is_occupied(new_position):
             return False
         return piece.color == self.current_state[new_position[0]][new_position[1]].color
 
-    def is_checked(self, color, position):
-        """Returns true if a king of the given color would be checked at that position."""
-        return False  # todo finish - simulate?
+    def is_checked(self, color, do_recurse=True):
+        """Returns true if a king of the given color would be checked at that position.
+
+        :param color: the color of the king in question.
+        :param do_recurse: whether we should ensure that the move wouldn't put the other king in check.
+        """
+        for piece in self.players[color].pieces:
+            if isinstance(piece, pieces.King):
+                king = piece
+
+        enemy_color = 'black' if color == 'white' else 'white'
+        for action in self.players[enemy_color].get_actions():  # TODO fix infinite recursion from get_actions
+            if action[1] == king.position:  # if this action wouldn't leave enemy king in check
+                if not do_recurse:  # don't bother simulating whether action will leave enemy king in check
+                    return True
+                sim_state = copy.deepcopy(self)
+                sim_state.update_board(action)
+                if not sim_state.is_checked(enemy_color, do_recurse=False):
+                    return True
+
+        return False
+
+    @staticmethod
+    def is_position(action, position):
+        """Returns whether the action is at the given position."""
+        return action[1] == position
+
+    @staticmethod
+    def compute_position(position, position_change):
+        """Add (row, col) to (row_change, col_change)."""
+        return list(map(sum, zip(position, position_change)))
 
     def __str__(self):
         board_str = ''
@@ -119,23 +167,22 @@ class Player:
             raise Exception('Invalid color - must be white or black.')
         self.color = color
 
-        self.pieces = {}  # hash by initial location
-        self.is_checked = False  # whether our king is in check
+        self.pieces = []
 
     def set_pieces(self):
         """Set the player's pieces in the correct location for their color."""
         is_white = self.color == 'white'
         if is_white:
-            back_row = self.board.bounds['top']
-        else:
             back_row = self.board.bounds['bottom']
+        else:
+            back_row = self.board.bounds['top']
         pawn_row = back_row + self.board.movement_direction[self.color]
 
         # Place the pawns
         for col in range(self.board.width):
             pawn = pieces.Pawn([pawn_row, col], self.color)
-            self.pieces[pawn] = pawn
-            self.board.current_state[pawn_row][col] = pawn  # black pieces should be lowercase
+            self.pieces.append(pawn)
+            self.board.current_state[pawn_row][col] = pawn
 
         # Place the back line
         for col in range(self.board.width):
@@ -149,10 +196,11 @@ class Player:
                 piece = pieces.Queen([back_row, col], self.color)
             else:
                 piece = pieces.King([back_row, col], self.color)
-            self.pieces[piece] = piece
+            self.pieces.append(piece)
             self.board.current_state[back_row][col] = piece
 
-    def get_moves(self):  # TODO castling, pawn promotion, en passant
+    # TODO cache moves after first generation, wipe when update_board called?
+    def get_actions(self):  # TODO castling, pawn promotion, en passant
         actions = []  # list of tuples (piece, new_position)
         for piece in self.pieces:
             actions += piece.get_actions(self.board)

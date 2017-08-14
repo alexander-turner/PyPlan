@@ -27,7 +27,7 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
         h = 0  # depth counter
         rewards = [0] * state.number_of_players()
         sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
-        while sim_state.is_terminal() is False and h <= self.depth:  # act and track rewards as long as possible
+        while not sim_state.is_terminal() and h <= self.depth:  # act and track rewards as long as possible
             action = self.rollout_policy.select_action(sim_state)
             immediate_rewards = sim_state.take_action(action)
             rewards = [sum(r) for r in zip(rewards, immediate_rewards)]

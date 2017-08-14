@@ -146,7 +146,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                         old_configs[agent_idx] = agent.multiprocess
                         agent.set_multiprocess(True)
 
-            for _ in bar(range(self.num_trials)):
+            for _ in bar(range(self.num_trials)):  # todo fix multiple progress bars
                 game_outputs.append(self.run_trial())
             time.sleep(0.1)  # so we don't print extra progress bars
 
@@ -186,9 +186,12 @@ class Dealer(abstract_dealer.AbstractDealer):
             move_end_time = timeit.default_timer()
 
             if self.show_moves:
-                print(current_state)
-                print("Agent {}".format(current_player + 1))
-                print("Time for last move: {}".format(move_end_time - move_start_time))
+                if hasattr(current_state, 'render'):
+                    current_state.render()
+                else:
+                    print(current_state)
+                    print("Agent {}".format(current_player + 1))
+                    print("Time for last move: {}".format(move_end_time - move_start_time))
 
             # Track time taken
             time_values.append([current_player, move_end_time - move_start_time])
@@ -200,7 +203,10 @@ class Dealer(abstract_dealer.AbstractDealer):
             h += 1
 
         if self.show_moves:
-            print(current_state)
+            if hasattr(current_state, 'render'):
+                current_state.render()
+            else:
+                print(current_state)
 
         # Game statistics
         total_reward = [0.0] * self.player_count
@@ -215,7 +221,6 @@ class Dealer(abstract_dealer.AbstractDealer):
         if self.show_moves:
             print("\nRewards :", total_reward)
             print("Winner :", str(winner))
-            print("-" * 50)
 
         # Calculate average time per move
         time_sums = [0.0] * self.player_count
