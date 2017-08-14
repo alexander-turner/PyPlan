@@ -38,7 +38,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[u_ro], num_trials=9, multiprocess_mode='trials')
 
-    native.run(agents=[e_ro, u_ro], num_trials=100, env_name='chess', multiprocess_mode='', show_moves=True)
+    native.run(agents=[uct, u_ro], num_trials=100, env_name='chess', multiprocess_mode='', show_moves=False)
 
 
 

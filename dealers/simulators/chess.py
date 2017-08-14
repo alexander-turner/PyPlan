@@ -24,8 +24,10 @@ class ChessState(abstract_state.AbstractState):
         self.resources = {}
 
     def clone(self):
-        new_state = copy.copy(self)
-        new_state.current_state = copy.deepcopy(self.current_state)
+        resources = copy.copy(self.resources)
+        self.resources = None  # since we can't deepcopy this
+        new_state = copy.deepcopy(self)
+        self.resources = resources
         return new_state
 
     def set(self, state):
@@ -68,8 +70,8 @@ class ChessState(abstract_state.AbstractState):
         self.current_player = player_index
 
     def get_value_bounds(self):
-        queen_value = self.current_state.piece_values['q']
         king_value = self.current_state.piece_values['k']  # defeat / victory
+        queen_value = self.current_state.piece_values['q']
         return {'defeat': -1 * king_value, 'victory': king_value,
                 'min non-terminal': -1 * queen_value, 'max non-terminal': queen_value,
                 'pre-computed min': None, 'pre-computed max': None,
@@ -92,7 +94,7 @@ class ChessState(abstract_state.AbstractState):
 
         for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:
             # Load the image, scale it, and put it on the correct tile
-            name = piece.__str__().lower() + piece.color  # construct image name
+            name = piece.__str__().lower() + piece.color
             image = self.resources[name]
 
             piece_rect = image.get_rect()

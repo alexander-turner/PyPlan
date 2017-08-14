@@ -200,6 +200,7 @@ class Player:
             self.board.current_state[back_row][col] = piece
 
     # TODO cache moves after first generation, wipe when update_board called?
+    # TODO Move class?
     def get_actions(self):  # TODO castling, pawn promotion, en passant
         actions = []  # list of tuples (piece, new_position)
         for piece in self.pieces:
