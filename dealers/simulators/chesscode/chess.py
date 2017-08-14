@@ -23,17 +23,18 @@ class Board:
 
         :return reward: the value of the piece taken; else 0.
         """
-
         reward = 0
+        piece = self.get_piece(action.current_position)
+
         if self.is_occupied(action.new_position):  # remove captured piece, if necessary
-            removed_piece = self.current_state[action.new_position[0]][action.new_position[1]]
+            removed_piece = self.get_piece(action.new_position)
             self.players[removed_piece.color].pieces.remove(removed_piece)
             reward = self.piece_values[removed_piece.__str__().lower()]
 
         # Update board
-        self.current_state[action.piece.position[0]][action.piece.position[1]] = ' '
-        action.piece.position = action.new_position  # TODO isn't updating index in pieces, just in the move
-        self.current_state[action.new_position[0]][action.new_position[1]] = action.piece
+        self.set_piece(action.current_position, ' ')
+        piece.current_position = action.new_position  # TODO isn't updating index in pieces, just in the move
+        self.set_piece(action.new_position, piece)
 
         # Debugging - check that every position is occupied
         for row in range(self.height):
@@ -66,8 +67,8 @@ class Board:
 
         :param action: a tuple (piece, new_position).
         """
-        piece = action.piece
-        start = piece.position  # where the move starts
+        current_position = action.current_position  # where the move starts
+        piece = self.get_piece(current_position)
         new_position = action.new_position
 
         # Check whether the destination is in-bounds
@@ -75,13 +76,14 @@ class Board:
             return False
 
         # Is not a knight (no LOS check for knights) and has clear LOS to target square
-        if not isinstance(piece, pieces.Knight) and not self.has_line_of_sight(start, new_position):
+        if not isinstance(piece, pieces.Knight) and not self.has_line_of_sight(current_position, new_position):
             return False
 
+        if isinstance(piece, str):
+            raise Exception
         # If there's a piece at end, check if it's on same team / a king (who cannot be captured directly)
         if self.is_occupied(new_position) and (self.is_same_color(piece, new_position) or
-                                               isinstance(self.current_state[new_position[0]][new_position[1]],
-                                                          pieces.King)):
+                                               isinstance(self.get_piece(new_position), pieces.King)):
             return False
 
         return True
@@ -99,7 +101,13 @@ class Board:
                self.bounds['left'] <= position[1] < self.bounds['right']
 
     def is_occupied(self, position):
-        return isinstance(self.current_state[position[0]][position[1]], pieces.Piece)
+        return isinstance(self.get_piece(position), pieces.Piece)
+
+    def get_piece(self, position):
+        return self.current_state[position[0]][position[1]]
+
+    def set_piece(self, position, new_value):
+        self.current_state[position[0]][position[1]] = new_value
 
     def has_line_of_sight(self, start, new_position):
         """Returns true if the piece at start has a clear line of sight to its destination.
@@ -149,7 +157,7 @@ class Board:
 
         enemy_color = 'black' if color == 'white' else 'white'
         for action in self.players[enemy_color].get_actions():  # TODO fix infinite recursion from get_actions
-            if action[1] == king.position:  # if this action wouldn't leave enemy king in check
+            if action.new_position == king.position:  # if this action wouldn't leave enemy king in check
                 if not do_recurse:  # don't bother simulating whether action will leave enemy king in check
                     return True
                 sim_state = copy.deepcopy(self)
@@ -158,11 +166,6 @@ class Board:
                     return True
 
         return False
-
-    @staticmethod
-    def is_position(action, position):
-        """Returns whether the action is at the given position."""
-        return action[1] == position
 
     @staticmethod
     def compute_position(position, position_change):
