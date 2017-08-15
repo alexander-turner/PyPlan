@@ -12,7 +12,7 @@ class UCTAgent(mcts_framework.MCTSFramework):
 
         mcts_framework.MCTSFramework.__init__(self, depth=depth, max_width=max_width, num_trials=num_trials,
                                               evaluation=evaluation,
-                                              bandit_alg_class=ucb_bandit.UCBBandit, bandit_parameters=c)
+                                              bandit_class=ucb_bandit.UCBBandit, bandit_parameters=c)
 
         self.name += " (d={}, w={}, trials={}, c={}, base policy={})".format(depth,
                                                                              max_width,

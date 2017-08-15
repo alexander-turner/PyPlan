@@ -33,7 +33,7 @@ class Board:
 
         # Update board
         self.set_piece(action.current_position, ' ')
-        piece.current_position = action.new_position  # TODO isn't updating index in pieces, just in the move
+        piece.position = action.new_position  # TODO isn't updating index in pieces, just in the move
         self.set_piece(action.new_position, piece)
 
         # Debugging - check that every position is occupied
@@ -42,19 +42,21 @@ class Board:
                 position = (row, col)
                 if not self.is_occupied(position):
                     continue
+                piece = self.get_piece(position)
 
-                piece = self.current_state[row][col]
-
-                in_white, in_black = True, True
                 try:
                     self.players['white'].pieces.index(piece)
                 except:
                     in_white = False
+                else:
+                    in_white = True
 
                 try:
                     self.players['black'].pieces.index(piece)
                 except:
                     in_black = False
+                else:
+                    in_black = True
 
                 # We've found a piece that exists on the board but not in either piece set
                 if not in_white and not in_black:
@@ -67,32 +69,30 @@ class Board:
 
         :param action: a tuple (piece, new_position).
         """
-        current_position = action.current_position  # where the move starts
-        piece = self.get_piece(current_position)
-        new_position = action.new_position
+        piece = self.get_piece(action.current_position)
 
         # Check whether the destination is in-bounds
-        if not self.in_bounds(new_position):
+        if not self.in_bounds(action.new_position):
             return False
 
         # Is not a knight (no LOS check for knights) and has clear LOS to target square
-        if not isinstance(piece, pieces.Knight) and not self.has_line_of_sight(current_position, new_position):
+        if not isinstance(piece, pieces.Knight) and not self.has_line_of_sight(action.current_position, action.new_position):
             return False
 
         if isinstance(piece, str):
             raise Exception
         # If there's a piece at end, check if it's on same team / a king (who cannot be captured directly)
-        if self.is_occupied(new_position) and (self.is_same_color(piece, new_position) or
-                                               isinstance(self.get_piece(new_position), pieces.King)):
+        if self.is_occupied(action.new_position) and (self.is_same_color(piece, action.new_position) or
+                                               isinstance(self.get_piece(action.new_position), pieces.King)):
             return False
 
-        return True
-
         # Be sure we aren't leaving our king in check
+        """
         sim_state = copy.deepcopy(self)
         sim_state.update_board(move)
         if sim_state.is_checked(piece.color, do_recurse=False):  # TODO fix - boolean param to avoid loops?
             return False
+        """
 
         return True
 
@@ -109,33 +109,32 @@ class Board:
     def set_piece(self, position, new_value):
         self.current_state[position[0]][position[1]] = new_value
 
-    def has_line_of_sight(self, start, new_position):
-        """Returns true if the piece at start has a clear line of sight to its destination.
+    def has_line_of_sight(self, current_position, new_position):
+        """Returns true if the piece at current_position has a clear line of sight to its destination.
 
         Assumes that the move takes place on a line (whether it be horizontal, vertical, or diagonal).
         """
-        current = copy.deepcopy(start)
-        position_change = list(map(operator.sub, new_position, start))
+        position = copy.deepcopy(current_position)
+        position_change = list(map(operator.sub, new_position, current_position))  # total change in position
 
         if position_change[0] != 0:
-            row_change = 1 if position_change[0] > 0 else -1
+            row_change = 1 if position_change[0] > 0 else -1  # per-iteration row change
         else:
             row_change = 0
 
         if position_change[1] != 0:
-            col_change = 1 if position_change[1] > 0 else -1
+            col_change = 1 if position_change[1] > 0 else -1  # per-iteration col change
         else:
             col_change = 0
 
         while True:
             # Move to next position along line.
-            current[0] += row_change
-            current[1] += col_change
+            position = self.compute_position(position, [row_change, col_change])
 
-            if current == new_position:  # simulate a do-while
+            if position == new_position:  # simulate a do-while
                 break
 
-            if self.is_occupied(current):
+            if self.is_occupied(position):
                 return False
 
         return True
@@ -143,7 +142,7 @@ class Board:
     def is_same_color(self, piece, new_position):
         if not self.is_occupied(new_position):
             return False
-        return piece.color == self.current_state[new_position[0]][new_position[1]].color
+        return piece.color == self.get_piece(new_position).color
 
     def is_checked(self, color, do_recurse=True):
         """Returns true if a king of the given color would be checked at that position.
@@ -177,7 +176,7 @@ class Board:
         for row in range(self.height):
             row_str = ''
             for col in range(self.width):
-                row_str += self.current_state[row][col].__str__()
+                row_str += self.get_piece((row, col)).__str__()
             board_str += row_str + '\n'
         return board_str
 
@@ -188,7 +187,7 @@ class Player:
     def __init__(self, board, color):
         self.board = board  # pointer to parent Board
 
-        if color != 'white' and color != 'black':
+        if color not in ('white', 'black'):
             raise Exception('Invalid color - must be white or black.')
         self.color = color
 
@@ -205,24 +204,26 @@ class Player:
 
         # Place the pawns
         for col in range(self.board.width):
-            pawn = pieces.Pawn([pawn_row, col], self.color)
+            position = [pawn_row, col]
+            pawn = pieces.Pawn(position, self.color)
             self.pieces.append(pawn)
-            self.board.current_state[pawn_row][col] = pawn
+            self.board.set_piece(position, pawn)
 
         # Place the back line
         for col in range(self.board.width):
+            position = [back_row, col]
             if col == 0 or col == 7:
-                piece = pieces.Rook([back_row, col], self.color)
+                piece = pieces.Rook(position, self.color)
             elif col == 1 or col == 6:
-                piece = pieces.Knight([back_row, col], self.color)
+                piece = pieces.Knight(position, self.color)
             elif col == 2 or col == 5:
-                piece = pieces.Bishop([back_row, col], self.color)
+                piece = pieces.Bishop(position, self.color)
             elif col == 3:
-                piece = pieces.Queen([back_row, col], self.color)
+                piece = pieces.Queen(position, self.color)
             else:
-                piece = pieces.King([back_row, col], self.color)
+                piece = pieces.King(position, self.color)
             self.pieces.append(piece)
-            self.board.current_state[back_row][col] = piece
+            self.board.set_piece(position, piece)
 
     # TODO cache moves after first generation, wipe when update_board called?
     def get_actions(self):  # TODO castling, pawn promotion, en passant

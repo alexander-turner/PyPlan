@@ -7,31 +7,20 @@ from evaluations import zero_evaluation
 class MCTSFramework(abstract_agent.AbstractAgent):
     name = "MCTS Agent"
 
-    def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_alg_class=None, bandit_parameters=None,
-                 root_bandit_alg_class=None, root_bandit_parameters=None):
+    def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_class=None, bandit_parameters=None,
+                 root_bandit_class=None, root_bandit_parameters=None):
         self.num_nodes = 1
 
         self.depth = depth
         self.max_width = max_width
         self.num_trials = num_trials
 
-        if evaluation is None:
-            self.evaluation = zero_evaluation.ZeroEvaluation()
-        else:
-            self.evaluation = evaluation
+        self.evaluation = evaluation if evaluation is not None else zero_evaluation.ZeroEvaluation()
 
+        self.bandit_class = bandit_class if bandit_class is not None else uniform_bandit.UniformBandit
         self.bandit_parameters = bandit_parameters
 
-        if bandit_alg_class is None:
-            self.BanditAlgClass = uniform_bandit.UniformBandit
-        else:
-            self.BanditAlgClass = bandit_alg_class
-
-        if root_bandit_alg_class is None:
-            self.RootBanditAlgClass = self.BanditAlgClass
-        else:
-            self.RootBanditAlgClass = root_bandit_alg_class
-
+        self.root_bandit_class = root_bandit_class if root_bandit_class is not None else self.bandit_class
         self.root_bandit_parameters = root_bandit_parameters
 
     def select_action(self, state):
@@ -44,10 +33,8 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         action_list = state.get_actions()
 
         # create a bandit according to how many actions are available at the current state
-        if self.root_bandit_parameters is None:
-            bandit = self.RootBanditAlgClass(len(action_list))
-        else:
-            bandit = self.RootBanditAlgClass(len(action_list), self.root_bandit_parameters)
+        bandit = self.root_bandit_class(len(action_list), self.root_bandit_parameters) if self.root_bandit_parameters is not None\
+            else self.root_bandit_class(len(action_list))
 
         root_node = BanditNode(state, 0, action_list, bandit)
 
@@ -99,9 +86,9 @@ class MCTSFramework(abstract_agent.AbstractAgent):
                 if successor_state.is_terminal() or depth == 1:  # indicate it's time to use the evaluation fn
                     successor_bandit = None
                 elif self.bandit_parameters is None:  # create a bandit according to how many actions are available
-                    successor_bandit = self.BanditAlgClass(len(successor_actions))
+                    successor_bandit = self.bandit_class(len(successor_actions))
                 else:
-                    successor_bandit = self.BanditAlgClass(len(successor_actions), self.bandit_parameters)
+                    successor_bandit = self.bandit_class(len(successor_actions), self.bandit_parameters)
 
                 successor_node = BanditNode(successor_state, immediate_reward, successor_actions, successor_bandit)
                 node.children[action_index][successor_node.state] = [successor_node, 1]

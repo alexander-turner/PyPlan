@@ -37,11 +37,9 @@ class ChessState(abstract_state.AbstractState):
         reward = self.current_state.update_board(action)
         action.has_moved = True  # mark that the piece has been moved (for castling purposes)
 
-        previous_player = self.current_player
-        self.current_player = (self.current_player + 1) % self.num_players
+        previous_player, self.current_player = self.current_player, (self.current_player + 1) % self.num_players
 
         actions = self.get_actions()
-
         if len(actions) == 0:
             self.game_outcome = previous_player if self.current_state.is_legal(self.get_current_color()) else 'draw'
             if self.game_outcome != 'draw':  # todo how do we handle draws / rewards?
@@ -92,7 +90,7 @@ class ChessState(abstract_state.AbstractState):
 
         for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:
             # Load the image, scale it, and put it on the correct tile
-            name = piece.__str__().lower() + piece.color
+            name = piece.abbreviation + piece.color
             image = self.resources[name]
 
             piece_rect = image.get_rect()
@@ -112,8 +110,8 @@ class ChessState(abstract_state.AbstractState):
         image = pygame.image.load_basic(os.path.join(path, "board.bmp"))
         self.resources['background'] = pygame.transform.scale(image, (self.width, self.height))
 
-        for abbreviation in self.current_state.piece_values.keys():
-            for color in ('white', 'black'):
+        for abbreviation in self.current_state.piece_values.keys():  # load each piece
+            for color in ('white', 'black'):  # load each color variant
                 name = abbreviation + color  # construct image name
                 image = pygame.image.load_extended(os.path.join(path, name + '.png'))
                 self.resources[name] = pygame.transform.scale(image, (tile_size, tile_size))

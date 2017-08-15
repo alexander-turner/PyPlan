@@ -28,8 +28,7 @@ class Piece:
         for row_change, col_change in self.directions:
             new_position = copy.deepcopy(self.position)
             for i in range(self.range):
-                new_position[0] += row_change
-                new_position[1] += col_change
+                new_position = board.compute_position(new_position, (row_change, col_change))
                 if not board.in_bounds(new_position) or board.is_occupied(new_position):
                     if board.is_legal(Action(self.position, new_position)):
                         positions.append(copy.deepcopy(new_position))  # can move into enemy piece

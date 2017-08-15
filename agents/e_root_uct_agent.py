@@ -12,8 +12,8 @@ class ERootUCTAgent(mcts_framework.MCTSFramework):
 
         mcts_framework.MCTSFramework.__init__(self, depth=depth, max_width=max_width, num_trials=num_trials,
                                               evaluation=evaluation,
-                                              bandit_alg_class=ucb_bandit.UCBBandit, bandit_parameters=c,
-                                              root_bandit_alg_class=e_bandit.EBandit,
+                                              bandit_class=ucb_bandit.UCBBandit, bandit_parameters=c,
+                                              root_bandit_class=e_bandit.EBandit,
                                               root_bandit_parameters=0.5)
 
         self.name += " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width, num_trials, c,
