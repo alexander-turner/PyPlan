@@ -45,6 +45,7 @@ class Piece:
 
 
 class Pawn(Piece):
+    range = 1
     abbreviation = 'p'
 
     def get_actions(self, board):
@@ -81,6 +82,7 @@ class Rook(Piece):
 
 
 class Knight(Piece):
+    range = 2
     deltas = ((2, 1), (2, -1), (-2, -1), (-2, 1), (1, 2), (1, -2), (-1, 2), (-1, -2))
     abbreviation = 'n'
 

@@ -41,7 +41,7 @@ class ChessState(abstract_state.AbstractState):
 
         actions = self.get_actions()
         if len(actions) == 0:
-            self.game_outcome = previous_player if self.current_state.is_legal(self.get_current_color()) else 'draw'
+            self.game_outcome = previous_player if self.current_state.is_checked(self.get_current_color()) else 'draw'
             if self.game_outcome != 'draw':  # todo how do we handle draws / rewards?
                 reward = self.current_state.piece_values['k']
         # todo check other player too?

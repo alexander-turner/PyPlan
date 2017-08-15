@@ -91,7 +91,9 @@ class Dealer(abstract_dealer.AbstractDealer):
         # Tabulate win counts
         win_counts = [0] * self.player_count
         for val in winner_list:
-            if val is not None:
+            if val == 'draw':
+                win_counts = list(map(sum, zip(win_counts, (.5, .5))))
+            elif val:
                 win_counts[val] += 1
 
         # Construct the table

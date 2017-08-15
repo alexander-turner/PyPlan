@@ -8,6 +8,3 @@ class UniformBandit(abstract_bandit.AbstractBandit):
     def select_pull_arm(self):
         """Returns the arm that has been pulled the fewest number of times."""
         return self.num_pulls.index(min(self.num_pulls))
-
-    def get_num_pulls(self, arm):
-        return self.num_pulls[arm]

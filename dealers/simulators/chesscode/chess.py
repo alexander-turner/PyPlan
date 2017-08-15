@@ -1,6 +1,7 @@
 import copy
 import operator
 import dealers.simulators.chesscode.pieces as pieces  # rules and constructors for the pieces
+from functools import partial
 
 
 class Board:
@@ -18,6 +19,9 @@ class Board:
         for color in self.players:
             self.players[color].set_pieces()  # have the player set its pieces on the board
 
+        # Whether is_legal() should verify that our king is not put in check by actions
+        self.verify_not_checked = True  # only sim_states at 1st-level recursion should have this as False
+
     def update_board(self, action):
         """Updates the board by taking the provided action (which is assumed to be legal).
 
@@ -33,7 +37,7 @@ class Board:
 
         # Update board
         self.set_piece(action.current_position, ' ')
-        piece.position = action.new_position  # TODO isn't updating index in pieces, just in the move
+        piece.position = action.new_position
         self.set_piece(action.new_position, piece)
 
         return reward
@@ -42,15 +46,15 @@ class Board:
         """Returns True if piece can take the action.
 
         :param action: a tuple (piece, new_position).
+        :param verify_not_checked: whether we need to see if this move would leave our king in check.
         """
         # Check whether the destination is in-bounds
         if not self.in_bounds(action.new_position):
             return False
 
+        # If has LOS to the new position
         piece = self.get_piece(action.current_position)
-        # Is not a knight (no LOS check for knights) and has clear LOS to target square
-        if not isinstance(piece, pieces.Knight) and \
-                not self.has_line_of_sight(action.current_position, action.new_position):
+        if not self.has_line_of_sight(piece, action.new_position):
             return False
 
         # If there's a piece at end, check if it's on same team / a king (who cannot be captured directly)
@@ -59,17 +63,17 @@ class Board:
             return False
 
         # Be sure we aren't leaving our king in check
-        """
-        sim_state = copy.deepcopy(self)
-        sim_state.update_board(move)
-        if sim_state.is_checked(piece.color, do_recurse=False):  # TODO fix - boolean param to avoid loops?
-            return False
-        """
+        if self.verify_not_checked:  # todo king can move into check
+            sim_state = copy.deepcopy(self)
+            sim_state.update_board(action)
+            sim_state.verify_not_checked = False
+            if sim_state.is_checked(piece.color):
+                return False
 
         return True
 
     def in_bounds(self, position):
-        return self.bounds['top'] <= position[0] < self.bounds['bottom'] and\
+        return self.bounds['top'] <= position[0] < self.bounds['bottom'] and \
                self.bounds['left'] <= position[1] < self.bounds['right']
 
     def is_occupied(self, position):
@@ -81,13 +85,19 @@ class Board:
     def set_piece(self, position, new_value):
         self.current_state[position[0]][position[1]] = new_value
 
-    def has_line_of_sight(self, current_position, new_position):
-        """Returns true if the piece at current_position has a clear line of sight to its destination.
+    def has_line_of_sight(self, piece, new_position):
+        """Returns true if the piece has a clear line of sight to its destination."""
+        # LOS concerns don't apply to knights
+        if isinstance(piece, pieces.Knight):  # todo pawns can't move diagonally
+            return True
 
-        Assumes that the move takes place on a line (whether it be horizontal, vertical, or diagonal).
-        """
-        position = copy.deepcopy(current_position)
-        position_change = list(map(operator.sub, new_position, current_position))  # total change in position
+        # Check that the move is a valid line
+        position_change = self.compute_change(piece.position, new_position)  # total change in position
+        if position_change[0] != 0 and position_change[1] != 0:
+            if not piece.can_diagonal or abs(position_change[0]) != abs(position_change[1]):
+                return False
+        elif not isinstance(piece, pieces.Pawn) and not piece.can_orthogonal:  # orthogonal move but can't do that
+            return False
 
         row_change, col_change = 0, 0
         if position_change[0] != 0:
@@ -96,17 +106,13 @@ class Board:
         if position_change[1] != 0:
             col_change = 1 if position_change[1] > 0 else -1  # per-iteration col change
 
+        position = copy.deepcopy(piece.position)
         while True:
-            # Move to next position along line.
             position = self.compute_position(position, [row_change, col_change])
-
             if position == new_position:  # simulate a do-while
-                break
-
+                return True
             if self.is_occupied(position):
                 return False
-
-        return True
 
     def is_same_color(self, piece, new_position):
         """Returns True if the pieces are of the same color."""
@@ -114,32 +120,42 @@ class Board:
             return False
         return piece.color == self.get_piece(new_position).color
 
-    def is_checked(self, color, do_recurse=True):
-        """Returns true if a king of the given color would be checked at that position.
+    def is_checked(self, color):
+        """Returns true if the king of the given color is in check.
 
-        :param color: the color of the king in question.
-        :param do_recurse: whether we should ensure that the move wouldn't put the other king in check.
+        :param color: the king's color.
         """
         for piece in self.players[color].pieces:
             if isinstance(piece, pieces.King):
                 king = piece
+                break
 
         enemy_color = 'black' if color == 'white' else 'white'
-        for action in self.players[enemy_color].get_actions():  # TODO fix infinite recursion from get_actions
-            if action.new_position == king.position:  # if this action wouldn't leave enemy king in check
-                if not do_recurse:  # don't bother simulating whether action will leave enemy king in check
-                    return True
-                sim_state = copy.deepcopy(self)
-                sim_state.update_board(action)
-                if not sim_state.is_checked(enemy_color, do_recurse=False):
-                    return True
+        partial_in_range = partial(self.in_range, new_position=king.position)
+        filtered_pieces = filter(partial_in_range, self.players[enemy_color].pieces)
 
-        return False
+        partial_has_line_of_sight = partial(self.has_line_of_sight, new_position=king.position)
+        filtered_pieces = filter(partial_has_line_of_sight, filtered_pieces)
+
+        actions = []
+        for piece in filtered_pieces:
+            actions += piece.get_actions(self)
+        return any(action.new_position == king.position for action in actions)
+
+    def in_range(self, piece, new_position):
+        """Returns True if the piece could potentially move to the given position (i.e. within movement bounds)."""
+        position_change = self.compute_change(piece.position, new_position)
+        return -1 * piece.range <= position_change[0] <= piece.range and \
+               -1 * piece.range <= position_change[1] <= piece.range
 
     @staticmethod
-    def compute_position(position, position_change):
+    def compute_position(current_position, position_change):
         """Add (row, col) to (row_change, col_change)."""
-        return list(map(sum, zip(position, position_change)))
+        return list(map(operator.add, current_position, position_change))
+
+    @staticmethod
+    def compute_change(current_position, new_position):
+        return list(map(operator.sub, new_position, current_position))
 
     def __str__(self):
         board_str = ''

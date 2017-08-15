@@ -8,8 +8,10 @@ class AbstractBandit:
     __metaclass__ = ABCMeta
     name = ""
 
-    def __init__(self, num_arms):
+    def __init__(self, num_arms, max_reward=None):
         self.num_arms = num_arms
+        self.max_reward = max_reward
+
         self.average_reward = [0] * num_arms
         self.num_pulls = [0] * num_arms
         self.total_pulls = 0
@@ -32,17 +34,15 @@ class AbstractBandit:
         return best_arm
 
     def get_best_reward(self):
-        best_arm = self.select_best_arm()
-        return self.average_reward[best_arm]
+        return self.average_reward[self.select_best_arm()]
 
     def get_num_pulls(self, arm):
         return self.num_pulls[arm]
 
     def get_cumulative_regret(self):
         """Return the accrued cumulative regret."""
-        # TODO make uniform
-        rewards = self.rewards if hasattr(self, 'rewards') else self.average_reward  # uniform_bandit uses self.rewards
-        return self.total_pulls * self.max_reward - sum(map(operator.mul, zip(rewards, self.num_pulls)))
+        return self.total_pulls * self.max_reward - sum(map(operator.mul,
+                                                            zip(self.average_reward, self.num_pulls)))  # TODO check
 
     def get_simple_regret(self):
         return self.max_reward - self.get_best_reward()
