@@ -29,38 +29,12 @@ class Board:
         if self.is_occupied(action.new_position):  # remove captured piece, if necessary
             removed_piece = self.get_piece(action.new_position)
             self.players[removed_piece.color].pieces.remove(removed_piece)
-            reward = self.piece_values[removed_piece.__str__().lower()]
+            reward = self.piece_values[removed_piece.abbreviation]
 
         # Update board
         self.set_piece(action.current_position, ' ')
         piece.position = action.new_position  # TODO isn't updating index in pieces, just in the move
         self.set_piece(action.new_position, piece)
-
-        # Debugging - check that every position is occupied
-        for row in range(self.height):
-            for col in range(self.width):
-                position = (row, col)
-                if not self.is_occupied(position):
-                    continue
-                piece = self.get_piece(position)
-
-                try:
-                    self.players['white'].pieces.index(piece)
-                except:
-                    in_white = False
-                else:
-                    in_white = True
-
-                try:
-                    self.players['black'].pieces.index(piece)
-                except:
-                    in_black = False
-                else:
-                    in_black = True
-
-                # We've found a piece that exists on the board but not in either piece set
-                if not in_white and not in_black:
-                    raise Exception
 
         return reward
 
@@ -69,21 +43,19 @@ class Board:
 
         :param action: a tuple (piece, new_position).
         """
-        piece = self.get_piece(action.current_position)
-
         # Check whether the destination is in-bounds
         if not self.in_bounds(action.new_position):
             return False
 
+        piece = self.get_piece(action.current_position)
         # Is not a knight (no LOS check for knights) and has clear LOS to target square
-        if not isinstance(piece, pieces.Knight) and not self.has_line_of_sight(action.current_position, action.new_position):
+        if not isinstance(piece, pieces.Knight) and \
+                not self.has_line_of_sight(action.current_position, action.new_position):
             return False
 
-        if isinstance(piece, str):
-            raise Exception
         # If there's a piece at end, check if it's on same team / a king (who cannot be captured directly)
         if self.is_occupied(action.new_position) and (self.is_same_color(piece, action.new_position) or
-                                               isinstance(self.get_piece(action.new_position), pieces.King)):
+                                                      isinstance(self.get_piece(action.new_position), pieces.King)):
             return False
 
         # Be sure we aren't leaving our king in check
@@ -103,7 +75,7 @@ class Board:
     def is_occupied(self, position):
         return isinstance(self.get_piece(position), pieces.Piece)
 
-    def get_piece(self, position):
+    def get_piece(self, position):  # question check in-bounds?
         return self.current_state[position[0]][position[1]]
 
     def set_piece(self, position, new_value):
@@ -117,15 +89,12 @@ class Board:
         position = copy.deepcopy(current_position)
         position_change = list(map(operator.sub, new_position, current_position))  # total change in position
 
+        row_change, col_change = 0, 0
         if position_change[0] != 0:
             row_change = 1 if position_change[0] > 0 else -1  # per-iteration row change
-        else:
-            row_change = 0
 
         if position_change[1] != 0:
             col_change = 1 if position_change[1] > 0 else -1  # per-iteration col change
-        else:
-            col_change = 0
 
         while True:
             # Move to next position along line.
@@ -140,6 +109,7 @@ class Board:
         return True
 
     def is_same_color(self, piece, new_position):
+        """Returns True if the pieces are of the same color."""
         if not self.is_occupied(new_position):
             return False
         return piece.color == self.get_piece(new_position).color

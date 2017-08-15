@@ -108,7 +108,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             agent_rewards = [r[agent_idx] for r in overall_reward]
             table.append([agent.name,  # agent name
                           overall_avg_reward[agent_idx],  # average final reward
-                          statistics.variance(agent_rewards, overall_avg_reward[agent_idx]),
+                          statistics.variance(agent_rewards, overall_avg_reward[agent_idx]) if self.num_trials > 1 else 0.0,
                           win_counts[agent_idx] / num_trials,  # win percentage
                           avg_times[agent_idx]])  # average time taken per move
 
@@ -217,10 +217,6 @@ class Dealer(abstract_dealer.AbstractDealer):
             winner = max(enumerate(total_reward), key=lambda x: x[1])[0]  # index of highest score = player index
         else:
             winner = current_state.game_outcome
-
-        if self.show_moves:
-            print("\nRewards :", total_reward)
-            print("Winner :", str(winner))
 
         # Calculate average time per move
         time_sums = [0.0] * self.player_count

@@ -68,7 +68,8 @@ class Pawn(Piece):
         for diagonal in diagonals:
             new_position = board.compute_position(self.position, diagonal)
             if board.in_bounds(new_position) and board.is_occupied(new_position) and \
-                    not board.is_same_color(self, new_position) and board.is_legal(Action(self.position, new_position)):
+                    not board.is_same_color(self, new_position) and \
+                    board.is_legal(Action(self.position, new_position)):
                 actions.append(Action(self.position, new_position))
 
         return actions
@@ -109,7 +110,7 @@ class King(Piece):
 class Action:
     has_moved = False  # whether this piece has moved from its starting position
 
-    def __init__(self, current_position, new_position, special_type=None):
+    def __init__(self, current_position, new_position, special_type=None):  # TODO provide chess_notation()
         """Initialize a Move object.
 
         :param current_position: the starting piece position.

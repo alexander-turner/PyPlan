@@ -86,11 +86,11 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         sim_state = state.clone()
         total_reward = [0] * state.number_of_players()  # calculate discounted total rewards
         for _ in range(self.depth):
+            if sim_state.is_terminal():
+                break
             action = policy.select_action(sim_state)
             immediate_reward = sim_state.take_action(action)
             total_reward = [sum(r) for r in zip(total_reward, immediate_reward)]
-            if sim_state.is_terminal():  # question different from rollout heuristic
-                break
 
         return [policy_idx, total_reward]
 
