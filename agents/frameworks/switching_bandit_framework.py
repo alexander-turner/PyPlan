@@ -16,12 +16,9 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
         self.policies = policies
 
-        if bandit_class is None:
-            self.bandit_class = uniform_bandit.UniformBandit
-        else:
-            self.bandit_class = bandit_class
-
+        self.bandit_class = bandit_class if bandit_class else uniform_bandit.UniformBandit
         self.bandit_parameters = bandit_parameters
+
         self.set_multiprocess(multiprocess)
 
     def set_multiprocess(self, multiprocess):
@@ -45,10 +42,8 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         current_player = state.get_current_player()
         num_policies = len(self.policies)  # how many policies we have
 
-        if self.bandit_parameters is None:
-            bandit = self.bandit_class(num_policies)
-        else:
-            bandit = self.bandit_class(num_policies, self.bandit_parameters)
+        bandit = self.bandit_class(num_policies, self.bandit_parameters) if self.bandit_parameters \
+            else self.bandit_class(num_policies)
 
         # For each policy, for each player, initialize a q value
         q_values = []
@@ -94,7 +89,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
             action = policy.select_action(sim_state)
             immediate_reward = sim_state.take_action(action)
             total_reward = [sum(r) for r in zip(total_reward, immediate_reward)]
-            if sim_state.is_terminal():
+            if sim_state.is_terminal():  # question different from rollout heuristic
                 break
 
         return [policy_idx, total_reward]

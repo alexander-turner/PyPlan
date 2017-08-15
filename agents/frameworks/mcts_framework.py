@@ -15,12 +15,12 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         self.max_width = max_width
         self.num_trials = num_trials
 
-        self.evaluation = evaluation if evaluation is not None else zero_evaluation.ZeroEvaluation()
+        self.evaluation = evaluation if evaluation else zero_evaluation.ZeroEvaluation()
 
-        self.bandit_class = bandit_class if bandit_class is not None else uniform_bandit.UniformBandit
+        self.bandit_class = bandit_class if bandit_class else uniform_bandit.UniformBandit
         self.bandit_parameters = bandit_parameters
 
-        self.root_bandit_class = root_bandit_class if root_bandit_class is not None else self.bandit_class
+        self.root_bandit_class = root_bandit_class if root_bandit_class else self.bandit_class
         self.root_bandit_parameters = root_bandit_parameters
 
     def select_action(self, state):
@@ -33,7 +33,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         action_list = state.get_actions()
 
         # create a bandit according to how many actions are available at the current state
-        bandit = self.root_bandit_class(len(action_list), self.root_bandit_parameters) if self.root_bandit_parameters is not None\
+        bandit = self.root_bandit_class(len(action_list), self.root_bandit_parameters) if self.root_bandit_parameters \
             else self.root_bandit_class(len(action_list))
 
         root_node = BanditNode(state, 0, action_list, bandit)

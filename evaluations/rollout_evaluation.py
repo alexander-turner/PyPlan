@@ -10,7 +10,7 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
         self.width = width
         self.depth = depth
         # If no policy is provided, initialize a random agent
-        self.rollout_policy = random_agent.RandomAgent() if rollout_policy is None else rollout_policy
+        self.rollout_policy = rollout_policy if rollout_policy else random_agent.RandomAgent()
 
     def evaluate(self, state):
         """Evaluate the state using the parameters of the rollout policy."""
