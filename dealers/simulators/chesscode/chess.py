@@ -18,6 +18,7 @@ class Board:
         self.players = {'white': Player(self, 'white'), 'black': Player(self, 'black')}
         for color in self.players:
             self.players[color].set_pieces()  # have the player set its pieces on the board
+        self.cached_actions = []  # should be updated by an outside simulator each time the board changes
 
         # Whether is_legal() should verify that our king is not put in check by actions
         self.verify_not_checked = True  # only sim_states at 1st-level recursion should have this as False
@@ -91,7 +92,7 @@ class Board:
             return False
         return piece.color == self.get_piece(new_position).color
 
-    def is_checked(self, color):
+    def is_checked(self, color):  # question correct? doesn't seem to defend king when necessary
         """Returns true if the king of the given color is in check.
 
         :param color: the king's color.
@@ -110,8 +111,7 @@ class Board:
         for piece in filtered_pieces:
             actions += piece.get_actions(self)
         self.allow_king_capture = False
-        ret_val = any(action.new_position == king.position for action in actions)
-        return ret_val
+        return any(action.new_position == king.position for action in actions)
 
     def in_range(self, piece, new_position):
         """Returns True if the piece could potentially move to the given position (i.e. within movement bounds)."""
@@ -138,6 +138,10 @@ class Board:
         # Update board
         self.set_piece(action.current_position, ' ')
         piece.position = action.new_position
+
+        if action.special_type == 'promotion':  # pawn promotion
+            piece = action.special_params(piece.position, piece.color)
+            self.players[piece.color].pieces.append(piece)
         self.set_piece(action.new_position, piece)
 
         return reward
@@ -201,8 +205,8 @@ class Player:
             self.pieces.append(piece)
             self.board.set_piece(position, piece)
 
-    # TODO cache moves after first generation, wipe when update_board called? only update pieces which can reach changed squares?
-    def get_actions(self):  # TODO castling, pawn promotion, en passant
+    # TODO only update pieces which can reach changed squares?
+    def get_actions(self):  # TODO castling, en passant
         actions = []
         for piece in self.pieces:
             actions += piece.get_actions(self.board)

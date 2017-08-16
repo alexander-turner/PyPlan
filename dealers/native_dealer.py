@@ -90,7 +90,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         for val in winner_list:
             if val == 'draw':
                 win_counts = list(map(sum, zip(win_counts, (.5, .5))))
-            elif val:
+            elif val is not None:
                 win_counts[val] += 1
 
         # Construct the table
@@ -179,10 +179,9 @@ class Dealer(abstract_dealer.AbstractDealer):
                 break
             current_player = current_state.get_current_player()
 
-            # Get an action from the agent
+            # Get an action from the agent, tracking time taken
             move_start_time = time.time()
             action_to_take = self.agents[current_player].select_action(current_state)
-            # Track time taken
             time_values.append([current_player, time.time() - move_start_time])
 
             # Take selected action
@@ -196,12 +195,6 @@ class Dealer(abstract_dealer.AbstractDealer):
                     print(current_state)
                     print("Agent {}".format(current_player + 1))
                     print("Time for last move: {}".format(time_values[-1]))
-
-        if self.show_moves:
-            if hasattr(current_state, 'render'):
-                current_state.render()
-            else:
-                print(current_state)
 
         # Game statistics
         total_reward = [0.0] * self.player_count

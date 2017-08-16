@@ -70,12 +70,12 @@ class Pawn(Piece):
             if board.in_bounds(new_position) and board.is_occupied(new_position) and \
                     board.is_legal(Action(self.position, new_position)):
                 actions.append(Action(self.position, new_position))
-        """
+
         enemy_back_line = board.bounds['top'] if board.movement_direction[self.color] == -1 else board.bounds['bottom']
         if self.position[0] == enemy_back_line:  # in enemy's back-line
             for promotion_piece in (Rook, Knight, Bishop, Queen):
                 actions.append(Action(self.position, self.position, 'promotion', promotion_piece))
-        """
+
         return actions
 
 

@@ -33,14 +33,15 @@ class ChessState(abstract_state.AbstractState):
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
         
-    def take_action(self, action):  # todo negative reward if piece lost?
+    def take_action(self, action):  # todo negative reward if piece lost? positive for promotion?
         reward = self.current_state.move_piece(action)
         self.current_state.get_piece(action.new_position).has_moved = True  # mark that the piece has been moved (for castling purposes)
 
         previous_player, self.current_player = self.current_player, (self.current_player + 1) % self.num_players
 
-        actions = self.get_actions()
-        if len(actions) == 0:
+        self.current_state.cached_actions = []
+        self.get_actions()
+        if len(self.current_state.cached_actions) == 0:  # TODO cache moves after first generation, wipe when update_board called?
             self.game_outcome = previous_player if self.current_state.is_checked(self.get_current_color()) else 'draw'
             if self.game_outcome != 'draw':  # todo how do we handle draws / rewards?
                 reward = self.current_state.piece_values['k']
@@ -51,7 +52,9 @@ class ChessState(abstract_state.AbstractState):
         return rewards
 
     def get_actions(self):
-        return self.current_state.players[self.get_current_color()].get_actions()
+        if len(self.current_state.cached_actions) == 0:
+            self.current_state.cached_actions = self.current_state.players[self.get_current_color()].get_actions()
+        return self.current_state.cached_actions
 
     def number_of_players(self):
         return self.num_players
@@ -81,10 +84,10 @@ class ChessState(abstract_state.AbstractState):
         if not hasattr(self, 'screen'):
             pygame.init()
             self.width, self.height = 360, 360
+            self.tile_size = int(self.width / self.current_state.width)  # assume width == height
             self.screen = pygame.display.set_mode((self.width, self.height))
             self.load_resources("..\\dealers\\simulators\\chesscode\\sprites")
-
-        tile_size = int(self.width / self.current_state.width)  # assume width == height
+        pygame.event.clear()
 
         self.screen.blit(self.resources['background'], self.resources['background'].get_rect())
         for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:
@@ -93,19 +96,15 @@ class ChessState(abstract_state.AbstractState):
             image = self.resources[name]
 
             piece_rect = image.get_rect()
-            piece_rect.move_ip(tile_size * piece.position[1], tile_size * piece.position[0])  # move in-place
+            piece_rect.move_ip(self.tile_size * piece.position[1], self.tile_size * piece.position[0])  # move in-place
 
             # Draw the piece
             self.screen.blit(image, piece_rect)
 
-        pygame.display.flip()  # update visible display
-        if self.is_terminal():
-            pygame.quit()
+        pygame.display.update()  # update visible display
 
     def load_resources(self, path):
         """Load the requisite images for chess rendering from the given path."""
-        tile_size = int(self.width / self.current_state.width)  # assume width == height
-
         image = pygame.image.load_basic(os.path.join(path, "board.bmp"))
         self.resources['background'] = pygame.transform.scale(image, (self.width, self.height))
 
@@ -113,7 +112,7 @@ class ChessState(abstract_state.AbstractState):
             for color in ('white', 'black'):  # load each color variant
                 name = abbreviation + color  # construct image name
                 image = pygame.image.load_extended(os.path.join(path, name + '.png'))
-                self.resources[name] = pygame.transform.scale(image, (tile_size, tile_size))
+                self.resources[name] = pygame.transform.scale(image, (self.tile_size, self.tile_size))
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()

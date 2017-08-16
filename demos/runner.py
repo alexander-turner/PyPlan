@@ -9,10 +9,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     native = native_dealer.Dealer()
 
     random = random_agent.RandomAgent()
-    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=15)
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=1)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
 
-    e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=15)
+    e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=1)
 
     ucb_ro = ucb_rollout_agent.UCBRolloutAgent(depth=1, num_pulls=100, c=1.0)
 
@@ -35,7 +35,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #pacman.run(agents=[ucb_ro], num_trials=9, multiprocess_mode='trials')
 
-    native.run(agents=[e_ro, u_ro], num_trials=10, env_name='Chess', multiprocess_mode='', show_moves=True)
+    native.run(agents=[e_ro, u_ro], num_trials=2, env_name='Chess', multiprocess_mode='', show_moves=True)
 
 
 
