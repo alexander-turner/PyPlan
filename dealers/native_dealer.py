@@ -9,9 +9,9 @@ from abstract import abstract_dealer
 from dealers.simulators import *
 
 
-class Dealer(abstract_dealer.AbstractDealer):
+class Dealer(abstract_dealer.AbstractDealer):  # TODO condense code
     """
-    Facilitates simulation of Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee.
+    Facilitates simulation of Chess, Connect-4, Othello, Tetris, Tic-Tac-Toe, and Yahtzee.
 
     Generally, if the simulator isn't using any external frameworks to run, it should interface with this class,
     rather than its own (à la openai_sim.py's implementation).

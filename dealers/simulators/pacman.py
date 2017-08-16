@@ -17,30 +17,21 @@ class PacmanState(abstract_state.AbstractState):
     """
     env_name = "Pacman"
 
-    def __init__(self, dealer, layout_representation, use_random_ghost=False):
+    def __init__(self, dealer, layout_repr, use_random_ghost=False):
         """Initialize an interface to the Pacman game simulator.
 
-        :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
+        :param layout_repr: either the layout filename (located in layouts/) or an actual layout object.
         :param use_random_ghost: whether to use the random or the directional ghost agent.
         """
         self.dealer = dealer  # pointer to parent dealer
 
-        if isinstance(layout_representation, str):
-            self.layout = layout.getLayout(layout_representation)
-        else:  # we've been directly given a layout
-            self.layout = layout_representation
-
-        if self.dealer.use_graphics:
-            self.display = graphicsDisplay.PacmanGraphics()
-        else:
-            self.display = textDisplay.PacmanGraphics()
+        self.layout = layout.getLayout(layout_repr) if isinstance(layout_repr, str) else layout_repr
+        self.display = graphicsDisplay.PacmanGraphics() if self.dealer.use_graphics else textDisplay.PacmanGraphics()
         self.show_moves = True
 
         self.pacman_agent = None
-        if use_random_ghost:
-            self.ghost_agents = [ghostAgents.RandomGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
-        else:
-            self.ghost_agents = [ghostAgents.DirectionalGhost(i) for i in range(1, self.layout.getNumGhosts() + 1)]
+        ghost_agent = ghostAgents.RandomGhost if use_random_ghost else ghostAgents.DirectionalGhost
+        self.ghost_agents = [ghost_agent(i) for i in range(1, self.layout.getNumGhosts() + 1)]
 
         self.game = pacman.ClassicGameRules.newGame(self, layout=self.layout, pacmanAgent=self.pacman_agent,
                                                     ghostAgents=self.ghost_agents, display=self.display, quiet=True)

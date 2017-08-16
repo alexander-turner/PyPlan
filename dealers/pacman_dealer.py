@@ -9,11 +9,11 @@ import progressbar
 
 
 class Dealer(abstract_dealer.AbstractDealer):
-    def __init__(self, layout_representation, simulation_horizon=500, multiprocess_mode='trials', show_moves=False,
+    def __init__(self, layout_repr, simulation_horizon=500, multiprocess_mode='trials', show_moves=False,
                  use_graphics=True):
         """Initialize the given layout.
 
-        :param layout_representation: either the layout filename (located in layouts/) or an actual layout object.
+        :param layout_repr: either the layout filename (located in layouts/) or an actual layout object.
         :param simulation_horizon: the maximum number of turns that can elapse per trial.
         :param multiprocess_mode: 'trials' for trial-wise multiprocessing, 'bandit' to multiprocess bandit arm pulls.
             other options will mean no multiprocessing is executed.
@@ -27,7 +27,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         self.num_trials = 0
 
-        self.simulator = pacman.PacmanState(dealer=self, layout_representation=layout_representation)
+        self.simulator = pacman.PacmanState(dealer=self, layout_repr=layout_repr)
 
     def run(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Runs num_trials trials for each of the provided agents, neatly displaying results (if requested).
@@ -128,7 +128,4 @@ class Dealer(abstract_dealer.AbstractDealer):
     @staticmethod
     def available_configurations():
         """Returns the available level layouts."""
-        configurations = []
-        for filename in os.listdir("..\\dealers\\simulators\\pacmancode\\layouts"):
-            configurations.append(filename[:-4])
-        return configurations
+        return [layout[:-4] for layout in os.listdir("..\\dealers\\simulators\\pacmancode\\layouts")]

@@ -13,7 +13,7 @@ if __name__ == '__main__':
     agent_list = [u_ro, e_ro, ucb_ro]
     pull_values = [10, 50, 100]
 
-    pacman = pacman_dealer.Dealer(layout_representation='testClassic')
+    pacman = pacman_dealer.Dealer(layout_repr='testClassic')
     generate_regret_curves.generate_regret_curves(agent_list, pull_values, pacman)
     """
     u_ro_10 = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=10)

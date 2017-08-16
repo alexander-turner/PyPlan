@@ -16,6 +16,7 @@ def generate_regret_curves(agents, pull_values, simulator, num_trials=50):
         for num_pulls in pull_values:
             new_agent = copy.deepcopy(agent)
             new_agent.num_pulls = num_pulls
+            new_agent.name =
             new_agents.append(new_agent)
 
     # For each agent, initialize average regret
@@ -23,9 +24,9 @@ def generate_regret_curves(agents, pull_values, simulator, num_trials=50):
     for agent in new_agents:
         cumulative[agent], simple[agent] = [0], [0]
 
-    for agent in new_agents:
+    for agent_id, agent in enumerate(new_agents):
         for trial in range(1, num_trials + 1):
-            c, s = trial, trial*2
+            c, s = trial + agent_id, trial*2 + agent_id
             #c, s = simulator(agent)
             cumulative[agent].append((cumulative[agent][trial-1] * (trial - 1) + c) / trial)
             simple[agent].append((simple[agent][trial-1] * (trial - 1) + s) / trial)
@@ -37,4 +38,5 @@ def generate_regret_curves(agents, pull_values, simulator, num_trials=50):
         dict = cumulative if subplot == 212 else simple
         for agent in new_agents:
             plt.plot(dict[agent][1:], range(1, num_trials + 1), label=agent.name)
+    plt.legend()
     plt.show()

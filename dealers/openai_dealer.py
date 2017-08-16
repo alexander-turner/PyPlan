@@ -25,8 +25,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         self.num_trials = 0
         self.multiprocess_mode = ''
-        self.upload = False
-        self.resume = False  # whether to add data to the output directory
+        self.upload, self.resume = False, False  # resume - whether to add data to the output directory
 
         self.simulator = openai.OpenAIState(dealer=self, env_name=env_name)
 
@@ -38,10 +37,9 @@ class Dealer(abstract_dealer.AbstractDealer):
 
     def run_all(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Runs the agents on all available simulators."""
-        all_environments = self.available_configurations()
+        configs = self.available_configurations()
+        all_environments = filter(self.should_skip, self.available_configurations())
         for env_name in all_environments:
-            if self.should_skip(env_name):  # duplicate games / games that hang
-                continue
             try:
                 self.run(agents=agents, num_trials=num_trials, env_name=env_name,
                          multiprocess_mode=multiprocess_mode, show_moves=show_moves)
@@ -65,7 +63,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         :param upload: whether to upload results to OpenAI.
         """
         self.num_trials = num_trials
-        if simulation_horizon is not None:
+        if simulation_horizon:
             self.simulation_horizon = simulation_horizon
         self.multiprocess_mode = multiprocess_mode
         self.show_moves = show_moves
@@ -254,27 +252,18 @@ class Dealer(abstract_dealer.AbstractDealer):
     def available_configurations():
         """Lists all available environments.
 
-        To print nicely, use the pprint module on the output.
+        For readability, use the pprint module on the output.
         """
-        configurations = []
-        for e in gym.envs.registry.all():
-            configurations.append(e.id)
-        configurations.sort()
-        return configurations
+        return sorted([e.id for e in gym.envs.registry.all()])
 
     @staticmethod
     def should_skip(env_name):
         """Returns True if the environment should be skipped."""
         skip_environments = []  # problematic environments
         skip_keywords = ["Deterministic", "Frameskip", "ram", "-v4"]
-        for key in skip_environments + skip_keywords:
-            if str.find(env_name, key) != -1:
-                return True
+        return any(str.find(env_name, key) != -1 for key in skip_environments + skip_keywords)
 
     @staticmethod
     def can_render(env_name):
         incompatible_environments = ["BeamRider", "Breakout", "CartPole"]
-        for key in incompatible_environments:
-            if str.find(env_name, key) != -1:
-                return False
-        return True
+        return not any(str.find(env_name, key) != -1 for key in incompatible_environments)  # if keyword found, False

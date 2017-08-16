@@ -20,5 +20,5 @@ if __name__ == '__main__':
     dealer.run(agents=[uct, e_root_uct], num_trials=10, env_name='connect4')
     dealer.run(agents=[uct, fsss], num_trials=10, env_name='connect4')
 
-    dealer = pacman_dealer.Dealer(layout_representation='testClassic')
+    dealer = pacman_dealer.Dealer(layout_repr='testClassic')
     dealer.run(agents=[ss_d3, ss_d5, uct, e_root_uct, fsss], num_trials=10)

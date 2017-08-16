@@ -12,5 +12,5 @@ if __name__ == '__main__':
     left_turn = pacmancode.pacmanAgents.LeftTurnAgent()  # turns left whenever possible
     greedy = pacmancode.pacmanAgents.GreedyAgent()  # simulates each legal action once and chooses the best
 
-    pacman = pacman_dealer.Dealer(layout_representation='testClassic')
+    pacman = pacman_dealer.Dealer(layout_repr='testClassic')
     pacman.run(agents=[random, left_turn, greedy], num_trials=5, multiprocess_mode='', show_moves=True)
