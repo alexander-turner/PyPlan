@@ -34,8 +34,8 @@ class ChessState(abstract_state.AbstractState):
         self.game_outcome = state.game_outcome
         
     def take_action(self, action):  # todo negative reward if piece lost?
-        reward = self.current_state.update_board(action)
-        action.has_moved = True  # mark that the piece has been moved (for castling purposes)
+        reward = self.current_state.move_piece(action)
+        self.current_state.get_piece(action.new_position).has_moved = True  # mark that the piece has been moved (for castling purposes)
 
         previous_player, self.current_player = self.current_player, (self.current_player + 1) % self.num_players
 
@@ -76,7 +76,7 @@ class ChessState(abstract_state.AbstractState):
     def is_terminal(self):
         return self.game_outcome is not None
 
-    def render(self):
+    def render(self):  # TODO can't pause  TODO use display.update
         """Render the game board, creating a tkinter window if needed."""
         if not hasattr(self, 'screen'):
             pygame.init()
@@ -87,7 +87,6 @@ class ChessState(abstract_state.AbstractState):
         tile_size = int(self.width / self.current_state.width)  # assume width == height
 
         self.screen.blit(self.resources['background'], self.resources['background'].get_rect())
-
         for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:
             # Load the image, scale it, and put it on the correct tile
             name = piece.abbreviation + piece.color

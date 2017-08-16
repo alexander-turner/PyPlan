@@ -9,10 +9,10 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     native = native_dealer.Dealer()
 
     random = random_agent.RandomAgent()
-    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=10)
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=15)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
 
-    e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=10)
+    e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=15)
 
     ucb_ro = ucb_rollout_agent.UCBRolloutAgent(depth=1, num_pulls=100, c=1.0)
 
@@ -33,9 +33,9 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[random], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    #pacman.run(agents=[uct], num_trials=9, multiprocess_mode='trials')
+    #pacman.run(agents=[u_ro], num_trials=9, multiprocess_mode='trials')
 
-    native.run(agents=[fsss, u_ro], num_trials=1, env_name='chess', multiprocess_mode='', show_moves=True)
+    native.run(agents=[e_ro, u_ro], num_trials=1, env_name='chess', multiprocess_mode='', show_moves=True)
 
 
 

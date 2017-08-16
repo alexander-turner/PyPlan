@@ -21,33 +21,9 @@ class Board:
 
         # Whether is_legal() should verify that our king is not put in check by actions
         self.verify_not_checked = True  # only sim_states at 1st-level recursion should have this as False
-
-    def update_board(self, action):
-        """Updates the board by taking the provided action (which is assumed to be legal).
-
-        :return reward: the value of the piece taken; else 0.
-        """
-        reward = 0
-        piece = self.get_piece(action.current_position)
-
-        if self.is_occupied(action.new_position):  # remove captured piece, if necessary
-            removed_piece = self.get_piece(action.new_position)
-            self.players[removed_piece.color].pieces.remove(removed_piece)
-            reward = self.piece_values[removed_piece.abbreviation]
-
-        # Update board
-        self.set_piece(action.current_position, ' ')
-        piece.position = action.new_position
-        self.set_piece(action.new_position, piece)
-
-        return reward
+        self.allow_king_capture = False  # used to see if moves are checking the king
 
     def is_legal(self, action):
-        """Returns True if piece can take the action.
-
-        :param action: a tuple (piece, new_position).
-        :param verify_not_checked: whether we need to see if this move would leave our king in check.
-        """
         # Check whether the destination is in-bounds
         if not self.in_bounds(action.new_position):
             return False
@@ -58,37 +34,32 @@ class Board:
             return False
 
         # If there's a piece at end, check if it's on same team / a king (who cannot be captured directly)
-        if self.is_occupied(action.new_position) and (self.is_same_color(piece, action.new_position) or
-                                                      isinstance(self.get_piece(action.new_position), pieces.King)):
+        if self.is_occupied(action.new_position) and \
+                (self.is_same_color(piece, action.new_position) or
+                 (not self.allow_king_capture and isinstance(self.get_piece(action.new_position), pieces.King))):
             return False
 
         # Be sure we aren't leaving our king in check
-        if self.verify_not_checked:  # todo king can move into check
+        if self.verify_not_checked:
             sim_state = copy.deepcopy(self)
-            sim_state.update_board(action)
+            sim_state.move_piece(action)
             sim_state.verify_not_checked = False
             if sim_state.is_checked(piece.color):
                 return False
 
         return True
 
-    def in_bounds(self, position):
-        return self.bounds['top'] <= position[0] < self.bounds['bottom'] and \
-               self.bounds['left'] <= position[1] < self.bounds['right']
+    def in_bounds(self, position):  # question correct?
+        return self.bounds['top'] <= position[0] <= self.bounds['bottom'] and \
+               self.bounds['left'] <= position[1] <= self.bounds['right']
 
     def is_occupied(self, position):
         return isinstance(self.get_piece(position), pieces.Piece)
 
-    def get_piece(self, position):  # question check in-bounds?
-        return self.current_state[position[0]][position[1]]
-
-    def set_piece(self, position, new_value):
-        self.current_state[position[0]][position[1]] = new_value
-
     def has_line_of_sight(self, piece, new_position):
         """Returns true if the piece has a clear line of sight to its destination."""
-        # LOS concerns don't apply to knights
-        if isinstance(piece, pieces.Knight):  # todo pawns can't move diagonally
+        # LOS doesn't apply to knights
+        if isinstance(piece, pieces.Knight):
             return True
 
         # Check that the move is a valid line
@@ -96,7 +67,7 @@ class Board:
         if position_change[0] != 0 and position_change[1] != 0:
             if not piece.can_diagonal or abs(position_change[0]) != abs(position_change[1]):
                 return False
-        elif not isinstance(piece, pieces.Pawn) and not piece.can_orthogonal:  # orthogonal move but can't do that
+        elif not piece.can_orthogonal:  # orthogonal move but can't do that
             return False
 
         row_change, col_change = 0, 0
@@ -125,10 +96,7 @@ class Board:
 
         :param color: the king's color.
         """
-        for piece in self.players[color].pieces:
-            if isinstance(piece, pieces.King):
-                king = piece
-                break
+        king = next(piece for piece in self.players[color].pieces if isinstance(piece, pieces.King))
 
         enemy_color = 'black' if color == 'white' else 'white'
         partial_in_range = partial(self.in_range, new_position=king.position)
@@ -137,16 +105,42 @@ class Board:
         partial_has_line_of_sight = partial(self.has_line_of_sight, new_position=king.position)
         filtered_pieces = filter(partial_has_line_of_sight, filtered_pieces)
 
+        self.allow_king_capture = True
         actions = []
         for piece in filtered_pieces:
             actions += piece.get_actions(self)
-        return any(action.new_position == king.position for action in actions)
+        self.allow_king_capture = False
+        ret_val = any(action.new_position == king.position for action in actions)
+        return ret_val
 
     def in_range(self, piece, new_position):
         """Returns True if the piece could potentially move to the given position (i.e. within movement bounds)."""
         position_change = self.compute_change(piece.position, new_position)
         return -1 * piece.range <= position_change[0] <= piece.range and \
                -1 * piece.range <= position_change[1] <= piece.range
+
+    def get_piece(self, position):
+        return self.current_state[position[0]][position[1]]
+
+    def set_piece(self, position, new_value):
+        self.current_state[position[0]][position[1]] = new_value
+
+    def move_piece(self, action):
+        """Move the piece at action.current_position, returning the reward for capturing a piece (if applicable)."""
+        reward = 0
+        piece = self.get_piece(action.current_position)
+
+        if self.is_occupied(action.new_position):  # remove captured piece, if necessary
+            removed_piece = self.get_piece(action.new_position)
+            self.players[removed_piece.color].pieces.remove(removed_piece)  # fix messed-up remove
+            reward = self.piece_values[removed_piece.abbreviation]
+
+        # Update board
+        self.set_piece(action.current_position, ' ')
+        piece.position = action.new_position
+        self.set_piece(action.new_position, piece)
+
+        return reward
 
     @staticmethod
     def compute_position(current_position, position_change):
@@ -181,11 +175,7 @@ class Player:
 
     def set_pieces(self):
         """Set the player's pieces in the correct location for their color."""
-        is_white = self.color == 'white'
-        if is_white:
-            back_row = self.board.bounds['bottom']
-        else:
-            back_row = self.board.bounds['top']
+        back_row = self.board.bounds['bottom'] if self.color == 'white' else self.board.bounds['top']
         pawn_row = back_row + self.board.movement_direction[self.color]
 
         # Place the pawns
@@ -213,7 +203,7 @@ class Player:
 
     # TODO cache moves after first generation, wipe when update_board called?
     def get_actions(self):  # TODO castling, pawn promotion, en passant
-        actions = []  # list of tuples (piece, new_position)
+        actions = []
         for piece in self.pieces:
             actions += piece.get_actions(self.board)
         return actions
