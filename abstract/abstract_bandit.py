@@ -30,7 +30,8 @@ class AbstractBandit:
 
     def select_best_arm(self):
         """Returns arm with the best average reward."""
-        best_arm, _ = max(enumerate(self.average_reward), key=operator.itemgetter(1))
+        best_arm, _ = max(enumerate(self.average_reward), key=lambda x: x[1] if self.num_pulls[x[0]] > 0
+                                                                             else float('-inf'))
         return best_arm
 
     def get_best_reward(self):
