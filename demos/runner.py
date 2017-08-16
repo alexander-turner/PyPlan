@@ -31,12 +31,11 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     all_agents = [random, u_ro, nested_u_ro, e_ro, ucb_ro, ss_d2, ss_d5, fsss, uct, e_root_uct, switch_agent,
                   e_switch_agent]
 
-    openai.run_all(agents=[random])
     #openai.run(agents=[random], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
     #pacman.run(agents=[ucb_ro], num_trials=9, multiprocess_mode='trials')
 
-    #native.run(agents=[e_ro, u_ro], num_trials=10, env_name='chess', multiprocess_mode='', show_moves=True)
+    native.run(agents=[e_ro, u_ro], num_trials=10, env_name='Chess', multiprocess_mode='', show_moves=True)
 
 
 

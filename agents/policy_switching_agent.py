@@ -3,7 +3,7 @@ from bandits import uniform_bandit
 
 
 class PolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework):
-    name = "Policy-Switching Agent"
+    base_name = "Policy-Switching Agent"
 
     def __init__(self, depth, num_pulls, policies, bandit_parameters=None):
         """Runs all of the policies using the given depth."""
@@ -13,4 +13,4 @@ class PolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework):
                                                                      bandit_class=uniform_bandit.UniformBandit,
                                                                      bandit_parameters=bandit_parameters)
 
-        self.name += " (d={}, n={}, policies={})".format(depth, num_pulls, [p.name for p in policies])
+        self.name = self.base_name + " (d={}, n={}, policies={})".format(depth, num_pulls, [p.name for p in policies])

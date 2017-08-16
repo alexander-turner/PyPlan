@@ -9,6 +9,7 @@ Simulator Class for Yahtzee
 
 
 class YahtzeeState(abstract_state.AbstractState):
+    env_name = "Yahtzee"
     original_state = {
             "state_val": {
                     "current_roll": 0,
@@ -23,7 +24,6 @@ class YahtzeeState(abstract_state.AbstractState):
         self.num_players = num_players
         self.game_outcome = None
         self.game_over = False
-        self.env_name = "Yahtzee"
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)

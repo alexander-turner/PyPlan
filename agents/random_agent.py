@@ -4,7 +4,7 @@ import random
 
 class RandomAgent(abstract_agent.AbstractAgent):
     """An agent which randomly chooses from the available actions at each state."""
-    name = "Random Agent"
+    base_name = name = "Random Agent"
 
     @staticmethod
     def create_copy():

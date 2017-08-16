@@ -3,7 +3,7 @@ from bandits import ucb_bandit
 
 
 class UCBRolloutAgent(rollout_agent.RolloutAgent):
-    name = "UCB Rollout Agent"
+    base_name = "UCB Rollout Agent"
 
     def __init__(self, depth, num_pulls, c, policy=None):
         rollout_agent.RolloutAgent.__init__(self, depth=depth, num_pulls=num_pulls,
@@ -11,4 +11,4 @@ class UCBRolloutAgent(rollout_agent.RolloutAgent):
                                             bandit_class=ucb_bandit.UCBBandit,
                                             bandit_parameters=c)
 
-        self.name += " (d={}, n={}, c={})".format(depth, num_pulls, c)
+        self.name = self.base_name + " (d={}, n={}, c={})".format(depth, num_pulls, c)

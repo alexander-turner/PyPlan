@@ -4,6 +4,8 @@ import random
 
 
 class TetrisState(abstract_state.AbstractState):
+    env_name = "Tetris"
+    num_players = 1
     original_state = {
             "current_board": [[0] * 10 for _ in range(20)],
             "current_piece": None,
@@ -15,22 +17,22 @@ class TetrisState(abstract_state.AbstractState):
         self.current_state["current_piece"] = random.randrange(1, 6)
         self.current_state["next_piece"] = random.randrange(1, 6)
 
-        self.num_players = 1
         self.game_outcome = None
         self.game_over = False
-        self.env_name = "Tetris"
 
     def clone(self):
         return copy.deepcopy(self)
 
     def set(self, sim):
         self.current_state = copy.deepcopy(sim.current_state)
+        self.game_outcome = sim.game_outcome
+        self.game_over = sim.game_over
 
     def reinitialize(self):
-        self.game_outcome = None
         self.current_state = copy.deepcopy(self.original_state)
         self.current_state["current_piece"] = random.randrange(1, 6)
         self.current_state["next_piece"] = random.randrange(1, 6)
+        self.game_outcome = None
         self.game_over = False
 
     def get_current_player(self):

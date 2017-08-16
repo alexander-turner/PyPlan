@@ -16,6 +16,8 @@ NOTE :
 
 
 class OthelloState(abstract_state.AbstractState):
+    env_name = "Othello"
+    num_players = 2
     state_val = [[0] * 8 for _ in range(8)]
     state_val[3][3] = 2
     state_val[3][4] = 1
@@ -28,10 +30,8 @@ class OthelloState(abstract_state.AbstractState):
 
     def __init__(self):
         self.current_state = copy.deepcopy(self.original_state)
-        self.num_players = 2
         self.game_outcome = None
         self.game_over = False
-        self.env_name = "Othello"
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)

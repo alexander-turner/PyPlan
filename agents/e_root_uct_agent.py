@@ -4,7 +4,7 @@ from evaluations import rollout_evaluation
 
 
 class ERootUCTAgent(mcts_framework.MCTSFramework):
-    name = "0.5-Greedy Root UCT Agent"
+    base_name = "0.5-Greedy Root UCT Agent"
 
     def __init__(self, depth, max_width, num_trials, c=1, base_policy=None):
         evaluation = rollout_evaluation.RolloutEvaluation(width=1, depth=depth, rollout_policy=base_policy)
@@ -16,6 +16,7 @@ class ERootUCTAgent(mcts_framework.MCTSFramework):
                                               root_bandit_class=e_bandit.EBandit,
                                               root_bandit_parameters=0.5)
 
-        self.name += " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width, num_trials, c,
-                                                                             base_policy.name)
+        self.name = self.base_name + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width,
+                                                                                             num_trials, c,
+                                                                                             base_policy.name)
 

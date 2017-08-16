@@ -16,6 +16,8 @@ NOTE :
 
 
 class TicTacToeState(abstract_state.AbstractState):
+    env_name = "Tic-Tac-Toe"
+    num_players = 2
     original_state = {
             "state_val": [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
             "current_player": 1
@@ -23,10 +25,8 @@ class TicTacToeState(abstract_state.AbstractState):
 
     def __init__(self):
         self.current_state = self.original_state
-        self.num_players = 2
         self.game_outcome = None
         self.game_over = False
-        self.env_name = "Tic-Tac-Toe"
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)
@@ -50,10 +50,7 @@ class TicTacToeState(abstract_state.AbstractState):
 
         if self.game_outcome is not None:
             for player in range(self.num_players):
-                if player == self.game_outcome:
-                    reward[player] += 1.0
-                else:
-                    reward[player] -= 1.0
+                player += 1.0 if player == self.game_outcome else -1.0
 
         self.change_turn()
         return reward

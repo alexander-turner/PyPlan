@@ -1,6 +1,6 @@
 import copy
 import operator
-import dealers.simulators.chesscode.pieces as pieces  # rules and constructors for the pieces
+import dealers.simulators.chesscode.pieces as pieces  # interfaces for the pieces
 from functools import partial
 
 
@@ -64,7 +64,7 @@ class Board:
 
         # Check that the move is a valid line
         position_change = self.compute_change(piece.position, new_position)  # total change in position
-        if position_change[0] != 0 and position_change[1] != 0:
+        if position_change[0] != 0 and position_change[1] != 0:  # moving at least one square in each direction
             if not piece.can_diagonal or abs(position_change[0]) != abs(position_change[1]):
                 return False
         elif not piece.can_orthogonal:  # orthogonal move but can't do that
@@ -201,7 +201,7 @@ class Player:
             self.pieces.append(piece)
             self.board.set_piece(position, piece)
 
-    # TODO cache moves after first generation, wipe when update_board called?
+    # TODO cache moves after first generation, wipe when update_board called? only update pieces which can reach changed squares?
     def get_actions(self):  # TODO castling, pawn promotion, en passant
         actions = []
         for piece in self.pieces:

@@ -3,7 +3,7 @@ from bandits import e_bandit
 
 
 class EPolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework):
-    name = "0.5-Greedy Policy Switching Agent"
+    base_name = "0.5-Greedy Policy Switching Agent"
 
     def __init__(self, depth, num_pulls, policies):
         switching_bandit_framework.SwitchingBanditFramework.__init__(self, depth=depth,
@@ -12,4 +12,5 @@ class EPolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework)
                                                                      bandit_class=e_bandit.EBandit,
                                                                      bandit_parameters=0.5)
 
-        self.name += " (d={}, n={}, e=0.5, policies={})".format(depth, num_pulls, [p.name for p in policies])
+        self.name = self.base_name + " (d={}, n={}, e=0.5, policies={})".format(depth, num_pulls,
+                                                                                [p.name for p in policies])
