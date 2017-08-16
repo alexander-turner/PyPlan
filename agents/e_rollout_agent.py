@@ -3,7 +3,7 @@ from bandits import e_bandit
 
 
 class ERolloutAgent(rollout_agent.RolloutAgent):
-    name = "Epsilon-Greedy Rollout Agent"
+    name = "ε-Greedy Rollout Agent"
 
     def __init__(self, depth, num_pulls, epsilon=0.5, policy=None):
         rollout_agent.RolloutAgent.__init__(self, depth=depth, num_pulls=num_pulls,

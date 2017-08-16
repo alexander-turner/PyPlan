@@ -10,6 +10,7 @@ class AbstractAgent:
     For help making your own agent, reference the included examples.
     """
     __metaclass__ = ABCMeta
+    base_name = ""
     name = ""
 
     @abc.abstractmethod

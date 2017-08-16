@@ -5,6 +5,7 @@ from evaluations import zero_evaluation
 
 
 class MCTSFramework(abstract_agent.AbstractAgent):
+    """A Monte-Carlo Tree Search framework."""
     name = "MCTS Agent"
 
     def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_class=None, bandit_parameters=None,
