@@ -141,10 +141,14 @@ class Board:
         if action.special_type == 'promotion':  # pawn promotion
             piece = action.special_params(piece.position, piece.color)
             self.players[piece.color].pieces.append(piece)
+            reward = self.piece_values[piece.abbreviation] - self.piece_values['p']  # new piece more valuable than pawn
         elif action.special_type == 'en passant':
             reward = self.remove_piece(self.last_action.new_position)
+        elif action.special_type == 'castle':
+            self.move_piece(action.special_params)  # contains rook's action
 
         self.set_piece(action.new_position, piece)
+        piece.has_moved = True  # mark that the piece has been moved
 
         return reward
 
@@ -211,7 +215,7 @@ class Player:
             self.board.set_piece(position, piece)
 
     # TODO only update pieces which can reach changed squares?
-    def get_actions(self):  # TODO castling
+    def get_actions(self):
         actions = []
         for piece in self.pieces:
             actions += piece.get_actions(self.board)

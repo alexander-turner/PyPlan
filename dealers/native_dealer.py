@@ -188,7 +188,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             game_history.append([reward, action_to_take])
             if self.show_moves:
-                if hasattr(current_state, 'render'):
+                if hasattr(current_state, 'render'):  # TODO render other domains
                     current_state.render()
                 else:
                     print(current_state)

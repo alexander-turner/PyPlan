@@ -33,20 +33,18 @@ class ChessState(abstract_state.AbstractState):
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
         
-    def take_action(self, action):  # todo negative reward if piece lost? positive for promotion?
+    def take_action(self, action):
         reward = self.current_state.move_piece(action)
-        self.current_state.get_piece(action.new_position).has_moved = True  # mark that the piece has been moved
         self.current_state.last_action = action
 
         previous_player, self.current_player = self.current_player, (self.current_player + 1) % self.num_players
 
         self.current_state.cached_actions = []
         self.get_actions()
-        if len(self.current_state.cached_actions) == 0:  # TODO cache moves after first generation, wipe when update_board called?
+        if len(self.current_state.cached_actions) == 0:
             self.game_outcome = previous_player if self.current_state.is_checked(self.get_current_color()) else 'draw'
             if self.game_outcome != 'draw':  # todo how do we handle draws / rewards?
                 reward = self.current_state.piece_values['k']
-        # todo check other player too?
 
         rewards = [reward for _ in range(self.num_players)]
         rewards[self.current_player] *= -1  # the current player gets the opposite of the reward (e.g. losing a piece)
@@ -79,7 +77,8 @@ class ChessState(abstract_state.AbstractState):
             self.tile_size = int(self.width / self.current_state.width)  # assume width == height
             self.screen = pygame.display.set_mode((self.width, self.height))
             self.load_resources("..\\dealers\\simulators\\chesscode\\sprites")
-        pygame.event.clear()
+
+        pygame.event.clear()  # allows for pausing and debugging without losing rendering capability
 
         self.screen.blit(self.resources['background'], self.resources['background'].get_rect())
         for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:

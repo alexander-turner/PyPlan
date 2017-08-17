@@ -38,7 +38,7 @@ def generate_regret_curves(agents, pull_max, simulator, num_trials=50):
     plt.figure()
 
     # Derive y-axis bounds
-    both_dicts = (cumulative, simple)
+    both_dicts = (cumulative, simple)  # todo use built in params for cleaner code (subplots)
     minimum_regret = min(min(min(current_dict[key]) for key in current_dict) for current_dict in both_dicts)
     maximum_regret = max(max(max(current_dict[key]) for key in current_dict) for current_dict in both_dicts)
     ylims = (minimum_regret, maximum_regret)
@@ -57,5 +57,6 @@ def generate_regret_curves(agents, pull_max, simulator, num_trials=50):
 
         ax.legend(loc='lower right')
         ax.set_title(regret_type + ' Regret ({} trials)'.format(num_trials))
+
     plt.text(0, -4.5, 'Number of Pulls', ha='center')  # shared x-axis label
     plt.show()

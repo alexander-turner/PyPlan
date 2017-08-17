@@ -1,4 +1,5 @@
 import copy
+import itertools
 
 
 class Piece:
@@ -50,13 +51,11 @@ class Pawn(Piece):
         """Return legal actions for the given board."""
         if not hasattr(self, 'movement_direction'):
             self.movement_direction = board.movement_direction[self.color]
-
         move_functions = [self.get_actions_one_step, self.get_actions_two_step, self.get_actions_diagonal,
                           self.get_actions_promotion, self.get_actions_en_passant]
-        actions = [func(board) for func in move_functions]  # generate actions
-        actions = [item for sublist in actions for item in sublist]  # flatten lists
 
-        return actions
+        actions = [func(board) for func in move_functions]  # generate actions
+        return list(itertools.chain.from_iterable(actions))  # flatten lists
 
     def get_actions_one_step(self, board):
         # Move forward one if the square isn't occupied
@@ -148,6 +147,20 @@ class King(Piece):
     can_diagonal = True
     can_orthogonal = True
     abbreviation = 'k'
+
+    def get_actions(self, board):
+        actions = super().get_actions(board)  # basic moves
+
+        # Check to see if we can castle
+        if not self.has_moved:
+            for rook in [piece for piece in board.players[self.color].pieces if isinstance(piece, Rook)]:
+                if not rook.has_moved and board.has_line_of_sight(self, rook.position):
+                    side = (0, -1) if rook.position[1] < self.position[1] else (0, 1)  # if left of king
+                    king_new_position = board.compute_position(self.position, (side[0], side[1]*2))
+                    rook_new_position = board.compute_position(self.position, side)
+                    actions.append(Action(self.position, king_new_position, special_type='castle',
+                                          special_params=Action(rook.position, rook_new_position)))
+        return actions
 
 
 class Action:
