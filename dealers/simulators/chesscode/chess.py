@@ -19,6 +19,7 @@ class Board:
         for color in self.players:
             self.players[color].set_pieces()  # have the player set its pieces on the board
         self.cached_actions = []  # should be updated by an outside simulator each time the board changes
+        self.last_action = None  # the last action executed
 
         # Whether is_legal() should verify that our king is not put in check by actions
         self.verify_not_checked = True  # only sim_states at 1st-level recursion should have this as False
@@ -131,9 +132,7 @@ class Board:
         piece = self.get_piece(action.current_position)
 
         if self.is_occupied(action.new_position):  # remove captured piece, if necessary
-            removed_piece = self.get_piece(action.new_position)
-            self.players[removed_piece.color].pieces.remove(removed_piece)  # fix messed-up remove
-            reward = self.piece_values[removed_piece.abbreviation]
+            reward = self.remove_piece(action.new_position)
 
         # Update board
         self.set_piece(action.current_position, ' ')
@@ -142,9 +141,17 @@ class Board:
         if action.special_type == 'promotion':  # pawn promotion
             piece = action.special_params(piece.position, piece.color)
             self.players[piece.color].pieces.append(piece)
+        elif action.special_type == 'en passant':
+            reward = self.remove_piece(self.last_action.new_position)
+
         self.set_piece(action.new_position, piece)
 
         return reward
+
+    def remove_piece(self, position):
+        removed_piece = self.get_piece(position)
+        self.players[removed_piece.color].pieces.remove(removed_piece)
+        return self.piece_values[removed_piece.abbreviation]
 
     @staticmethod
     def compute_position(current_position, position_change):

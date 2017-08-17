@@ -35,7 +35,8 @@ class ChessState(abstract_state.AbstractState):
         
     def take_action(self, action):  # todo negative reward if piece lost? positive for promotion?
         reward = self.current_state.move_piece(action)
-        self.current_state.get_piece(action.new_position).has_moved = True  # mark that the piece has been moved (for castling purposes)
+        self.current_state.get_piece(action.new_position).has_moved = True  # mark that the piece has been moved
+        self.current_state.last_action = action
 
         previous_player, self.current_player = self.current_player, (self.current_player + 1) % self.num_players
 

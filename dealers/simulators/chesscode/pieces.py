@@ -48,33 +48,71 @@ class Pawn(Piece):
 
     def get_actions(self, board):
         """Return legal actions for the given board."""
-        movement_direction = board.movement_direction[self.color]
-        actions = []
+        if not hasattr(self, 'movement_direction'):
+            self.movement_direction = board.movement_direction[self.color]
 
+        actions = []
+        actions += self.get_actions_one_step(board)
+        actions += self.get_actions_two_step(board)
+        actions += self.get_actions_diagonal(board)
+        actions += self.get_actions_promotion(board)
+        actions += self.get_actions_en_passant(board)
+        return actions
+
+    def get_actions_one_step(self, board):
         # Move forward one if the square isn't occupied
-        new_position = board.compute_position(self.position, (movement_direction, 0))
+        new_position = board.compute_position(self.position, (self.movement_direction, 0))
+        actions = []
         if board.in_bounds(new_position) and not board.is_occupied(new_position) and \
                 board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
+        return actions
 
+    def get_actions_two_step(self, board):
         # If we're in the initial position and the square two ahead is empty, we can move there
-        new_position = board.compute_position(self.position, (movement_direction * 2, 0))
+        new_position = board.compute_position(self.position, (self.movement_direction * 2, 0))
+        actions = []
         if not self.has_moved and not board.is_occupied(new_position) and \
            board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
+        return actions
 
+    def get_actions_diagonal(self, board):
         # Check if enemy piece is at diagonals
-        diagonals = ((movement_direction, -1), (movement_direction, 1))
+        diagonals = ((self.movement_direction, -1), (self.movement_direction, 1))
+        actions = []
+
         for diagonal in diagonals:
             new_position = board.compute_position(self.position, diagonal)
             if board.in_bounds(new_position) and board.is_occupied(new_position) and \
                     board.is_legal(Action(self.position, new_position)):
                 actions.append(Action(self.position, new_position))
 
+        return actions
+
+    def get_actions_promotion(self, board):
+        # Pawn promotion
         enemy_back_line = board.bounds['top'] if board.movement_direction[self.color] == -1 else board.bounds['bottom']
+        actions = []
+
         if self.position[0] == enemy_back_line:  # in enemy's back-line
             for promotion_piece in (Rook, Knight, Bishop, Queen):
                 actions.append(Action(self.position, self.position, 'promotion', promotion_piece))
+        return actions
+
+    def get_actions_en_passant(self, board):
+        sides = ((0, -1), (0, 1))
+        actions = []
+
+        for adjacent_position in [board.compute_position(self.position, side) for side in sides]:
+            if board.in_bounds(adjacent_position):
+                adjacent_piece = board.get_piece(adjacent_position)  # retrieve the piece next to us
+                last_action = board.last_action  # if last action was an enemy pawn moving two
+                if isinstance(adjacent_piece, Pawn) and not board.is_same_color(self, adjacent_piece.position) and \
+                                board.compute_change(last_action.current_position, last_action.new_position)[0] == 2:
+                    diagonal = (self.movement_direction, board.compute_change(self.position, adjacent_position)[1])
+                    new_position = board.compute_position(self.position, diagonal)
+                    actions.append(Action(self.position, new_position, 'en passant'))
 
         return actions
 
