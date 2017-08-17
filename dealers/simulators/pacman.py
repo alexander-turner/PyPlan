@@ -56,9 +56,9 @@ class PacmanState(abstract_state.AbstractState):
         self.reinitialize()
 
     def clone(self):
-        new_sim = PacmanState(self.dealer, self.layout)
-        new_sim.current_state = self.current_state
-        return new_sim
+        new_state = PacmanState(self.dealer, self.layout)
+        new_state.current_state = self.current_state
+        return new_state
 
     def set(self, sim):
         self.current_state = sim.current_state

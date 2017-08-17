@@ -1,5 +1,3 @@
-import copy
-import operator
 import dealers.simulators.chesscode.pieces as pieces  # interfaces for the pieces
 from functools import partial
 
@@ -62,7 +60,7 @@ class Board:
 
         return True
 
-    def in_bounds(self, position):  # question correct?
+    def in_bounds(self, position):
         return self.bounds['top'] <= position[0] <= self.bounds['bottom'] and \
                self.bounds['left'] <= position[1] <= self.bounds['right']
 
@@ -90,7 +88,7 @@ class Board:
         if position_change[1] != 0:
             col_change = 1 if position_change[1] > 0 else -1  # per-iteration col change
 
-        position = copy.deepcopy(piece.position)
+        position = piece.position
         while True:
             position = self.compute_position(position, [row_change, col_change])
             if position == new_position:  # simulate a do-while
@@ -104,12 +102,12 @@ class Board:
             return False
         return piece.color == self.get_piece(new_position).color
 
-    def is_checked(self, color):  # question correct? doesn't seem to defend king when necessary
+    def is_checked(self, color):
         """Returns true if the king of the given color is in check.
 
         :param color: the king's color.
         """
-        king = next(piece for piece in self.players[color].pieces if isinstance(piece, pieces.King))  # todo look up directly?
+        king = self.players[color].king
 
         enemy_color = 'black' if color == 'white' else 'white'
         partial_in_range = partial(self.in_range, new_position=king.position)
@@ -139,9 +137,9 @@ class Board:
 
     def move_piece(self, action):
         """Move the piece at action.current_position, returning the reward for capturing a piece (if applicable)."""
-        reward = 0
         piece = self.get_piece(action.current_position)
 
+        reward = 0
         if self.is_occupied(action.new_position):  # remove captured piece, if necessary
             reward = self.remove_piece(action.new_position)
 
@@ -171,18 +169,16 @@ class Board:
     @staticmethod
     def compute_position(current_position, position_change):
         """Add (row, col) to (row_change, col_change)."""
-        return list(map(operator.add, current_position, position_change))
+        return [current_position[0] + position_change[0], current_position[1] + position_change[1]]
 
     @staticmethod
     def compute_change(current_position, new_position):
-        return list(map(operator.sub, new_position, current_position))
+        return [new_position[0] - current_position[0], new_position[1] - current_position[1]]
 
     def __str__(self):
         board_str = ''
         for row in range(self.height):
-            row_str = ''
-            for col in range(self.width):
-                row_str += self.get_piece((row, col)).__str__()
+            row_str = ''.join([self.get_piece((row, col)).__str__() for col in range(self.width)])
             board_str += row_str + '\n'
         return board_str
 
@@ -196,6 +192,7 @@ class Player:
             raise Exception('Invalid color - must be white or black.')
         self.color = color
         self.pieces = {}  # TODO group dict by piece type
+        self.king = None  # track where the king is
 
     def set_pieces(self):
         """Set the player's pieces in the correct location for their color."""
@@ -222,10 +219,10 @@ class Player:
                 piece = pieces.Queen(position, self.color)
             else:
                 piece = pieces.King(position, self.color)
+                self.king = piece
             self.pieces[piece] = piece
             self.board.set_piece(position, piece)
 
-    # TODO only update pieces which can reach changed squares?
     def get_actions(self):
         actions = []
         for piece in self.pieces:

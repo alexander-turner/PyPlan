@@ -43,7 +43,7 @@ class AbstractBandit:
     def get_cumulative_regret(self):
         """Return the accrued cumulative regret."""
         return self.total_pulls * self.max_reward - sum(map(operator.mul,
-                                                            zip(self.average_reward, self.num_pulls)))  # TODO check
+                                                            zip(self.average_reward, self.num_pulls)))
 
     def get_simple_regret(self):
         return self.max_reward - self.get_best_reward()

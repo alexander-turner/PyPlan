@@ -21,15 +21,13 @@ class ChessState(abstract_state.AbstractState):
         self.current_player = 0
         self.game_outcome = None
 
-        self.resources = {}
-
     def clone(self):
         new_state = copy.copy(self)
         new_state.current_state = copy.deepcopy(self.current_state)
         return new_state
 
     def set(self, state):
-        self.current_state = copy.deepcopy(state.current_state)
+        self.current_state = state.current_state
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
         
@@ -76,7 +74,8 @@ class ChessState(abstract_state.AbstractState):
             self.width, self.height = 360, 360
             self.tile_size = int(self.width / self.current_state.width)  # assume width == height
             self.screen = pygame.display.set_mode((self.width, self.height))
-            self.load_resources("..\\dealers\\simulators\\chesscode\\sprites")
+            if len(self.resources) == 0:
+                self.load_resources("..\\dealers\\simulators\\chesscode\\sprites")
 
         pygame.event.clear()  # allows for pausing and debugging without losing rendering capability
 

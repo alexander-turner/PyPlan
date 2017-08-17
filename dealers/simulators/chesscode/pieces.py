@@ -62,18 +62,22 @@ class Pawn(Piece):
         # Move forward one if the square isn't occupied
         new_position = board.compute_position(self.position, (self.movement_direction, 0))
         actions = []
+
         if board.in_bounds(new_position) and not board.is_occupied(new_position) and \
                 board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
+
         return actions
 
     def get_actions_two_step(self, board):
         # If we're in the initial position and the square two ahead is empty, we can move there
         new_position = board.compute_position(self.position, (self.movement_direction * 2, 0))
         actions = []
+
         if self.position == self.initial_position and not board.is_occupied(new_position) and \
            board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
+
         return actions
 
     def get_actions_diagonal(self, board):
@@ -97,6 +101,7 @@ class Pawn(Piece):
         if self.position[0] == enemy_back_line:  # in enemy's back-line
             for promotion_piece in (Rook, Knight, Bishop, Queen):
                 actions.append(Action(self.position, self.position, 'promotion', promotion_piece))
+
         return actions
 
     def get_actions_en_passant(self, board):

@@ -1,9 +1,9 @@
+import multiprocessing
+import progressbar
 import random
 import statistics
 import time
 import tabulate
-import multiprocessing
-import progressbar
 from abstract import abstract_dealer
 from dealers.simulators import *
 
@@ -45,7 +45,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         self.num_trials = num_trials
         if simulator_str:
             self.env_name = simulator_str
-        if show_moves is not None:
+        if show_moves:
             self.show_moves = show_moves
 
     def run(self, agents, num_trials, env_name, output_path=None, multiprocess_mode='trials', show_moves=True):
@@ -172,7 +172,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         if current_state.num_players > 1 and self.env_name != 'Chess':
             current_state.current_player = random.randrange(self.player_count)
 
-        game_history, time_values = [], []
+        game_history, time_values = [], [[] for _ in range(current_state.num_players)]
 
         for h in range(self.simulation_horizon):
             if current_state.is_terminal():
@@ -181,19 +181,20 @@ class Dealer(abstract_dealer.AbstractDealer):
             # Get an action from the agent, tracking time taken
             move_start_time = time.time()
             action_to_take = self.agents[current_state.current_player].select_action(current_state)
-            time_values.append([current_state.current_player, time.time() - move_start_time])
+            time_values[current_state.current_player].append(time.time() - move_start_time)
 
             # Take selected action
-            reward = current_state.take_action(action_to_take)
+            reward = current_state.take_action(action_to_take)  # TODO take_action doesn't simulate other player
 
             game_history.append([reward, action_to_take])
             if self.show_moves:
                 if hasattr(current_state, 'render'):  # TODO render other domains
                     current_state.render()
                 else:
-                    print(current_state)
                     print("Agent {}".format(current_state.current_player + 1))
-                    print("Time for last move: {}".format(time_values[-1]))
+                    print(current_state)
+
+        time.sleep(0.1)
 
         # Game statistics
         total_reward = [0.0] * self.player_count
@@ -206,15 +207,10 @@ class Dealer(abstract_dealer.AbstractDealer):
             winner = current_state.game_outcome
 
         # Calculate average time per move
-        time_sums = [0.0] * self.player_count
-        for val in time_values:
-            time_sums[val[0]] += val[1]
         moves_per_player = float(h / self.player_count)
+        time_avg = [sum(time_values[player]) / moves_per_player for player in range(current_state.num_players)]
 
-        for sum_value in range(len(time_sums)):
-            time_sums[sum_value] = time_sums[sum_value] / moves_per_player
-
-        return {'winner': winner, 'game history': game_history, 'average move times': time_sums}
+        return {'winner': winner, 'game history': game_history, 'average move times': time_avg}
 
     def available_configurations(self):
         """Returns the strings for the native simulators available."""

@@ -22,7 +22,7 @@ class Connect4State(abstract_state.AbstractState):
         return new_state
 
     def set(self, state):
-        self.state_val = copy.deepcopy(state.state_val)
+        self.state_val = state.state_val
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
 
