@@ -211,7 +211,7 @@ class Player:
             self.board.set_piece(position, piece)
 
     # TODO only update pieces which can reach changed squares?
-    def get_actions(self):  # TODO castling, en passant
+    def get_actions(self):  # TODO castling
         actions = []
         for piece in self.pieces:
             actions += piece.get_actions(self.board)

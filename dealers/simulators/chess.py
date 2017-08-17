@@ -71,7 +71,7 @@ class ChessState(abstract_state.AbstractState):
     def is_terminal(self):
         return self.game_outcome is not None
 
-    def render(self):  # TODO can't pause  TODO use display.update
+    def render(self):
         """Render the game board, creating a tkinter window if needed."""
         if not hasattr(self, 'screen'):
             pygame.init()

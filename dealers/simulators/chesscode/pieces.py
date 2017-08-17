@@ -24,17 +24,17 @@ class Piece:
             self.directions += self.diagonal
 
     def get_actions(self, board):
-        positions = []
+        actions = []
         for row_change, col_change in self.directions:
             new_position = copy.deepcopy(self.position)
             for _ in range(self.range):
                 new_position = board.compute_position(new_position, (row_change, col_change))
                 if board.is_legal(Action(self.position, new_position)):
-                    positions.append(copy.deepcopy(new_position))
+                    actions.append(Action(self.position, copy.deepcopy(new_position)))
                 elif not board.in_bounds(new_position) or board.is_occupied(new_position):
                     break
 
-        return (Action(self.position, position) for position in positions)
+        return actions
 
     def __str__(self):
         return self.abbreviation.upper() if self.color == 'white' else self.abbreviation
@@ -51,12 +51,11 @@ class Pawn(Piece):
         if not hasattr(self, 'movement_direction'):
             self.movement_direction = board.movement_direction[self.color]
 
-        actions = []
-        actions += self.get_actions_one_step(board)
-        actions += self.get_actions_two_step(board)
-        actions += self.get_actions_diagonal(board)
-        actions += self.get_actions_promotion(board)
-        actions += self.get_actions_en_passant(board)
+        move_functions = [self.get_actions_one_step, self.get_actions_two_step, self.get_actions_diagonal,
+                          self.get_actions_promotion, self.get_actions_en_passant]
+        actions = [func(board) for func in move_functions]  # generate actions
+        actions = [item for sublist in actions for item in sublist]  # flatten lists
+
         return actions
 
     def get_actions_one_step(self, board):
@@ -105,11 +104,12 @@ class Pawn(Piece):
         actions = []
 
         for adjacent_position in [board.compute_position(self.position, side) for side in sides]:
-            if board.in_bounds(adjacent_position):
+            if board.in_bounds(adjacent_position) and board.last_action is not None and \
+               board.last_action.new_position == adjacent_position:
                 adjacent_piece = board.get_piece(adjacent_position)  # retrieve the piece next to us
                 last_action = board.last_action  # if last action was an enemy pawn moving two
                 if isinstance(adjacent_piece, Pawn) and not board.is_same_color(self, adjacent_piece.position) and \
-                                board.compute_change(last_action.current_position, last_action.new_position)[0] == 2:
+                   board.compute_change(last_action.current_position, last_action.new_position)[0] == 2:
                     diagonal = (self.movement_direction, board.compute_change(self.position, adjacent_position)[1])
                     new_position = board.compute_position(self.position, diagonal)
                     actions.append(Action(self.position, new_position, 'en passant'))
