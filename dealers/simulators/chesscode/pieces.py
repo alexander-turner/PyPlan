@@ -1,4 +1,3 @@
-import copy
 import itertools
 
 
@@ -11,11 +10,10 @@ class Piece:
     can_orthogonal = False  # which movement directions are available
     can_diagonal = False
 
-    has_moved = False  # whether the piece has moved in this game
     abbreviation = ''  # lower-case letter that represents the piece
 
     def __init__(self, position, color):
-        self.position = position
+        self.position, self.initial_position = position, tuple(position)
         self.color = color
 
         self.directions = []
@@ -27,15 +25,18 @@ class Piece:
     def get_actions(self, board):
         actions = []
         for row_change, col_change in self.directions:
-            new_position = copy.deepcopy(self.position)
+            new_position = self.position
             for _ in range(self.range):
                 new_position = board.compute_position(new_position, (row_change, col_change))
                 if board.is_legal(Action(self.position, new_position)):
-                    actions.append(Action(self.position, copy.deepcopy(new_position)))
+                    actions.append(Action(self.position, new_position))
                 elif not board.in_bounds(new_position) or board.is_occupied(new_position):
                     break
 
         return actions
+
+    def __hash__(self):
+        return hash(self.initial_position)
 
     def __str__(self):
         return self.abbreviation.upper() if self.color == 'white' else self.abbreviation
@@ -70,7 +71,7 @@ class Pawn(Piece):
         # If we're in the initial position and the square two ahead is empty, we can move there
         new_position = board.compute_position(self.position, (self.movement_direction * 2, 0))
         actions = []
-        if not self.has_moved and not board.is_occupied(new_position) and \
+        if self.position == self.initial_position and not board.is_occupied(new_position) and \
            board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
         return actions
@@ -152,9 +153,9 @@ class King(Piece):
         actions = super().get_actions(board)  # basic moves
 
         # Check to see if we can castle
-        if not self.has_moved:
+        if self.position == self.initial_position:
             for rook in [piece for piece in board.players[self.color].pieces if isinstance(piece, Rook)]:
-                if not rook.has_moved and board.has_line_of_sight(self, rook.position):
+                if rook.position == rook.initial_position and board.has_line_of_sight(self, rook.position):
                     side = (0, -1) if rook.position[1] < self.position[1] else (0, 1)  # if left of king
                     king_new_position = board.compute_position(self.position, (side[0], side[1]*2))
                     rook_new_position = board.compute_position(self.position, side)
@@ -164,15 +165,13 @@ class King(Piece):
 
 
 class Action:
-    has_moved = False  # whether this piece has moved from its starting position
-
     def __init__(self, current_position, new_position, special_type=None, special_params=None):
         """Initialize a Move object.
 
         :param current_position: the starting piece position.
         :param new_position: the position to which the piece will move.
         :param special_type: what type (castling / en passant / pawn promotion) of special move, if any, this is.
-        :param special_params: information on the special move (ex: which side to castle)
+        :param special_params: information required to execute the special move (ex: piece class for promotion)
         """
         self.current_position = current_position
         self.new_position = new_position

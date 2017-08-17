@@ -169,7 +169,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         current_state.reinitialize()
 
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list
-        if current_state.num_players > 1:
+        if current_state.num_players > 1 and self.env_name != 'Chess':
             current_state.current_player = random.randrange(self.player_count)
 
         game_history, time_values = [], []

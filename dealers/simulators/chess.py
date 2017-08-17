@@ -43,7 +43,7 @@ class ChessState(abstract_state.AbstractState):
         self.get_actions()
         if len(self.current_state.cached_actions) == 0:
             self.game_outcome = previous_player if self.current_state.is_checked(self.get_current_color()) else 'draw'
-            if self.game_outcome != 'draw':  # todo how do we handle draws / rewards?
+            if self.game_outcome != 'draw':
                 reward = self.current_state.piece_values['k']
 
         rewards = [reward for _ in range(self.num_players)]
@@ -81,7 +81,7 @@ class ChessState(abstract_state.AbstractState):
         pygame.event.clear()  # allows for pausing and debugging without losing rendering capability
 
         self.screen.blit(self.resources['background'], self.resources['background'].get_rect())
-        for piece in self.current_state.players['white'].pieces + self.current_state.players['black'].pieces:
+        for piece in {**self.current_state.players['white'].pieces, **self.current_state.players['black'].pieces}:
             # Load the image, scale it, and put it on the correct tile
             name = piece.abbreviation + piece.color
             image = self.resources[name]

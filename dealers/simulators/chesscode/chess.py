@@ -43,11 +43,22 @@ class Board:
 
         # Be sure we aren't leaving our king in check
         if self.verify_not_checked:
-            sim_state = copy.deepcopy(self)
-            sim_state.move_piece(action)
-            sim_state.verify_not_checked = False
-            if sim_state.is_checked(piece.color):
-                return False
+            # Simulate taking the action
+            piece_to_remove = self.get_piece(action.new_position)
+            self.move_piece(action)
+
+            # See if our king is in check
+            self.verify_not_checked = False
+            to_return = not self.is_checked(piece.color)
+
+            # Undo the action
+            self.verify_not_checked = True
+            self.move_piece(pieces.Action(action.new_position, action.current_position))
+            self.set_piece(action.new_position, piece_to_remove)
+            if self.is_occupied(action.new_position):
+                self.players[piece_to_remove.color].pieces[piece_to_remove] = piece_to_remove
+
+            return to_return
 
         return True
 
@@ -98,7 +109,7 @@ class Board:
 
         :param color: the king's color.
         """
-        king = next(piece for piece in self.players[color].pieces if isinstance(piece, pieces.King))
+        king = next(piece for piece in self.players[color].pieces if isinstance(piece, pieces.King))  # todo look up directly?
 
         enemy_color = 'black' if color == 'white' else 'white'
         partial_in_range = partial(self.in_range, new_position=king.position)
@@ -140,7 +151,7 @@ class Board:
 
         if action.special_type == 'promotion':  # pawn promotion
             piece = action.special_params(piece.position, piece.color)
-            self.players[piece.color].pieces.append(piece)
+            self.players[piece.color].pieces[piece] = piece
             reward = self.piece_values[piece.abbreviation] - self.piece_values['p']  # new piece more valuable than pawn
         elif action.special_type == 'en passant':
             reward = self.remove_piece(self.last_action.new_position)
@@ -148,13 +159,13 @@ class Board:
             self.move_piece(action.special_params)  # contains rook's action
 
         self.set_piece(action.new_position, piece)
-        piece.has_moved = True  # mark that the piece has been moved
 
         return reward
 
     def remove_piece(self, position):
+        """Remove the piece at position from its dictionary and return its piece value."""
         removed_piece = self.get_piece(position)
-        self.players[removed_piece.color].pieces.remove(removed_piece)
+        self.players[removed_piece.color].pieces.pop(removed_piece)
         return self.piece_values[removed_piece.abbreviation]
 
     @staticmethod
@@ -184,7 +195,7 @@ class Player:
         if color not in ('white', 'black'):
             raise Exception('Invalid color - must be white or black.')
         self.color = color
-        self.pieces = []
+        self.pieces = {}  # TODO group dict by piece type
 
     def set_pieces(self):
         """Set the player's pieces in the correct location for their color."""
@@ -195,7 +206,7 @@ class Player:
         for col in range(self.board.width):
             position = [pawn_row, col]
             pawn = pieces.Pawn(position, self.color)
-            self.pieces.append(pawn)
+            self.pieces[pawn] = pawn
             self.board.set_piece(position, pawn)
 
         # Place the back line
@@ -211,7 +222,7 @@ class Player:
                 piece = pieces.Queen(position, self.color)
             else:
                 piece = pieces.King(position, self.color)
-            self.pieces.append(piece)
+            self.pieces[piece] = piece
             self.board.set_piece(position, piece)
 
     # TODO only update pieces which can reach changed squares?
