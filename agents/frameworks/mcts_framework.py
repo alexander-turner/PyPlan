@@ -54,7 +54,6 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         if node.bandit is None:  # leaf node
             return self.evaluation.evaluate(node.state)
 
-        current_player = node.state.get_current_player()
         action_index = node.bandit.select_pull_arm()
 
         # if we reach max children nodes then select randomly among children
@@ -97,7 +96,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
                 total_reward = [x + y for (x, y) in zip(immediate_reward, self.evaluation.evaluate(successor_state))]
 
-        node.bandit.update(action_index, total_reward[current_player])
+        node.bandit.update(action_index, total_reward[node.state.current_player])
         return total_reward
 
 

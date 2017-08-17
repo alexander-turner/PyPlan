@@ -9,6 +9,8 @@ from abstract import abstract_state
 
 class OpenAIState(abstract_state.AbstractState):
     """An interface to run bandit algorithms on the OpenAI Gym environment library."""
+    num_players = 1
+    current_player = 0
 
     def __init__(self, dealer, env_name=None):
         """Initialize an interface with the specified OpenAI simulation task and policy.
@@ -80,13 +82,6 @@ class OpenAIState(abstract_state.AbstractState):
             return product
         else:
             raise NotImplementedError
-
-    def number_of_players(self):
-        return 1
-
-    def get_current_player(self):
-        """Returns index of current player."""
-        return 0
 
     def get_value_bounds(self):
         """Environments only expose the absolute reward range, so we don't differentiate if it's terminal or not."""

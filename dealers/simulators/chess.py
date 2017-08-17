@@ -56,17 +56,8 @@ class ChessState(abstract_state.AbstractState):
             self.current_state.cached_actions = self.current_state.players[self.get_current_color()].get_actions()
         return self.current_state.cached_actions
 
-    def number_of_players(self):
-        return self.num_players
-
-    def get_current_player(self):
-        return self.current_player
-
     def get_current_color(self):
         return 'white' if self.current_player == 0 else 'black'
-
-    def set_current_player(self, player_index):
-        self.current_player = player_index
 
     def get_value_bounds(self):
         king_value = self.current_state.piece_values['k']  # defeat / victory

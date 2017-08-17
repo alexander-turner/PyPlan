@@ -39,16 +39,14 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         """Returns the best expected reward and action selected by the best policy at the given state."""
         self.num_nodes += 1
 
-        current_player = state.get_current_player()
-        num_policies = len(self.policies)  # how many policies we have
-
+        num_policies = len(self.policies)
         bandit = self.bandit_class(num_policies, self.bandit_parameters) if self.bandit_parameters \
             else self.bandit_class(num_policies)
 
         # For each policy, for each player, initialize a q value
         q_values = []
         for _ in range(num_policies):
-            q_values.append([0]*state.number_of_players())
+            q_values.append([0]*state.num_players)
 
         if self.multiprocess:
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
@@ -61,7 +59,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
                     for arm_data in outputs:
                         policy_idx, total_reward = arm_data[0], arm_data[1]
                         q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], total_reward)]
-                        bandit.update(policy_idx, total_reward[current_player])  # update the reward for the given arm
+                        bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
         else:
             for _ in range(self.pulls_per_node):  # use pull budget
                 arm_data = self.run_pull(state, bandit)
@@ -69,7 +67,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
                 # Integrate total reward with current q_values
                 policy_idx, total_reward = arm_data[0], arm_data[1]
                 q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], total_reward)]
-                bandit.update(policy_idx, total_reward[current_player])  # update the reward for the given arm
+                bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
 
         # Get most-selected action of highest-valued policy (useful for stochastic environments)
         best_policy_idx = bandit.select_best_arm()  # rewards
@@ -84,7 +82,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         policy = self.policies[policy_idx]
 
         sim_state = state.clone()
-        total_reward = [0] * state.number_of_players()  # calculate discounted total rewards
+        total_reward = [0] * state.num_players  # calculate discounted total rewards
         for _ in range(self.depth):
             if sim_state.is_terminal():
                 break

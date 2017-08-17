@@ -10,10 +10,12 @@ class AbstractState:
     be sub-optimal. This is because states that are fundamentally the same but correspond to distinct
     objects will be treated as non-equivalent.
 
-    Simulators compatible with native_dealer.py must implement set_current_player and __str__.
+    Simulators compatible with native_dealer.py must implement __str__.
     """
     __metaclass__ = ABCMeta
 
+    num_players = 1  # the number of players in the game
+    current_player = 0  # the index of the current player
     env_name = ""  # the name of the environment
 
     @abc.abstractmethod
@@ -52,19 +54,6 @@ class AbstractState:
     @abc.abstractmethod
     def get_actions(self):
         """Returns the legal actions at the state."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def number_of_players(self):
-        """This method returns the number of players."""
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def get_current_player(self):
-        """Returns the index of the current player.
-
-        Index values are in the range {0, ..., num_players-1}.
-        """
         raise NotImplementedError
 
     @abc.abstractmethod

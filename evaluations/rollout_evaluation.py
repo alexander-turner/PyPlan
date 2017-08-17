@@ -14,7 +14,7 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
 
     def evaluate(self, state):
         """Evaluate the state using the parameters of the rollout policy."""
-        total_rewards = [0] * state.number_of_players()
+        total_rewards = [0] * state.num_players
         for sim_num in range(self.width):  # for each of width simulations
             total_rewards = [sum(r) for r in zip(total_rewards, self.run_rollout(state))]
 
@@ -22,7 +22,7 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
 
     def run_rollout(self, state):
         """Simulate a rollout, returning the rewards accumulated."""
-        rewards = [0] * state.number_of_players()
+        rewards = [0] * state.num_players
         sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
         for h in range(self.depth):
             if sim_state.is_terminal():  # act and track rewards as long as possible

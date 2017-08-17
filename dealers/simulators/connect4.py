@@ -69,15 +69,6 @@ class Connect4State(abstract_state.AbstractState):
 
         return actions_list
 
-    def number_of_players(self):
-        return self.num_players
-
-    def get_current_player(self):
-        return self.current_player
-
-    def set_current_player(self, player_index):
-        self.current_player = player_index
-
     def get_value_bounds(self):
         return {'defeat': -1, 'victory': 1,
                 'min non-terminal': 0, 'max non-terminal': 0,

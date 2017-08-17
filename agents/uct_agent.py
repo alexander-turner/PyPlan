@@ -14,8 +14,8 @@ class UCTAgent(mcts_framework.MCTSFramework):
                                               evaluation=evaluation,
                                               bandit_class=ucb_bandit.UCBBandit, bandit_parameters=c)
 
-        self.name = self.base_name.join(" (d={}, w={}, trials={}, c={}, base policy={})".format(depth,
-                                                                                                max_width,
-                                                                                                num_trials,
-                                                                                                c,
-                                                                                                base_policy.name))
+        self.name = self.base_name + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth,
+                                                                                             max_width,
+                                                                                             num_trials,
+                                                                                             c,
+                                                                                             base_policy.name)

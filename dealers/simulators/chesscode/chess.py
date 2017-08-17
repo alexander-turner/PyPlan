@@ -170,11 +170,9 @@ class Player:
 
     def __init__(self, board, color):
         self.board = board  # pointer to parent Board
-
         if color not in ('white', 'black'):
             raise Exception('Invalid color - must be white or black.')
         self.color = color
-
         self.pieces = []
 
     def set_pieces(self):

@@ -15,6 +15,7 @@ class PacmanState(abstract_state.AbstractState):
     The simulator processes eating pellets before ghost detection, so Pacman may make illegal-looking moves - this is
      simply how Berkeley's underlying game rules work (and not a result of this simulator's implementation).
     """
+    current_player = 0
     env_name = "Pacman"
 
     def __init__(self, dealer, layout_repr, use_random_ghost=False):
@@ -64,7 +65,7 @@ class PacmanState(abstract_state.AbstractState):
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
-        new_state = self.current_state.generateSuccessor(self.get_current_player(), action)  # simulate Pacman movement
+        new_state = self.current_state.generateSuccessor(self.current_player, action)  # simulate Pacman movement
 
         for ghost_idx, ghost in enumerate(self.ghost_agents):  # simulate ghost movements
             if new_state.isWin() or new_state.isLose():
@@ -73,7 +74,7 @@ class PacmanState(abstract_state.AbstractState):
             new_state = new_state.generateSuccessor(ghost_idx + 1, ghost_action)
 
         reward = new_state.getScore() - self.current_state.getScore()  # reward Pacman gets
-        rewards = [-1 * reward] * self.number_of_players()  # reward ghosts get
+        rewards = [-1 * reward] * self.num_players  # reward ghosts get
         rewards[0] *= -1  # correct Pacman reward
 
         self.current_state = new_state
@@ -84,13 +85,6 @@ class PacmanState(abstract_state.AbstractState):
 
     def get_actions(self):
         return self.current_state.getLegalActions()
-
-    def number_of_players(self):
-        return self.num_players
-
-    def get_current_player(self):
-        """Pacman is the only player."""
-        return 0
 
     def get_value_bounds(self):
         return {'defeat': -500, 'victory': 500,

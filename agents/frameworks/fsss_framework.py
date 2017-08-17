@@ -104,12 +104,10 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         if self.evaluate_bounds:  # if we have a bound-evaluation function for each state
             self.set_min_max_bounds(node.state)
 
-        current_player = node.state.get_current_player()
-
         if depth == 0:  # reached a leaf
             state_value = self.evaluation.evaluate(node.state)
-            node.upper_state = state_value[current_player]
-            node.lower_state = state_value[current_player]
+            node.upper_state = state_value[node.state.current_player]
+            node.lower_state = state_value[node.state.current_player]
             return
         elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
@@ -123,7 +121,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
             immediate_reward = sim_state.take_action(best_action)  # simulate taking action
 
             if sim_state not in node.children[best_action_idx]:
-                new_node = Node(sim_state, immediate_reward[current_player])
+                new_node = Node(sim_state, immediate_reward[node.state.current_player])
                 new_node.upper_state = self.maximums[depth-1]
                 new_node.lower_state = self.minimums[depth-1]
 

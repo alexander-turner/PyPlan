@@ -37,7 +37,6 @@ class Dealer(abstract_dealer.AbstractDealer):
 
     def run_all(self, agents, num_trials=1, multiprocess_mode='trials', show_moves=False):
         """Runs the agents on all available simulators."""
-        configs = self.available_configurations()
         all_environments = filter(self.should_skip, self.available_configurations())
         for env_name in all_environments:
             try:

@@ -23,13 +23,11 @@ class OthelloState(abstract_state.AbstractState):
     state_val[3][4] = 1
     state_val[4][3] = 1
     state_val[4][4] = 2
-    original_state = {
-            "state_val": state_val,
-            "current_player": 0
-        }
+    original_state = state_val
 
     def __init__(self):
         self.current_state = copy.deepcopy(self.original_state)
+        self.current_player = 0
         self.game_outcome = None
         self.game_over = False
 
@@ -47,7 +45,7 @@ class OthelloState(abstract_state.AbstractState):
         self.game_over = sim.game_over
 
     def change_turn(self):
-        self.current_state["current_player"] = (self.current_state["current_player"] + 1) % self.num_players
+        self.current_player = (self.current_player + 1) % self.num_players
 
     def take_action(self, action):
         position = action['position']
@@ -57,7 +55,7 @@ class OthelloState(abstract_state.AbstractState):
         if value == -1:
             return [0.0] * self.num_players
 
-        self.current_state["state_val"][position[0]][position[1]] = value
+        self.current_state[position[0]][position[1]] = value
 
         # Update the board
         i = position[0]
@@ -92,10 +90,10 @@ class OthelloState(abstract_state.AbstractState):
 
         if i > 7 or i < 0 or j > 7 or j < 0:
             return False
-        elif self.current_state["state_val"][i][j] == 0:
+        elif self.current_state[i][j] == 0:
             return False
 
-        if self.current_state["state_val"][i][j] == curr_turn:
+        if self.current_state[i][j] == curr_turn:
             return True
         else:
             if direction == "U":
@@ -118,7 +116,7 @@ class OthelloState(abstract_state.AbstractState):
             ret = self.color_coins(curr_turn, new_posn, direction, do_color)
             if ret:
                 if do_color:
-                    self.current_state["state_val"][i][j] = curr_turn
+                    self.current_state[i][j] = curr_turn
 
             return ret
 
@@ -126,11 +124,11 @@ class OthelloState(abstract_state.AbstractState):
         actions_list = []
 
         if curr_player == -1:
-            value = self.current_state["current_player"] + 1
+            value = self.current_player + 1
         else:
             value = curr_player
 
-        curr_board = self.current_state["state_val"]
+        curr_board = self.current_state
         for i in range(8):
             for j in range(8):
                 if curr_board[i][j] == 0:
@@ -154,7 +152,7 @@ class OthelloState(abstract_state.AbstractState):
                         possible_count += int(self.color_coins(value, [i + 1, j - 1], "DL", False))
 
                     if possible_count > 0:
-                        action = {'position': [i, j], 'value': self.current_state["current_player"] + 1}
+                        action = {'position': [i, j], 'value': self.current_player + 1}
                         actions_list.append(action)
 
         # Always add null action
@@ -162,15 +160,6 @@ class OthelloState(abstract_state.AbstractState):
             action = {'position': [-1, -1], 'value': -1}
             actions_list.append(action)
         return actions_list
-
-    def number_of_players(self):
-        return self.num_players
-
-    def get_current_player(self):
-        return self.current_state["current_player"]
-
-    def set_current_player(self, player_index):
-        self.current_state["current_player"] = player_index
 
     def get_value_bounds(self):
         return {'defeat': -1, 'victory': 1,
@@ -188,7 +177,7 @@ class OthelloState(abstract_state.AbstractState):
             coin_count = [0] * self.num_players
             for i in range(8):
                 for j in range(8):
-                    coin_count[self.current_state["state_val"][i][j] - 1] += 1
+                    coin_count[self.current_state[i][j] - 1] += 1
 
             if coin_count[0] == coin_count[1]:
                 self.game_outcome = None
@@ -208,6 +197,6 @@ class OthelloState(abstract_state.AbstractState):
 
     def __str__(self):
         output = ''
-        for elem in self.current_state["state_val"]:
+        for elem in self.current_state:
             output += str(elem) + '\n'
         return output

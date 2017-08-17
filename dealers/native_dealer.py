@@ -169,20 +169,19 @@ class Dealer(abstract_dealer.AbstractDealer):
         current_state.reinitialize()
 
         # We want to eliminate any possible first-player advantage gained from being the first agent on the list
-        if current_state.number_of_players() > 1:
-            current_state.set_current_player(random.randrange(self.player_count))
+        if current_state.num_players > 1:
+            current_state.current_player = random.randrange(self.player_count)
 
         game_history, time_values = [], []
 
         for h in range(self.simulation_horizon):
             if current_state.is_terminal():
                 break
-            current_player = current_state.get_current_player()
 
             # Get an action from the agent, tracking time taken
             move_start_time = time.time()
-            action_to_take = self.agents[current_player].select_action(current_state)
-            time_values.append([current_player, time.time() - move_start_time])
+            action_to_take = self.agents[current_state.current_player].select_action(current_state)
+            time_values.append([current_state.current_player, time.time() - move_start_time])
 
             # Take selected action
             reward = current_state.take_action(action_to_take)
@@ -193,7 +192,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                     current_state.render()
                 else:
                     print(current_state)
-                    print("Agent {}".format(current_player + 1))
+                    print("Agent {}".format(current_state.current_player + 1))
                     print("Time for last move: {}".format(time_values[-1]))
 
         # Game statistics
