@@ -11,13 +11,10 @@ Simulator Class for Yahtzee
 class YahtzeeState(abstract_state.AbstractState):
     env_name = "Yahtzee"
     original_state = {
-            "state_val": {
                     "current_roll": 0,
                     "dice_config": [1] * 5,
                     "score_sheet": [[None] * 2 for _ in range(13)]
-            },
-            "current_player": 0
-        }
+    }
 
     def __init__(self, num_players=2):
         self.current_state = copy.deepcopy(self.original_state)
@@ -34,48 +31,47 @@ class YahtzeeState(abstract_state.AbstractState):
         return copy.deepcopy(self)
 
     def set(self, sim):
-        self.current_state = copy.deepcopy(sim.current_state)
+        self.current_state = sim.current_state
         self.game_outcome = sim.game_outcome
         self.game_over = sim.game_over
 
     def take_action(self, action):
         type = action['type']
         value = action['value']
-        current_roll = self.current_state["state_val"]["current_roll"]
+        current_roll = self.current_state["current_roll"]
         self.game_over = self.is_terminal()
         reward_vector = [0.0] * self.num_players
 
         if type == "NOOP":
-            dice_config = self.current_state["state_val"]["dice_config"]
+            dice_config = self.current_state["dice_config"]
             category_points = self.get_category_points(dice_config, value)
-            player_num = self.current_state["current_player"]
-            score_sheet = self.current_state["state_val"]["score_sheet"]
-            score_sheet[value][player_num] = category_points
+            score_sheet = self.current_state["score_sheet"]
+            score_sheet[value][self.current_player] = category_points
 
-            if score_sheet[value][player_num] is not None:
-                reward_vector[player_num] = score_sheet[value][player_num]
-                reward_vector = self.total_scores(self.current_state["state_val"]["score_sheet"])
+            if score_sheet[value][self.current_player] is not None:
+                reward_vector[self.current_player] = score_sheet[value][self.current_player]
+                reward_vector = self.total_scores(self.current_state["score_sheet"])
 
             # SET CURRENT ROLL TO 3 TO END THE TURNS
-            self.current_state["state_val"]["current_roll"] = 3
+            self.current_state["current_roll"] = 3
         elif type == "ROLL":
             for dice in range(len(value)):
                 new_roll = random.randrange(1, 7)
-                self.current_state["state_val"]["dice_config"][value[dice]] = new_roll
-        self.change_turn()
+                self.current_state["dice_config"][value[dice]] = new_roll
+        self.update_current_player()
         return reward_vector
 
-    def change_turn(self):
-        current_roll = self.current_state["state_val"]["current_roll"]
+    def update_current_player(self):
+        current_roll = self.current_state["current_roll"]
 
         if current_roll == 3:
-            new_turn = (self.current_state["current_player"] + 1) % self.num_players
-            self.current_state["state_val"]["current_roll"] = 0
+            new_turn = (self.current_player + 1) % self.num_players
+            self.current_state["current_roll"] = 0
         else:
-            self.current_state["state_val"]["current_roll"] += 1
-            new_turn = self.current_state["current_player"]
+            new_turn = self.current_player
+            self.current_state["current_roll"] += 1
 
-        self.current_state["current_player"] = new_turn
+        self.current_player = new_turn
 
     @staticmethod
     def get_category_points(dice_faces, category_num):
@@ -185,27 +181,26 @@ class YahtzeeState(abstract_state.AbstractState):
         return totals
 
     def get_actions(self):
-        actions_list = []
-        current_player = self.current_state["current_player"]
+        actions = []
 
-        if self.current_state["state_val"]["current_roll"] == 0:
-            actions_list.append({'type': "ROLL", 'value': (0, 1, 2, 3, 4)})
+        if self.current_state["current_roll"] == 0:
+            actions.append({'type': "ROLL", 'value': (0, 1, 2, 3, 4)})
         else:
             # Select one of the possible categories at the state
             for category in range(0, 13):
-                if self.current_state["state_val"]["score_sheet"][category][current_player] is None:
-                    actions_list.append({'type': "NOOP", 'value': category})
+                if self.current_state["score_sheet"][category][self.current_player] is None:
+                    actions.append({'type': "NOOP", 'value': category})
 
-            if self.current_state["state_val"]["current_roll"] < 3:
+            if self.current_state["current_roll"] < 3:
                 # Roll all possible combinations
                 for vals in range(1, 6):
                     # 5C1, 5C2, 5C3, 5C4, 5C5
                     # Dice number is 0-indexed
                     dice_values = [0, 1, 2, 3, 4]
                     for comb in combinations(dice_values, vals):
-                        actions_list.append({'type': "ROLL", 'value': comb})
+                        actions.append({'type': "ROLL", 'value': comb})
 
-        return actions_list
+        return actions
 
     def get_value_bounds(self):
         return {'defeat': 0, 'victory': 0,
@@ -217,13 +212,13 @@ class YahtzeeState(abstract_state.AbstractState):
         game_done = True
         totals = [0.0] * self.num_players
 
-        for category in range(len(self.current_state["state_val"]["score_sheet"])):
+        for category in range(len(self.current_state["score_sheet"])):
             for player in range(self.num_players):
-                if self.current_state["state_val"]["score_sheet"][category][player] is None:
+                if self.current_state["score_sheet"][category][player] is None:
                     game_done = False
                     break
                 else:
-                    totals[player] += self.current_state["state_val"]["score_sheet"][category][player]
+                    totals[player] += self.current_state["score_sheet"][category][player]
 
         if game_done:
             max_val = totals[0]
@@ -240,9 +235,9 @@ class YahtzeeState(abstract_state.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(str(self.current_state["state_val"]))
+        return hash(str(self.current_state))
 
     def __str__(self):
-        score_sheet = self.current_state["state_val"]["score_sheet"]
+        score_sheet = self.current_state["score_sheet"]
         totals = self.total_scores(score_sheet)
         return str("Score sheet: \n" + str(score_sheet) + "\n" + "Player totals in this play: " + str(totals))

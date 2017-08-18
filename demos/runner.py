@@ -9,7 +9,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     native = native_dealer.Dealer()
 
     random = random_agent.RandomAgent()
-    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=10)
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
 
     e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=10)
@@ -33,6 +33,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[random], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    #pacman.run(agents=[ucb_ro], num_trials=9, multiprocess_mode='trials')
+    #pacman.run(agents=[u_ro], num_trials=9, multiprocess_mode='trials')
 
-    native.run(agents=[uct, u_ro], num_trials=1, env_name='Connect4', multiprocess_mode='', show_moves=True)
+    native.run(agents=[uct, u_ro], num_trials=1, env_name='TicTacToe', multiprocess_mode='', show_moves=True)

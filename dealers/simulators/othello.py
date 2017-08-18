@@ -27,12 +27,12 @@ class OthelloState(abstract_state.AbstractState):
 
     def __init__(self):
         self.current_state = copy.deepcopy(self.original_state)
-        self.current_player = 0
         self.game_outcome = None
         self.game_over = False
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)
+        self.current_player = 0
         self.game_outcome = None
         self.game_over = False
 
@@ -43,9 +43,6 @@ class OthelloState(abstract_state.AbstractState):
         self.current_state = copy.deepcopy(sim.current_state)
         self.game_outcome = sim.game_outcome
         self.game_over = sim.game_over
-
-    def change_turn(self):
-        self.current_player = (self.current_player + 1) % self.num_players
 
     def take_action(self, action):
         position = action['position']
@@ -80,7 +77,7 @@ class OthelloState(abstract_state.AbstractState):
                 else:
                     reward[player] -= 1.0
 
-        self.change_turn()
+        self.update_current_player()
 
         return reward
 
@@ -155,10 +152,12 @@ class OthelloState(abstract_state.AbstractState):
                         action = {'position': [i, j], 'value': self.current_player + 1}
                         actions_list.append(action)
 
-        # Always add null action
+        # Always add null action - question: why?
+        """
         if len(actions_list) == 0:
             action = {'position': [-1, -1], 'value': -1}
             actions_list.append(action)
+        """
         return actions_list
 
     def get_value_bounds(self):

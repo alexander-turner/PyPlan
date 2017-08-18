@@ -6,7 +6,6 @@ import random
 class TetrisState(abstract_state.AbstractState):
     env_name = "Tetris"
     num_players = 1
-    current_player = 0
     original_state = {
             "current_board": [[0] * 10 for _ in range(20)],
             "current_piece": None,

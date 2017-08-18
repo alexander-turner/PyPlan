@@ -17,7 +17,7 @@ class Dealer(abstract_dealer.AbstractDealer):
     """
     simulators = {'Chess': chess.ChessState(), 'Connect4': connect4.Connect4State(),
                   'Othello': othello.OthelloState(), 'Tetris': tetris.TetrisState(),
-                  'Tictactoe': tictactoe.TicTacToeState(), 'Yahtzee': yahtzee.YahtzeeState()}
+                  'TicTacToe': tictactoe.TicTacToeState(), 'Yahtzee': yahtzee.YahtzeeState()}
 
     def __init__(self, simulation_horizon=500):
         self.simulation_horizon = simulation_horizon
@@ -125,6 +125,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                 output_file.write(table)
 
     def run_trials(self, multiprocess_mode='trials'):
+        time.sleep(0.1)  # don't overlap with other output
         bar = progressbar.ProgressBar(max_value=self.num_trials)
         game_outputs = []
         if multiprocess_mode == 'trials':

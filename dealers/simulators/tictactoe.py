@@ -18,10 +18,10 @@ NOTE :
 class TicTacToeState(abstract_state.AbstractState):
     env_name = "Tic-Tac-Toe"
     num_players = 2
-    original_state = {
-            "state_val": [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
-            "current_player": 1
-        }
+    current_player = 0
+    original_state = [[0, 0, 0],
+                      [0, 0, 0],
+                      [0, 0, 0]]
 
     def __init__(self):
         self.current_state = self.original_state
@@ -30,6 +30,7 @@ class TicTacToeState(abstract_state.AbstractState):
 
     def reinitialize(self):
         self.current_state = copy.deepcopy(self.original_state)
+        self.current_player = 0
         self.game_outcome = None
         self.game_over = False
 
@@ -37,36 +38,32 @@ class TicTacToeState(abstract_state.AbstractState):
         return copy.deepcopy(self)
 
     def set(self, sim):
-        self.current_state = copy.deepcopy(sim.current_state)
+        self.current_state = sim.current_state
         self.game_outcome = sim.game_outcome
         self.game_over = sim.game_over
 
     def take_action(self, action):
         position = action['position']
-        self.current_state['state_val'][position[0]][position[1]] = action['value']
+        self.current_state[position[0]][position[1]] = action['value']
         self.game_over = self.is_terminal()
 
-        reward = [0.0] * self.num_players
+        rewards = [0.0] * self.num_players
 
         if self.game_outcome is not None:
-            for player in range(self.num_players):
-                player += 1.0 if player == self.game_outcome else -1.0
-
-        self.change_turn()
-        return reward
-
-    def change_turn(self):
-        self.current_state["current_player"] = (self.current_state["current_player"] + 1) % self.num_players
+            rewards = [1.0 if player_idx == self.game_outcome else -1.0
+                       for player_idx in range(self.num_players)]
+        self.update_current_player()
+        return rewards
 
     def get_actions(self):
-        actions_list = []
+        actions = []
 
-        for x in range(len(self.current_state["state_val"])):
-            for y in range(len(self.current_state["state_val"][0])):
-                if self.current_state["state_val"][x][y] == 0:
-                    actions_list.append({'position': [x, y], 'value': self.current_state["current_player"] + 1})
+        for x in range(len(self.current_state)):
+            for y in range(len(self.current_state[0])):
+                if self.current_state[x][y] == 0:
+                    actions.append({'position': [x, y], 'value': self.current_player + 1})
 
-        return actions_list
+        return actions
 
     def get_value_bounds(self):
         return {'defeat': -1, 'victory': 1,
@@ -78,8 +75,7 @@ class TicTacToeState(abstract_state.AbstractState):
         xcount = 0
         ocount = 0
 
-        current_state_val = self.current_state["state_val"]
-        current_player = self.current_state["current_player"]
+        current_state_val = self.current_state
 
         # Horizontal check for hit
         for x in range(len(current_state_val)):
@@ -190,6 +186,6 @@ class TicTacToeState(abstract_state.AbstractState):
 
     def __str__(self):
         output = ''
-        for elem in self.current_state["state_val"]:
+        for elem in self.current_state:
             output += str(elem) + '\n'
         return output

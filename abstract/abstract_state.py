@@ -37,19 +37,20 @@ class AbstractState:
     def take_action(self, action):
         """This method simulates the result of taking action in the state.
 
-        It returns the resulting reward vector,
-        where the reward is a list [r1,...,r_n] for an n agent game. The state object is updated to reflect the new
-        state.
+        It returns the resulting reward vector, where the reward is a list [r1,...,r_n] for an n agent game.
+        The state object is updated to reflect the new state.
 
         As an example, a random trajectory of length horizon from the initial state could be implemented by the
         following (which also accumulates the reward along the trajectory).
 
         total_reward = 0
-        s.initialize()
         for i in range(horizon):
-            total_reward += s.take_action(random_action())
+            total_reward += sim_state.take_action(random_action())
         """
         raise NotImplementedError
+
+    def update_current_player(self):
+        self.current_player = (self.current_player + 1) % self.num_players
 
     @abc.abstractmethod
     def get_actions(self):

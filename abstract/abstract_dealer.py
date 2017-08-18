@@ -39,3 +39,8 @@ class AbstractDealer:
         :param trial_num: a placeholder parameter for compatibility with multiprocessing.Pool.
         """
         raise NotImplementedError
+
+    @staticmethod
+    def available_configurations():
+        """Return a list of available configurations (level layouts / environment names)."""
+        raise NotImplementedError

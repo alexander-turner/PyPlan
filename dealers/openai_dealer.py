@@ -146,6 +146,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             self.simulator.env = gym.wrappers.Monitor(self.simulator.env, self.wrapper_target,
                                                       write_upon_reset=True, force=self.force, resume=self.resume)
 
+        time.sleep(0.1)  # make sure our progressbar doesn't interrupt other print statements
         game_outputs = []
         if self.multiprocess_mode == 'trials':
             self.resume = True

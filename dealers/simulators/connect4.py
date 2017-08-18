@@ -9,7 +9,6 @@ class Connect4State(abstract_state.AbstractState):
 
     def __init__(self):
         self.state_val = [0, 0]
-        self.current_player = 0
         self.game_outcome = None  # 0 - player1 is winner, 1 - player2 is winner, None - no winner
 
     def reinitialize(self):
@@ -33,7 +32,7 @@ class Connect4State(abstract_state.AbstractState):
         self.state_val[value - 1] |= 1 << position
         self.game_outcome = self.current_game_outcome()
 
-        self.current_player = (self.current_player+1) % self.num_players  # change turn
+        self.update_current_player()  # change turn
 
         if self.game_outcome == 0:
             return [1.0, -1.0]

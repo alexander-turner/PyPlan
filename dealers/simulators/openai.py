@@ -97,7 +97,5 @@ class OpenAIState(abstract_state.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        if isinstance(self.current_observation, numpy.ndarray):
-            return hash(self.current_observation.data.tobytes())
-        else:
-            return hash(self.current_observation)
+        return hash(self.current_observation.data.tobytes()) if isinstance(self.current_observation, numpy.ndarray) \
+            else hash(self.current_observation)

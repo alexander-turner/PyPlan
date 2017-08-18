@@ -74,8 +74,7 @@ class PacmanState(abstract_state.AbstractState):
             new_state = new_state.generateSuccessor(ghost_idx + 1, ghost_action)
 
         reward = new_state.getScore() - self.current_state.getScore()  # reward Pacman gets
-        rewards = [-1 * reward] * self.num_players  # reward ghosts get
-        rewards[0] *= -1  # correct Pacman reward
+        rewards = [reward if player_idx == 0 else -1 * reward for player_idx in range(self.num_players)]
 
         self.current_state = new_state
 

@@ -35,7 +35,8 @@ class ChessState(abstract_state.AbstractState):
         reward = self.current_state.move_piece(action)
         self.current_state.last_action = action
 
-        previous_player, self.current_player = self.current_player, (self.current_player + 1) % self.num_players
+        previous_player = self.current_player
+        self.update_current_player()
 
         self.current_state.cached_actions = []
         self.get_actions()
