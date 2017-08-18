@@ -97,8 +97,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         :param depth: how many more layers to generate before using the state evaluation function.
         """
         if node.state.is_terminal():
-            node.upper_state = node.transition_reward
-            node.lower_state = node.transition_reward
+            node.upper_state, node.lower_state = [node.transition_reward] * 2
             return
 
         if self.evaluate_bounds:  # if we have a bound-evaluation function for each state
@@ -106,8 +105,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
         if depth == 0:  # reached a leaf
             state_value = self.evaluation.evaluate(node.state)
-            node.upper_state = state_value[node.state.current_player]
-            node.lower_state = state_value[node.state.current_player]
+            node.upper_state, node.lower_state = [state_value[node.state.current_player]] * 2
             return
         elif node.times_visited == 0:
             for action_idx in range(node.num_actions):
@@ -122,8 +120,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
             if sim_state not in node.children[best_action_idx]:
                 new_node = Node(sim_state, immediate_reward[node.state.current_player])
-                new_node.upper_state = self.maximums[depth-1]
-                new_node.lower_state = self.minimums[depth-1]
+                new_node.upper_state, new_node.lower_state = self.maximums[depth-1], self.minimums[depth-1]
 
                 node.children[best_action_idx][sim_state] = new_node
                 self.num_nodes += 1  # we've made a new Node
@@ -230,8 +227,7 @@ class Node:
         self.bounds = []
 
         # Bounds on the state value
-        self.upper_state = float('inf')
-        self.lower_state = float('-inf')
+        self.upper_state, self.lower_state = float('inf'), float('-inf')
 
         # action_expansions[action_idx] = how many times we've sampled the given action
         self.action_expansions = [0] * self.num_actions

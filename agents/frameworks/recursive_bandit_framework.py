@@ -44,7 +44,7 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
         # Create a bandit according to how many actions are available at the current state
         bandit = self.bandit_class(num_actions) if self.bandit_parameters is None \
-                                                else self.bandit_class(num_actions, self.bandit_parameters)
+                 else self.bandit_class(num_actions, self.bandit_parameters)
 
         q_values = [[0] * state.num_players] * num_actions  # for each action, for each player, initialize a q value
         if self.multiprocess and depth == self.depth:

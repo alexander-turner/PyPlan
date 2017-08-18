@@ -43,10 +43,8 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         bandit = self.bandit_class(num_policies, self.bandit_parameters) if self.bandit_parameters \
             else self.bandit_class(num_policies)
 
-        # For each policy, for each player, initialize a q value
-        q_values = []
-        for _ in range(num_policies):
-            q_values.append([0]*state.num_players)
+        # For each policy, for each player, initialize a q-value
+        q_values = [[0] * state.num_players for _ in range(num_policies)]
 
         if self.multiprocess:
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
@@ -57,20 +55,20 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
                     remaining -= pulls_to_use
 
                     for arm_data in outputs:
-                        policy_idx, total_reward = arm_data[0], arm_data[1]
+                        policy_idx, total_reward = arm_data
                         q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], total_reward)]
-                        bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
+                        bandit.update(policy_idx, total_reward[state.current_player])
         else:
             for _ in range(self.pulls_per_node):  # use pull budget
                 arm_data = self.run_pull(state, bandit)
 
                 # Integrate total reward with current q_values
-                policy_idx, total_reward = arm_data[0], arm_data[1]
+                policy_idx, total_reward = arm_data
                 q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], total_reward)]
                 bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
 
         # Get most-selected action of highest-valued policy (useful for stochastic environments)
-        best_policy_idx = bandit.select_best_arm()  # rewards
+        best_policy_idx = bandit.select_best_arm()
         best_action_select = self.policies[best_policy_idx].select_action(state)
 
         return [q / bandit.get_num_pulls(best_policy_idx) for q in q_values[best_policy_idx]], best_action_select

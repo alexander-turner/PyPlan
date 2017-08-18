@@ -11,7 +11,6 @@ class ChessState(abstract_state.AbstractState):
 
     def __init__(self):
         self.current_state = chess.Board()
-        self.current_player = 0
         self.game_outcome = None  # 0 - player1 is winner, 'draw' - draw, 1 - player2 is winner, None - game not over
 
         self.resources = {}  # image resources for pygame
@@ -45,8 +44,9 @@ class ChessState(abstract_state.AbstractState):
             if self.game_outcome != 'draw':
                 reward = self.current_state.piece_values['k']
 
-        rewards = [reward for _ in range(self.num_players)]
-        rewards[self.current_player] *= -1  # the current player gets the opposite of the reward (e.g. losing a piece)
+        # The current player gets the opposite of the reward (e.g. losing a piece)
+        rewards = [-1 * reward if player_idx == self.current_player else reward
+                   for player_idx in range(self.num_players)]
         return rewards
 
     def get_actions(self):

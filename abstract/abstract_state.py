@@ -30,7 +30,7 @@ class AbstractState:
 
     @abc.abstractmethod
     def set(self, state):
-        """Makes the object equivalent to state by copying the critical information from state."""
+        """Makes the object equivalent to state by copying the critical information."""
         raise NotImplementedError
 
     @abc.abstractmethod
