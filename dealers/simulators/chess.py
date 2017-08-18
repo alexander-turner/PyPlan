@@ -75,8 +75,12 @@ class ChessState(abstract_state.AbstractState):
             self.width, self.height = 360, 360
             self.tile_size = int(self.width / self.current_state.width)  # assume width == height
             self.screen = pygame.display.set_mode((self.width, self.height))
+
+            pygame.display.set_caption(self.env_name)
             if len(self.resources) == 0:
                 self.load_resources("..\\dealers\\simulators\\chesscode\\sprites")
+            icon = pygame.transform.scale(self.resources['kwhite'], (32, 32))
+            pygame.display.set_icon(icon)
 
         pygame.event.clear()  # allows for pausing and debugging without losing rendering capability
 
