@@ -1,5 +1,5 @@
 from agents import recursive_bandit_framework
-from evaluations import rollout_evaluation
+from agents.evaluations import rollout_evaluation
 
 
 class RolloutAgent(recursive_bandit_framework.RecursiveBanditFramework):

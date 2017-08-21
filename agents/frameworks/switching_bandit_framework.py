@@ -1,6 +1,7 @@
+import numpy as np
 import multiprocessing
 from abstract import abstract_agent
-from bandits import uniform_bandit
+from agents.bandits import uniform_bandit
 
 
 class SwitchingBanditFramework(abstract_agent.AbstractAgent):
@@ -44,7 +45,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
             else self.bandit_class(num_policies)
 
         # For each policy, for each player, initialize a q-value
-        q_values = [[0] * state.num_players for _ in range(num_policies)]
+        q_values = np.array([[0.0] * state.num_players for _ in range(num_policies)])
 
         if self.multiprocess:
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
@@ -56,7 +57,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
                     for arm_data in outputs:
                         policy_idx, total_reward = arm_data
-                        q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], total_reward)]
+                        q_values[policy_idx] += total_reward
                         bandit.update(policy_idx, total_reward[state.current_player])
         else:
             for _ in range(self.pulls_per_node):  # use pull budget
@@ -64,14 +65,14 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
                 # Integrate total reward with current q_values
                 policy_idx, total_reward = arm_data
-                q_values[policy_idx] = [sum(r) for r in zip(q_values[policy_idx], total_reward)]
+                q_values[policy_idx] += total_reward
                 bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
 
         # Get most-selected action of highest-valued policy (useful for stochastic environments)
         best_policy_idx = bandit.select_best_arm()
         best_action_select = self.policies[best_policy_idx].select_action(state)
 
-        return [q / bandit.get_num_pulls(best_policy_idx) for q in q_values[best_policy_idx]], best_action_select
+        return q_values[best_policy_idx] / bandit.num_pulls[best_policy_idx], best_action_select
 
     def run_pull(self, state, bandit):
         """Choose an arm to pull, execute the action, and return the chosen arm and total reward received."""
@@ -80,13 +81,13 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         policy = self.policies[policy_idx]
 
         sim_state = state.clone()
-        total_reward = [0] * state.num_players  # calculate discounted total rewards
+        total_reward = np.array([0.0] * state.num_players)  # calculate discounted total rewards
         for _ in range(self.depth):
             if sim_state.is_terminal():
                 break
             action = policy.select_action(sim_state)
             immediate_reward = sim_state.take_action(action)
-            total_reward = [sum(r) for r in zip(total_reward, immediate_reward)]
+            total_reward += immediate_reward
 
         return [policy_idx, total_reward]
 

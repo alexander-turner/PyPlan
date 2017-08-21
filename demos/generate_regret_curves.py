@@ -1,4 +1,4 @@
-import numpy as np
+import np as np
 import multiprocessing
 import matplotlib.pyplot as plt
 
@@ -23,6 +23,7 @@ def generate_regret_curves(bandits, pull_max, slot_machines, num_trials=50):
         bandit, temp_cumulative, temp_simple = output  # cumulative and simple are same for all bandits
         cumulative[bandit], simple[bandit] = temp_cumulative, temp_simple
 
+    for machine_idx in range(len(slot_machines)):
         # Construct and display graphs for each bandit algorithm
         plt.figure()
         for regret_type in ('Cumulative', 'Simple'):
@@ -31,22 +32,19 @@ def generate_regret_curves(bandits, pull_max, slot_machines, num_trials=50):
 
             ax.set_xlim(1, pull_max + 1)
             ax.set_xlabel('Number of Pulls')
-            ax.set_ylabel(regret_type + ' Regret')  # TODO share ylim
+            ax.set_ylabel(regret_type + ' Regret')
 
             regret_dict = cumulative if regret_type == 'Cumulative' else simple
-
-            for machine_idx in range(len(slot_machines)):
-                ax.plot(range(1, pull_max + 1), regret_dict[bandit][machine_idx],
-                        label='Slot machine ' + str(machine_idx + 1))
+            for bandit in bandits:
+                ax.plot(range(1, pull_max + 1), regret_dict[bandit][machine_idx], label=bandit.name)
 
             ax.legend(loc='lower right')
-            ax.set_title(regret_type + ' Regret for {} ({} trials)'.format(bandit.name, num_trials))
+            ax.set_title(regret_type + ' Regret for Slot Machine {} ({} trials)'.format(machine_idx + 1, num_trials))
     plt.show()
 
 
 def run_machine(bandit, pull_max, slot_machines, num_trials):
-    cumulative, simple = [[[0 for _ in range(pull_max)]
-                           for _ in range(len(slot_machines))]
+    cumulative, simple = [np.array([[0.0 for _ in range(pull_max)] for _ in range(len(slot_machines))])
                           for _ in range(2)]
 
     for machine_idx, machine in enumerate(slot_machines):
@@ -61,7 +59,7 @@ def run_machine(bandit, pull_max, slot_machines, num_trials):
 
                 # Calculate regrets
                 c, s = get_cumulative_regret(new_bandit, machine.max_expected_reward), \
-                       get_simple_regret(new_bandit, machine.max_expected_reward)
+                       get_simple_regret(new_bandit, machine.max_expected_reward)  # todo simple regret 0 for first machine
 
                 # Update our averages
                 cumulative[machine_idx][pull_num] = update_rolling_avg(cumulative[machine_idx][pull_num],

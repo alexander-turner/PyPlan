@@ -1,5 +1,5 @@
 from agents import switching_bandit_framework
-from bandits import e_bandit
+from agents.bandits import e_bandit
 
 
 class EPolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework):

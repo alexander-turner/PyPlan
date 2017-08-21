@@ -1,6 +1,6 @@
 from agents import *
 from dealers import *
-from evaluations import *
+from agents.evaluations import *
 
 if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
@@ -20,7 +20,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     ss_d2 = sparse_sampling_agent.SparseSamplingAgent(depth=2, pulls_per_node=20, evaluation=evaluation)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgent(depth=5, pulls_per_node=5, evaluation=evaluation)
 
-    uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=1000, c=1)
+    uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=10, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
     fsss = fsss_agent.FSSSAgent(depth=5, pulls_per_node=20, num_trials=100)
 
@@ -33,6 +33,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[random], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    #pacman.run(agents=[u_ro], num_trials=9, multiprocess_mode='trials')
+    pacman.run(agents=[switch_agent], num_trials=9, multiprocess_mode='trials')
 
-    native.run(agents=[fsss, uct], num_trials=1, env_name='Chess', multiprocess_mode='', show_moves=True)
+    #native.run(agents=[fsss, uct], num_trials=1, env_name='Chess', multiprocess_mode='', show_moves=True)

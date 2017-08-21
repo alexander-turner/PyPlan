@@ -1,5 +1,5 @@
 from agents.frameworks import fsss_framework
-from evaluations import rollout_evaluation
+from agents.evaluations import rollout_evaluation
 
 
 class FSSSAgent(fsss_framework.FSSSFramework):

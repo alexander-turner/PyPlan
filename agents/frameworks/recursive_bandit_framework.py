@@ -1,8 +1,8 @@
 import multiprocessing
 import copy
 from abstract import abstract_agent
-from bandits import uniform_bandit
-from evaluations import zero_evaluation
+from agents.bandits import uniform_bandit
+from agents.evaluations import zero_evaluation
 
 
 class RecursiveBanditFramework(abstract_agent.AbstractAgent):
@@ -64,7 +64,7 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
         best_arm_index = bandit.select_best_arm()
 
-        return [q / bandit.get_num_pulls(best_arm_index) for q in q_values[best_arm_index]], action_list[best_arm_index]
+        return [q / bandit.num_pulls[best_arm_index] for q in q_values[best_arm_index]], action_list[best_arm_index]
 
     @staticmethod
     def update_bandit(q_values, arm_data, current_player, bandit):

@@ -1,5 +1,5 @@
 from agents import rollout_agent
-from bandits import uniform_bandit
+from agents.bandits import uniform_bandit
 
 
 class UniformRolloutAgent(rollout_agent.RolloutAgent):

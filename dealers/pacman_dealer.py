@@ -87,7 +87,7 @@ class Dealer(abstract_dealer.AbstractDealer):
                     game_outputs += pool.map(self.run_trial, range(trials_to_execute))
                     remaining -= trials_to_execute
                     bar.update(self.num_trials - remaining)
-                    time.sleep(0.1)  # so we don't print extra progress bars
+                time.sleep(0.2)  # so we don't print extra progress bars
         else:  # enable arm-based multiprocessing
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 old_config = agent.multiprocess
@@ -95,7 +95,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             for i in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial(i))
-            time.sleep(0.1)
+            time.sleep(0.2)
 
             if self.multiprocess_mode == 'bandit' and hasattr(agent, 'set_multiprocess'):
                 agent.set_multiprocess(old_config)

@@ -1,5 +1,5 @@
 from agents import rollout_agent
-from bandits import ucb_bandit
+from agents.bandits import ucb_bandit
 
 
 class UCBRolloutAgent(rollout_agent.RolloutAgent):

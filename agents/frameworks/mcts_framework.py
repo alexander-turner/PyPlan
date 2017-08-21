@@ -1,7 +1,7 @@
 import random
 from abstract import abstract_agent
-from bandits import uniform_bandit
-from evaluations import zero_evaluation
+from agents.bandits import uniform_bandit
+from agents.evaluations import zero_evaluation
 
 
 class MCTSFramework(abstract_agent.AbstractAgent):

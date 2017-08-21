@@ -1,5 +1,5 @@
 from agents import rollout_agent
-from bandits import e_bandit
+from agents.bandits import e_bandit
 
 
 class ERolloutAgent(rollout_agent.RolloutAgent):

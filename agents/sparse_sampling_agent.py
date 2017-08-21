@@ -1,5 +1,5 @@
 from agents import recursive_bandit_framework
-from bandits import uniform_bandit
+from agents.bandits import uniform_bandit
 
 
 class SparseSamplingAgent(recursive_bandit_framework.RecursiveBanditFramework):

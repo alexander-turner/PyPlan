@@ -1,6 +1,6 @@
 from agents import mcts_framework
-from bandits import ucb_bandit, e_bandit
-from evaluations import rollout_evaluation
+from agents.bandits import ucb_bandit, e_bandit
+from agents.evaluations import rollout_evaluation
 
 
 class ERootUCTAgent(mcts_framework.MCTSFramework):
