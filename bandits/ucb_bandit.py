@@ -1,4 +1,5 @@
 import math
+import numpy
 from abstract import abstract_bandit
 
 
@@ -26,10 +27,7 @@ class UCBBandit(abstract_bandit.AbstractBandit):
             return 0
 
         if self.total_pulls >= self.num_arms:  # if we've pulled each arm at least once
-            best_arm, _ = max(enumerate(self.average_reward), key=lambda x: self.calculate_ucb(x[0]))
-            return best_arm
+            ucb_array = self.average_reward + self.c * numpy.emath.sqrt(math.log(self.total_pulls) / self.num_pulls)
+            return ucb_array.argmax()
         else:  # pull the first arm that has yet to be pulled
             return self.total_pulls
-
-    def calculate_ucb(self, arm):
-        return self.average_reward[arm] + self.c * math.sqrt(math.log(self.total_pulls) / self.num_pulls[arm])

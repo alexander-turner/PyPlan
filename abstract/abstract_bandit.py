@@ -14,7 +14,7 @@ class AbstractBandit:
 
     def initialize(self):
         """Reset the bandit."""
-        self.average_reward = numpy.array([0] * self.num_arms)
+        self.average_reward = numpy.array([0.0] * self.num_arms)
         self.num_pulls = numpy.array([0] * self.num_arms)
         self.total_pulls = 0
 
