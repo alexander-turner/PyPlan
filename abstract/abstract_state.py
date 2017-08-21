@@ -37,7 +37,7 @@ class AbstractState:
     def take_action(self, action):
         """This method simulates the result of taking action in the state.
 
-        It returns the resulting reward vector, where the reward is a list [r1,...,r_n] for an n agent game.
+        It returns the resulting reward vector, where the reward is a numpy array [r1,...,r_n] for an n agent game.
         The state object is updated to reflect the new state.
 
         As an example, a random trajectory of length horizon from the initial state could be implemented by the

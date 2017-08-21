@@ -1,5 +1,6 @@
 import copy
 import os
+import numpy as np
 import pygame
 from abstract import abstract_state
 from dealers.simulators.chesscode import chess
@@ -45,8 +46,8 @@ class ChessState(abstract_state.AbstractState):
                 reward = self.current_state.piece_values['k']
 
         # The current player gets the opposite of the reward (e.g. losing a piece)
-        rewards = [-1 * reward if player_idx == self.current_player else reward
-                   for player_idx in range(self.num_players)]
+        rewards = np.array([-1 * reward if player_idx == self.current_player else reward
+                            for player_idx in range(self.num_players)])
         return rewards
 
     def get_actions(self):

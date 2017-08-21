@@ -1,5 +1,6 @@
-import multiprocessing
 import copy
+import multiprocessing
+import numpy as np
 from abstract import abstract_agent
 from agents.bandits import uniform_bandit
 from agents.evaluations import zero_evaluation
@@ -46,7 +47,7 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
         bandit = self.bandit_class(num_actions) if self.bandit_parameters is None \
                  else self.bandit_class(num_actions, self.bandit_parameters)
 
-        q_values = [[0] * state.num_players] * num_actions  # for each action, for each player, initialize a q value
+        q_values = np.array([[0.0] * state.num_players] * num_actions)  # q-value for each action and each player
         if self.multiprocess and depth == self.depth:
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
                 remaining = self.pulls_per_node
@@ -64,16 +65,14 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
         best_arm_index = bandit.select_best_arm()
 
-        return [q / bandit.num_pulls[best_arm_index] for q in q_values[best_arm_index]], action_list[best_arm_index]
+        return q_values[best_arm_index] / bandit.num_pulls[best_arm_index], action_list[best_arm_index]
 
     @staticmethod
     def update_bandit(q_values, arm_data, current_player, bandit):
         """Update the relevant arm of bandit and the q_values with the new rewards observed."""
         chosen_arm, total_reward = arm_data
         bandit.update(chosen_arm, total_reward[current_player])  # update the reward for the given arm
-
-        # Integrate total reward with current q_values
-        q_values[chosen_arm] = [sum(r) for r in zip(q_values[chosen_arm], total_reward)]
+        q_values[chosen_arm] += total_reward
 
     def run_pull(self, state, bandit, depth):
         """Choose an arm to pull, execute the action, and return the chosen arm and total reward received."""
@@ -82,6 +81,5 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
         immediate_reward = current_state.take_action(current_state.get_actions()[chosen_arm])
         future_reward = self.estimateV(current_state, depth - 1)[0]  # [0] references the q_values for best action
-        total_reward = [sum(r) for r in zip(immediate_reward, future_reward)]
 
-        return [chosen_arm, total_reward]
+        return chosen_arm, immediate_reward + future_reward

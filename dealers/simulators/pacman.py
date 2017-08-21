@@ -1,5 +1,6 @@
-import sys
+import numpy as np
 import os
+import sys
 sys.path.append(os.path.abspath('..\\dealers\\simulators\\pacmancode'))  # assume we're running from demos/
 from abstract import abstract_state
 from dealers.simulators.pacmancode import *
@@ -80,7 +81,7 @@ class PacmanState(abstract_state.AbstractState):
 
         self.time_step_count += 1  # mark that another time step has elapsed
 
-        return rewards  # how much our score increased because of this action
+        return np.array(rewards)  # how much our score increased because of this action
 
     def get_actions(self):
         return self.current_state.getLegalActions()

@@ -1,6 +1,7 @@
-from abstract import abstract_state
 import copy
+import numpy as np
 import random
+from abstract import abstract_state
 
 
 class TetrisState(abstract_state.AbstractState):
@@ -72,7 +73,7 @@ class TetrisState(abstract_state.AbstractState):
                     else:
                         current_board[subx] = current_board[subx - 1]
 
-        return reward
+        return np.array(reward)
 
     def get_actions(self):
         actions_list = []

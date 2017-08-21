@@ -1,6 +1,7 @@
-from abstract import abstract_state
-import random
 import copy
+import numpy as np
+import random
+from abstract import abstract_state
 from itertools import combinations
 
 """
@@ -59,7 +60,7 @@ class YahtzeeState(abstract_state.AbstractState):
                 new_roll = random.randrange(1, 7)
                 self.current_state["dice_config"][value[dice]] = new_roll
         self.update_current_player()
-        return reward_vector
+        return np.array(reward_vector)
 
     def update_current_player(self):
         current_roll = self.current_state["current_roll"]

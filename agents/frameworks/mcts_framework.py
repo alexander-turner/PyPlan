@@ -1,3 +1,4 @@
+import numpy as np
 import random
 from abstract import abstract_agent
 from agents.bandits import uniform_bandit
@@ -49,7 +50,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         :param node: points to a BanditNode object.
         :param depth: how many more layers to generate before using the evaluation function.
-        :return total_reward:
+        :return total_reward: a numpy Array.
         """
         if node.bandit is None:  # leaf node
             return self.evaluation.evaluate(node.state)
@@ -60,15 +61,13 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         if len(node.children[action_index]) >= self.max_width:
             # Each key is a state
             keys = list(node.children[action_index].keys())
-            counts = [node.children[action_index][k][1] for k in keys]
-            normalizer = sum(counts)
-            counts = [c / normalizer for c in counts]  # list of counts proportional to total number of samples
+            counts = np.array([node.children[action_index][k][1] for k in keys])
+            counts = counts / counts.sum()  # list of counts proportional to total number of samples
 
             successor_index = multinomial(counts)  # randomly sample from polynomial counts - greater counts more likely
             successor_node = node.children[action_index][keys[successor_index]][0]
 
-            total_reward = list(map(sum, zip(successor_node.transition_reward,  # immediate reward  TODO numpy?
-                                             self.run_trial(successor_node, depth - 1))))
+            total_reward = successor_node.transition_reward + self.run_trial(successor_node, depth - 1)
         else:  # generate a new successor node
             successor_state = node.state.clone()
             # reward for taking selected action at this node
@@ -81,7 +80,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
                 # increment how many times successor_state has been sampled
                 node.children[action_index][successor_node.state][1] += 1
                 # recurse downwards into the constructed tree
-                total_reward = list(map(sum, zip(immediate_reward, self.run_trial(successor_node, depth - 1))))
+                total_reward = immediate_reward + self.run_trial(successor_node, depth - 1)
             else:
                 if successor_state.is_terminal() or depth == 1:  # indicate it's time to use the evaluation fn
                     successor_bandit = None
@@ -94,7 +93,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
                 node.children[action_index][successor_node.state] = [successor_node, 1]
                 self.num_nodes += 1  # we've made a new BanditNode
 
-                total_reward = list(map(sum, zip(immediate_reward, self.evaluation.evaluate(successor_state))))
+                total_reward = immediate_reward + self.evaluation.evaluate(successor_state)
 
         node.bandit.update(action_index, total_reward[node.state.current_player])
         return total_reward

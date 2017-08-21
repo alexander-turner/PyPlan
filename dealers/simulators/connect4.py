@@ -1,4 +1,5 @@
 import copy
+import numpy as np
 from abstract import abstract_state
 
 
@@ -35,11 +36,11 @@ class Connect4State(abstract_state.AbstractState):
         self.update_current_player()  # change turn
 
         if self.game_outcome == 0:
-            return [1.0, -1.0]
+            return np.array([1.0, -1.0])
         elif self.game_outcome == 1:
-            return [-1.0, 1.0]
+            return np.array([-1.0, 1.0])
         else:
-            return [0.0, 0.0]
+            return np.array([0.0, 0.0])
 
     def get_actions(self):
         actions_list = []

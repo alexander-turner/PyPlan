@@ -86,8 +86,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
             if sim_state.is_terminal():
                 break
             action = policy.select_action(sim_state)
-            immediate_reward = sim_state.take_action(action)
-            total_reward += immediate_reward
+            total_reward += sim_state.take_action(action)
 
         return [policy_idx, total_reward]
 

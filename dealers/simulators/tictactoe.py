@@ -1,5 +1,6 @@
-from abstract import abstract_state
 import copy
+import numpy as np
+from abstract import abstract_state
 
 """
 Simulator Class for TicTacToe
@@ -53,7 +54,7 @@ class TicTacToeState(abstract_state.AbstractState):
             rewards = [1.0 if player_idx == self.game_outcome else -1.0
                        for player_idx in range(self.num_players)]
         self.update_current_player()
-        return rewards
+        return np.array(rewards)
 
     def get_actions(self):
         actions = []

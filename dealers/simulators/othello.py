@@ -1,18 +1,6 @@
-from abstract import abstract_state
 import copy
-
-"""
-Simulator Class for Othello
-
-NOTE :
-------
-
-1. self.game_outcome = None -> Implies that the game is a draw.
-		                	    Otherwise this variable holds the winning player's number.
-								Player number 0 for X, 1 for O.
-
-2. Reward scheme : Win = +1.0. Lose = -1.0. Draw = 0.
-"""
+import numpy as np
+from abstract import abstract_state
 
 
 class OthelloState(abstract_state.AbstractState):
@@ -50,7 +38,7 @@ class OthelloState(abstract_state.AbstractState):
 
         # Check for null action
         if value == -1:
-            return [0.0] * self.num_players
+            return np.array([0.0] * self.num_players)
 
         self.current_state[position[0]][position[1]] = value
 
@@ -79,7 +67,7 @@ class OthelloState(abstract_state.AbstractState):
 
         self.update_current_player()
 
-        return reward
+        return np.array(reward)
 
     def color_coins(self, curr_turn, curr_posn, direction, do_color):
         i = curr_posn[0]

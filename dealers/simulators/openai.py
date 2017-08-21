@@ -1,5 +1,5 @@
 import copy
-import numpy
+import numpy as np
 import itertools
 import gym
 from gym import spaces
@@ -70,7 +70,7 @@ class OpenAIState(abstract_state.AbstractState):
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
         self.current_observation, reward, self.done, _ = self.env.step(action)
-        return [reward]
+        return np.array([reward])
 
     def get_actions(self):
         if isinstance(self.action_space, spaces.Discrete):
@@ -78,8 +78,7 @@ class OpenAIState(abstract_state.AbstractState):
         elif isinstance(self.action_space, spaces.Tuple):
             action_spaces = self.action_space.spaces
             ranges = tuple(tuple(range(s.n)) for s in action_spaces)
-            product = tuple(itertools.product(*ranges))  # return all combinations of action dimensions
-            return product
+            return tuple(itertools.product(*ranges))  # return all combinations of action dimensions
         else:
             raise NotImplementedError
 
@@ -97,5 +96,5 @@ class OpenAIState(abstract_state.AbstractState):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
-        return hash(self.current_observation.data.tobytes()) if isinstance(self.current_observation, numpy.ndarray) \
+        return hash(self.current_observation.data.tobytes()) if isinstance(self.current_observation, np.ndarray) \
             else hash(self.current_observation)
