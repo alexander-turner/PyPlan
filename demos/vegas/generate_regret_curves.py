@@ -1,9 +1,9 @@
-import np as np
+import numpy as np
 import multiprocessing
 import matplotlib.pyplot as plt
 
 
-def generate_regret_curves(bandits, pull_max, slot_machines, num_trials=50):
+def generate_regret_curves(bandits, pull_max, slot_machines, num_trials=20):
     """Generate and graph regret curves for bandits x pull_values on simulator.
 
     :param bandits: the bandit classes to use.
@@ -11,10 +11,9 @@ def generate_regret_curves(bandits, pull_max, slot_machines, num_trials=50):
     :param slot_machines: slot machines (BanditProblems) from vegas which will be used to measure regret.
     :param num_trials: how many trials we will run.
     """
-    pull_max = int(pull_max)
-
     # Generate data
     processes_to_create = min(multiprocessing.cpu_count() - 1, len(bandits))
+    pull_max = int(pull_max)
     with multiprocessing.Pool(processes=processes_to_create) as pool:
         outputs = pool.starmap(run_machine, [[bandit, pull_max, slot_machines, num_trials] for bandit in bandits])
 
@@ -57,20 +56,15 @@ def run_machine(bandit, pull_max, slot_machines, num_trials):
                 reward = machine.pull(arm)
                 new_bandit.update(arm, reward)
 
-                # Calculate regrets
-                c, s = get_cumulative_regret(new_bandit, machine.max_expected_reward), \
-                       get_simple_regret(new_bandit, machine.max_expected_reward)  # todo simple regret 0 for first machine
+                # Calculate regrets and update our averages
+                cumulative[machine_idx][pull_num] += get_cumulative_regret(new_bandit, machine.max_expected_reward)
+                simple[machine_idx][pull_num] += get_simple_regret(new_bandit, machine.max_expected_reward)
 
-                # Update our averages
-                cumulative[machine_idx][pull_num] = update_rolling_avg(cumulative[machine_idx][pull_num],
-                                                                        trial_num, c)
-                simple[machine_idx][pull_num] = update_rolling_avg(simple[machine_idx][pull_num], trial_num, s)
+        # Compute averages (do all at once to take advantage of numpy)
+        cumulative[machine_idx] /= num_trials
+        simple[machine_idx] /= num_trials
 
     return bandit, cumulative, simple
-
-
-def update_rolling_avg(current_avg, trial_num, new_value):
-    return (current_avg * (trial_num - 1) + new_value) / trial_num
 
 
 def get_cumulative_regret(bandit, max_reward):

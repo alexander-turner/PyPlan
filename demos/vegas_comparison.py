@@ -20,4 +20,4 @@ if __name__ == '__main__':
                      vegas.BanditProblem([[i/20, 0.1] for i in range(20)]),
                      vegas.BanditProblem([[1, 0.01] if i == 0 else [-1, 0.001] for i in range(10)])]
 
-    generate_regret_curves.generate_regret_curves(bandits=bandits, pull_max=1e6, slot_machines=slot_machines)
+    generate_regret_curves.generate_regret_curves(bandits=bandits, pull_max=1e4, slot_machines=slot_machines)

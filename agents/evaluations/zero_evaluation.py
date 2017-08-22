@@ -1,3 +1,4 @@
+import numpy as np
 from abstract import abstract_evaluation
 
 
@@ -6,4 +7,4 @@ class ZeroEvaluation(abstract_evaluation.AbstractEvaluation):
     
     def evaluate(self, state):
         """Returns zero reward for all players, regardless of state."""
-        return [0] * state.number_of_players()
+        return np.array([0] * state.number_of_players())
