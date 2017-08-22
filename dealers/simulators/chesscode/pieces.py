@@ -1,4 +1,3 @@
-import itertools
 import numpy as np
 
 
@@ -57,7 +56,7 @@ class Pawn(Piece):
                           self.get_actions_promotion, self.get_actions_en_passant]
 
         actions = [func(board) for func in move_functions]  # generate actions
-        return list(itertools.chain.from_iterable(actions))  # flatten lists
+        return [action for sublist in actions for action in sublist]  # flatten lists
 
     def get_actions_one_step(self, board):
         # Move forward one if the square isn't occupied

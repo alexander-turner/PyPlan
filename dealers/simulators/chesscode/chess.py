@@ -217,7 +217,5 @@ class Player:
             self.board.set_piece(position, piece)
 
     def get_actions(self):
-        actions = []
-        for piece in self.pieces:
-            actions += piece.get_actions(self.board)
-        return actions  # TODO compress?
+        actions = [piece.get_actions(self.board) for piece in self.pieces]
+        return [action for sublist in actions for action in sublist]
