@@ -1,5 +1,5 @@
 from agents.bandits import *
-from demos import generate_regret_curves, vegas
+from demos.vegas import *
 
 """
 We can compare the cumulative and simple regret metrics for different bandit algorithms via "slot machines" (bandit

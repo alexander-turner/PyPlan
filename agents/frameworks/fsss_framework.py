@@ -1,5 +1,6 @@
 import heapq
 import math
+import numpy as np
 from abstract import abstract_agent
 
 
@@ -19,8 +20,8 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         self.num_nodes = 1
         self.env_name = ""  # the name of the environment for which the value bounds are configured
 
-        self.maximums = [float('inf') for _ in range(self.depth + 1)]  # the maximum value for the given depth
-        self.minimums = [float('-inf') for _ in range(self.depth + 1)]
+        self.maximums = np.array([float('inf') for _ in range(self.depth + 1)])  # the maximum value for the given depth
+        self.minimums = np.array([float('-inf') for _ in range(self.depth + 1)])
         self.evaluate_bounds = False  # whether we have a per-state bound evaluation function
 
     def select_action(self, state):
@@ -47,8 +48,8 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         value_bounds = state.get_value_bounds()
         if value_bounds['evaluation function'] is not None:  # use function to evaluate each state and derive the bounds
             eval_min, eval_max = value_bounds['evaluation function'](state)
-            self.maximums = [eval_max for _ in range(self.depth + 1)]
-            self.minimums = [eval_min for _ in range(self.depth + 1)]
+            self.maximums = np.array([eval_max for _ in range(self.depth + 1)])
+            self.minimums = np.array([eval_min for _ in range(self.depth + 1)])
 
             self.evaluate_bounds = True
             return
@@ -230,4 +231,4 @@ class Node:
         self.upper_state, self.lower_state = float('inf'), float('-inf')
 
         # action_expansions[action_idx] = how many times we've sampled the given action
-        self.action_expansions = [0] * self.num_actions
+        self.action_expansions = np.array([0] * self.num_actions)

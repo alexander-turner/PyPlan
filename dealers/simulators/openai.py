@@ -52,20 +52,14 @@ class OpenAIState(abstract_state.AbstractState):
         self.action_space = self.env.action_space
         # Check that we can handle the action space
         if (not isinstance(self.action_space, spaces.Discrete) and not isinstance(self.action_space, spaces.Tuple)) or \
-                (hasattr(self.action_space, 'spaces') and self.contains_type(self.action_space.spaces, spaces.Box)):
+                (hasattr(self.action_space, 'spaces') and any(isinstance(space, spaces.Box)
+                                                              for space in self.action_space.spaces)):
             raise ValueError('Action space {} incompatible with {} (only supports Discrete and Tuple action spaces).'
                              .format(self.action_space, self))
         self.observation_space = self.env.observation_space
 
         self.current_observation = self.env.reset()  # initial observation
         self.done = False  # indicates if the current observation is terminal
-
-    @staticmethod
-    def contains_type(lst, t):
-        """Returns true if at least one element in lst is of type t."""
-        for l in lst:
-            if isinstance(l, t):
-                return True
 
     def take_action(self, action):
         """Take the action and update the current state accordingly."""
