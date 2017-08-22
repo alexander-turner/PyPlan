@@ -1,3 +1,4 @@
+import numpy as np
 from abstract import abstract_evaluation
 from agents import random_agent
 
@@ -14,21 +15,20 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
 
     def evaluate(self, state):
         """Evaluate the state using the parameters of the rollout policy."""
-        total_rewards = [0] * state.num_players
-        for sim_num in range(self.width):  # for each of width simulations
-            total_rewards = [sum(r) for r in zip(total_rewards, self.run_rollout(state))]
+        total_rewards = np.array([0.0] * state.num_players)
+        for _ in range(self.width):  # for each of width simulations
+            total_rewards += self.run_rollout(state)
 
-        return [r / self.width for r in total_rewards]  # average rewards over each of width simulations
+        return total_rewards / self.width
 
     def run_rollout(self, state):
         """Simulate a rollout, returning the rewards accumulated."""
-        rewards = [0] * state.num_players
+        rewards = np.array([0.0] * state.num_players)
         sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
         for h in range(self.depth):
             if sim_state.is_terminal():  # act and track rewards as long as possible
                 break
             action = self.rollout_policy.select_action(sim_state)
-            immediate_rewards = sim_state.take_action(action)
-            rewards = [sum(r) for r in zip(rewards, immediate_rewards)]
+            rewards += sim_state.take_action(action)
 
         return rewards

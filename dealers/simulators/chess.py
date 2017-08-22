@@ -14,7 +14,7 @@ class ChessState(abstract_state.AbstractState):
         self.current_state = chess.Board()
         self.game_outcome = None  # 0 - player1 is winner, 'draw' - draw, 1 - player2 is winner, None - game not over
 
-        self.resources = {}  # image resources for pygame
+        self.resources = {}  # sprites for pygame
 
     def reinitialize(self):
         self.current_state = chess.Board()

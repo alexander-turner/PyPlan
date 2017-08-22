@@ -3,7 +3,7 @@ from demos.vegas import *
 
 """
 We can compare the cumulative and simple regret metrics for different bandit algorithms via "slot machines" (bandit
-problems where each arm has a certain probability of giving a reward, else 0; for more detail, see demos/vegas.py).
+problems where each arm has a certain probability of giving a reward, else 0; see demos/vegas/vegas.py).
 """
 
 if __name__ == '__main__':
