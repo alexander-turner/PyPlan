@@ -114,7 +114,7 @@ class BanditNode:
         The key for each successor is the state. 
         The value is a list [n,c], where n is a BanditNode and c is the number of times that n has been sampled.
         """
-        self.children = [{} for _ in range(len(action_list))]
+        self.children = [{} for _ in action_list]
 
 
 def multinomial(p):

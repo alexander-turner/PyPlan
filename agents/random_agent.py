@@ -1,5 +1,5 @@
-from abstract import abstract_agent
 import random
+from abstract import abstract_agent
 
 
 class RandomAgent(abstract_agent.AbstractAgent):
@@ -18,6 +18,4 @@ class RandomAgent(abstract_agent.AbstractAgent):
         if actions_count == 0:
             raise ValueError("Action count cannot be zero.")
 
-        choice = random.randrange(actions_count)
-
-        return valid_actions[choice]
+        return valid_actions[random.randrange(actions_count)]

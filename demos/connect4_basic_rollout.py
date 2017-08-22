@@ -15,6 +15,6 @@ if __name__ == '__main__':
     nested_e_ro = e_rollout_agent.ERolloutAgent(depth=2, num_pulls=10, epsilon=0.5, policy=e_ro)
 
     dealer = native_dealer.Dealer()
-    dealer.run(agents=[u_ro, nested_u_ro], num_trials=10, env_name='connect4')
-    dealer.run(agents=[u_ro, e_ro], num_trials=10, env_name='connect4')
-    dealer.run(agents=[nested_u_ro, nested_e_ro], num_trials=10, env_name='connect4')
+    dealer.run(agents=[u_ro, nested_u_ro], num_trials=10, env_name='Connect4')
+    dealer.run(agents=[u_ro, e_ro], num_trials=10, env_name='Connect4')
+    dealer.run(agents=[nested_u_ro, nested_e_ro], num_trials=10, env_name='Connect4')

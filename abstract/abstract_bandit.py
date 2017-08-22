@@ -29,7 +29,7 @@ class AbstractBandit:
         return self.average_reward.argmax()
 
     def get_best_reward(self):
-        return self.average_reward[self.select_best_arm()]
+        return self.average_reward.max()
 
     @abc.abstractmethod
     def select_pull_arm(self):

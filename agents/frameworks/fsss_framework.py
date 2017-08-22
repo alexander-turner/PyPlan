@@ -158,8 +158,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
                 new_upper = reward + self.discount * upper_average
         else:
             upper_average = (sum([n.upper_state * n.times_sampled for n in child_nodes]) +
-                             self.maximums[depth-1] * pulls_remaining) \
-                            / self.pulls_per_node
+                             self.maximums[depth-1] * pulls_remaining) / self.pulls_per_node
             new_upper = reward + self.discount * upper_average
 
         if math.isinf(self.minimums[depth-1]):
@@ -170,8 +169,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
                 new_lower = reward + self.discount * lower_average
         else:
             lower_average = (sum([n.lower_state * n.times_sampled for n in child_nodes]) +
-                             self.minimums[depth-1] * pulls_remaining) \
-                            / self.pulls_per_node
+                             self.minimums[depth-1] * pulls_remaining) / self.pulls_per_node
             new_lower = reward + self.discount * lower_average
 
         return new_upper, new_lower
