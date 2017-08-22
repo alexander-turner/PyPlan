@@ -1,4 +1,5 @@
 import itertools
+import numpy as np
 
 
 class Piece:
@@ -16,18 +17,18 @@ class Piece:
         self.position, self.initial_position = position, tuple(position)
         self.color = color
 
-        self.directions = []
+        self.directions = np.array([])
         if self.can_orthogonal:
-            self.directions += self.orthogonal
+            np.append(self.directions, self.orthogonal)
         if self.can_diagonal:
-            self.directions += self.diagonal
+            np.append(self.directions, self.diagonal)
 
     def get_actions(self, board):
         actions = []
         for row_change, col_change in self.directions:
-            new_position = self.position
+            new_position, change_unit = self.position, np.array([row_change, col_change])
             for _ in range(self.range):
-                new_position = board.compute_position(new_position, (row_change, col_change))
+                new_position += change_unit
                 if board.is_legal(Action(self.position, new_position)):
                     actions.append(Action(self.position, new_position))
                 elif not board.in_bounds(new_position) or board.is_occupied(new_position):
@@ -60,7 +61,7 @@ class Pawn(Piece):
 
     def get_actions_one_step(self, board):
         # Move forward one if the square isn't occupied
-        new_position = board.compute_position(self.position, (self.movement_direction, 0))
+        new_position = self.position + np.array([self.movement_direction, 0])
         actions = []
 
         if board.in_bounds(new_position) and not board.is_occupied(new_position) and \
@@ -71,10 +72,10 @@ class Pawn(Piece):
 
     def get_actions_two_step(self, board):
         # If we're in the initial position and the square two ahead is empty, we can move there
-        new_position = board.compute_position(self.position, (self.movement_direction * 2, 0))
+        new_position = self.position + np.array([self.movement_direction * 2, 0])
         actions = []
 
-        if self.position == self.initial_position and not board.is_occupied(new_position) and \
+        if np.array_equal(self.position, self.initial_position) and not board.is_occupied(new_position) and \
            board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
 
@@ -86,7 +87,7 @@ class Pawn(Piece):
         actions = []
 
         for diagonal in diagonals:
-            new_position = board.compute_position(self.position, diagonal)
+            new_position = self.position + np.array(diagonal)
             if board.in_bounds(new_position) and board.is_occupied(new_position) and \
                     board.is_legal(Action(self.position, new_position)):
                 actions.append(Action(self.position, new_position))
@@ -105,19 +106,17 @@ class Pawn(Piece):
         return actions
 
     def get_actions_en_passant(self, board):
-        sides = ((0, -1), (0, 1))
         actions = []
 
-        for adjacent_position in [board.compute_position(self.position, side) for side in sides]:
+        for adjacent_position in self.position + np.array(((0, -1), (0, 1))):
             if board.in_bounds(adjacent_position) and board.last_action is not None and \
-               board.last_action.new_position == adjacent_position:
+               np.array_equal(board.last_action.new_position, adjacent_position):
                 adjacent_piece = board.get_piece(adjacent_position)  # retrieve the piece next to us
                 last_action = board.last_action  # if last action was an enemy pawn moving two
                 if isinstance(adjacent_piece, Pawn) and not board.is_same_color(self, adjacent_piece.position) and \
-                   board.compute_change(last_action.current_position, last_action.new_position)[0] == 2:
-                    diagonal = (self.movement_direction, board.compute_change(self.position, adjacent_position)[1])
-                    new_position = board.compute_position(self.position, diagonal)
-                    actions.append(Action(self.position, new_position, 'en passant'))
+                        (last_action.new_position - last_action.current_position)[0] == 2:
+                    diagonal = np.array((self.movement_direction, (adjacent_position - self.position)[1]))
+                    actions.append(Action(self.position, self.position + diagonal, 'en passant'))
 
         return actions
 
@@ -133,7 +132,7 @@ class Knight(Piece):
     abbreviation = 'n'
 
     def get_actions(self, board):
-        moves = [Action(self.position, board.compute_position(self.position, delta)) for delta in self.deltas]
+        moves = [Action(self.position, self.position + np.array(delta)) for delta in self.deltas]
         return filter(board.is_legal, moves)
 
 
@@ -158,12 +157,12 @@ class King(Piece):
         actions = super().get_actions(board)  # basic moves
 
         # Check to see if we can castle
-        if self.position == self.initial_position:
+        if np.array_equal(self.position, self.initial_position):
             for rook in [piece for piece in board.players[self.color].pieces if isinstance(piece, Rook)]:
-                if rook.position == rook.initial_position and board.has_line_of_sight(self, rook.position):
+                if np.array_equal(rook.position, rook.initial_position) and board.has_line_of_sight(self, rook.position):
                     side = (0, -1) if rook.position[1] < self.position[1] else (0, 1)  # if left of king
-                    king_new_position = board.compute_position(self.position, (side[0], side[1]*2))
-                    rook_new_position = board.compute_position(self.position, side)
+                    king_new_position = self.position + np.array((side[0], side[1]*2))
+                    rook_new_position = self.position + np.array(side)
                     actions.append(Action(self.position, king_new_position, special_type='castle',
                                           special_params=Action(rook.position, rook_new_position)))
         return actions

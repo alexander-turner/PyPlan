@@ -33,9 +33,8 @@ class ChessState(abstract_state.AbstractState):
         
     def take_action(self, action):
         reward = self.current_state.move_piece(action)
-        self.current_state.last_action = action
 
-        previous_player = self.current_player
+        self.current_state.last_action, previous_player = action, self.current_player
         self.update_current_player()
 
         self.current_state.cached_actions = []
@@ -46,9 +45,8 @@ class ChessState(abstract_state.AbstractState):
                 reward = self.current_state.piece_values['k']
 
         # The current player gets the opposite of the reward (e.g. losing a piece)
-        rewards = np.array([-1 * reward if player_idx == self.current_player else reward
-                            for player_idx in range(self.num_players)])
-        return rewards
+        return np.array([-1 * reward if player_idx == self.current_player else reward
+                         for player_idx in range(self.num_players)])
 
     def get_actions(self):
         if len(self.current_state.cached_actions) == 0:
