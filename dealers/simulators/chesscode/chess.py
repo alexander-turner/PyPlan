@@ -184,7 +184,7 @@ class Player:
         if color not in ('white', 'black'):
             raise Exception('Invalid color - must be white or black.')
         self.color = color
-        self.pieces = {}  # TODO group dict by piece type
+        self.pieces = {}
         self.king = None  # track where the king is
 
     def set_pieces(self):
@@ -217,5 +217,5 @@ class Player:
             self.board.set_piece(position, piece)
 
     def get_actions(self):
-        actions = [piece.get_actions(self.board) for piece in self.pieces]
-        return [action for sublist in actions for action in sublist]
+        action_lists = [piece.get_actions(self.board) for piece in self.pieces]
+        return [action for sublist in action_lists for action in sublist]

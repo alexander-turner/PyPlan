@@ -50,17 +50,15 @@ class Pawn(Piece):
 
     def get_actions(self, board):
         """Return legal actions for the given board."""
-        if not hasattr(self, 'movement_direction'):
-            self.movement_direction = board.movement_direction[self.color]
         move_functions = [self.get_actions_one_step, self.get_actions_two_step, self.get_actions_diagonal,
                           self.get_actions_promotion, self.get_actions_en_passant]
 
-        actions = [func(board) for func in move_functions]  # generate actions
-        return [action for sublist in actions for action in sublist]  # flatten lists
+        action_lists = [func(board) for func in move_functions]  # generate actions
+        return [action for sublist in action_lists for action in sublist]  # flatten lists
 
     def get_actions_one_step(self, board):
         # Move forward one if the square isn't occupied
-        new_position = self.position + np.array([self.movement_direction, 0])
+        new_position = self.position + np.array([board.movement_direction[self.color], 0])
         actions = []
 
         if board.in_bounds(new_position) and not board.is_occupied(new_position) and \
@@ -71,7 +69,7 @@ class Pawn(Piece):
 
     def get_actions_two_step(self, board):
         # If we're in the initial position and the square two ahead is empty, we can move there
-        new_position = self.position + np.array([self.movement_direction * 2, 0])
+        new_position = self.position + np.array([board.movement_direction[self.color] * 2, 0])
         actions = []
 
         if np.array_equal(self.position, self.initial_position) and not board.is_occupied(new_position) and \
@@ -82,7 +80,7 @@ class Pawn(Piece):
 
     def get_actions_diagonal(self, board):
         # Check if enemy piece is at diagonals
-        diagonals = ((self.movement_direction, -1), (self.movement_direction, 1))
+        diagonals = ((board.movement_direction[self.color], -1), (board.movement_direction[self.color], 1))
         actions = []
 
         for diagonal in diagonals:
@@ -114,7 +112,7 @@ class Pawn(Piece):
                 last_action = board.last_action  # if last action was an enemy pawn moving two
                 if isinstance(adjacent_piece, Pawn) and not board.is_same_color(self, adjacent_piece.position) and \
                         (last_action.new_position - last_action.current_position)[0] == 2:
-                    diagonal = np.array((self.movement_direction, (adjacent_position - self.position)[1]))
+                    diagonal = np.array((board.movement_direction[self.color], (adjacent_position - self.position)[1]))
                     actions.append(Action(self.position, self.position + diagonal, 'en passant'))
 
         return actions
@@ -127,11 +125,11 @@ class Rook(Piece):
 
 class Knight(Piece):
     range = 2
-    deltas = ((2, 1), (2, -1), (-2, -1), (-2, 1), (1, 2), (1, -2), (-1, 2), (-1, -2))
+    deltas = np.array(((2, 1), (2, -1), (-2, -1), (-2, 1), (1, 2), (1, -2), (-1, 2), (-1, -2)))
     abbreviation = 'n'
 
     def get_actions(self, board):
-        moves = [Action(self.position, self.position + np.array(delta)) for delta in self.deltas]
+        moves = [Action(self.position, self.position + delta) for delta in self.deltas]
         return filter(board.is_legal, moves)
 
 

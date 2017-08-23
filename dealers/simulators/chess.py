@@ -22,7 +22,7 @@ class ChessState(abstract_state.AbstractState):
         self.game_outcome = None
 
     def clone(self):
-        new_state = copy.copy(self)
+        new_state = copy.copy(self)  # TODO manual copy
         new_state.current_state = copy.deepcopy(self.current_state)
         return new_state
 
@@ -30,8 +30,8 @@ class ChessState(abstract_state.AbstractState):
         self.current_state = state.current_state
         self.current_player = state.current_player
         self.game_outcome = state.game_outcome
-        
-    def take_action(self, action):
+
+    def take_action(self, action):  # TODO fix for FSSS
         reward = self.current_state.move_piece(action)
 
         self.current_state.last_action, previous_player = action, self.current_player

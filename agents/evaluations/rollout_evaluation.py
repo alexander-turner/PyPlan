@@ -25,7 +25,7 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
         """Simulate a rollout, returning the rewards accumulated."""
         rewards = np.array([0.0] * state.num_players)
         sim_state = state.clone()  # create the simulated state so that the current state is left unchanged
-        for h in range(self.depth):
+        for _ in range(self.depth):
             if sim_state.is_terminal():  # act and track rewards as long as possible
                 break
             action = self.rollout_policy.select_action(sim_state)

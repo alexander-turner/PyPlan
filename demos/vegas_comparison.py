@@ -4,6 +4,9 @@ from demos.vegas import *
 """
 We can compare the cumulative and simple regret metrics for different bandit algorithms via "slot machines" (bandit
 problems where each arm has a certain probability of giving a reward, else 0; see demos/vegas/vegas.py).
+
+See if you can explain each bandit's performance over time on each slot machine! Also think about when we would want to 
+minimize cumulative regret instead of simple regret?
 """
 
 if __name__ == '__main__':

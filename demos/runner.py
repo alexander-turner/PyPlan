@@ -6,7 +6,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
     openai = openai_dealer.Dealer()
     pacman = pacman_dealer.Dealer(layout_repr='testClassic')
-    native = native_dealer.Dealer()
+    native = native_dealer.Dealer(simulation_horizon=500)
 
     random = random_agent.RandomAgent()
     u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
@@ -33,6 +33,6 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[random], num_trials=1, env_name='SpaceInvaders-v0', multiprocess_mode='trials', show_moves=False, upload=False)
 
-    pacman.run(agents=[nested_u_ro], num_trials=6, multiprocess_mode='trials')
+    #pacman.run(agents=[nested_u_ro], num_trials=6, multiprocess_mode='trials')
 
-    #native.run(agents=[fsss, fsss], num_trials=1, env_name='Chess', multiprocess_mode='', show_moves=True)
+    native.run(agents=[u_ro, fsss], num_trials=1, env_name='Chess', multiprocess_mode='', show_moves=True)

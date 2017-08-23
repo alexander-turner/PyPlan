@@ -13,7 +13,7 @@ class UCBBandit(abstract_bandit.AbstractBandit):
     def __init__(self, num_arms, c=1.0):
         """Initialize the bandit with the given parameters.
 
-        :param c: multiplier for the exploration constant in the UCB equation.
+        :param c: exploration constant in the UCB equation.
         """
         super().__init__(num_arms)
         self.c = c
