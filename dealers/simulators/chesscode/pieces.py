@@ -80,11 +80,11 @@ class Pawn(Piece):
 
     def get_actions_diagonal(self, board):
         # Check if enemy piece is at diagonals
-        diagonals = ((board.movement_direction[self.color], -1), (board.movement_direction[self.color], 1))
+        diagonals = np.array(((board.movement_direction[self.color], -1), (board.movement_direction[self.color], 1)))
         actions = []
 
         for diagonal in diagonals:
-            new_position = self.position + np.array(diagonal)
+            new_position = self.position + diagonal
             if board.in_bounds(new_position) and board.is_occupied(new_position) and \
                     board.is_legal(Action(self.position, new_position)):
                 actions.append(Action(self.position, new_position))
@@ -167,7 +167,7 @@ class King(Piece):
 
 class Action:
     def __init__(self, current_position, new_position, special_type=None, special_params=None):
-        """Initialize a Move object.
+        """Initialize an Action.
 
         :param current_position: the starting piece position.
         :param new_position: the position to which the piece will move.
