@@ -1,6 +1,4 @@
-import copy
 import dealers.simulators.chesscode.pieces as pieces  # interfaces for the pieces
-import numpy as np
 from functools import partial
 
 
@@ -11,7 +9,7 @@ class Board:
     bounds = {'top': 0, 'bottom': height - 1, 'left': 0, 'right': width - 1}
     movement_direction = {'white': -1, 'black': 1}  # which direction pawns of the given color can move
 
-    piece_values = {'p': 1.0, 'n': 4.0, 'b': 3.5, 'r': 7.0, 'q': 13.5, 'k': 1000.0}  # values from Kurzdorfer 2003
+    piece_values = {'p': 1, 'n': 4, 'b': 3.5, 'r': 7, 'q': 13.5, 'k': 1000}  # values from Kurzdorfer 2003
 
     def __init__(self):
         self.current_state = [[' ' for _ in range(self.width)] for _ in range(self.height)]
@@ -76,7 +74,7 @@ class Board:
             return True
 
         # Check that the move is a valid line
-        position_change = new_position - piece.position  # total change in position
+        position_change = self.compute_change(piece.position, new_position)  # total change in position
         if position_change[0] != 0 and position_change[1] != 0:  # moving at least one square in each direction
             if not piece.can_diagonal or abs(position_change[0]) != abs(position_change[1]):
                 return False
@@ -90,10 +88,10 @@ class Board:
         if position_change[1] != 0:
             col_change = 1 if position_change[1] > 0 else -1  # per-iteration col change
 
-        position, change_unit = copy.copy(piece.position), np.array([row_change, col_change])
+        position = piece.position
         while True:
-            position += change_unit
-            if np.array_equal(position, new_position):  # simulate a do-while
+            position = self.compute_position(position, [row_change, col_change])
+            if position == new_position:  # simulate a do-while
                 return True
             if self.is_occupied(position):
                 return False
@@ -123,12 +121,11 @@ class Board:
         for piece in filtered_pieces:
             actions += piece.get_actions(self)
         self.allow_king_capture = False
-        return any(np.array_equal(action.new_position, king.position) for action in actions)
+        return any(action.new_position == king.position for action in actions)
 
-    @staticmethod
-    def in_range(piece, new_position):
+    def in_range(self, piece, new_position):
         """Returns True if the piece could potentially move to the given position (i.e. within movement bounds)."""
-        position_change = new_position - piece.position
+        position_change = self.compute_change(piece.position, new_position)
         return -1 * piece.range <= position_change[0] <= piece.range and \
                -1 * piece.range <= position_change[1] <= piece.range
 
@@ -168,6 +165,15 @@ class Board:
         self.players[removed_piece.color].pieces.pop(removed_piece)
         return self.piece_values[removed_piece.abbreviation]
 
+    @staticmethod
+    def compute_position(current_position, position_change):
+        """Add (row, col) to (row_change, col_change)."""
+        return [current_position[0] + position_change[0], current_position[1] + position_change[1]]
+
+    @staticmethod
+    def compute_change(current_position, new_position):
+        return [new_position[0] - current_position[0], new_position[1] - current_position[1]]
+
     def __str__(self):
         board_str = ''
         for row in range(self.height):
@@ -194,14 +200,14 @@ class Player:
 
         # Place the pawns
         for col in range(self.board.width):
-            position = np.array([pawn_row, col])
+            position = [pawn_row, col]
             pawn = pieces.Pawn(position, self.color)
             self.pieces[pawn] = pawn
             self.board.set_piece(position, pawn)
 
         # Place the back line
         for col in range(self.board.width):
-            position = np.array([back_row, col])
+            position = [back_row, col]
             if col == 0 or col == 7:
                 piece = pieces.Rook(position, self.color)
             elif col == 1 or col == 6:
@@ -217,5 +223,5 @@ class Player:
             self.board.set_piece(position, piece)
 
     def get_actions(self):
-        action_lists = [piece.get_actions(self.board) for piece in self.pieces]
-        return [action for sublist in action_lists for action in sublist]
+        actions = [piece.get_actions(self.board) for piece in self.pieces]
+        return [action for sublist in actions for action in sublist]
