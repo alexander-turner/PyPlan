@@ -36,7 +36,7 @@ class Piece:
         return actions
 
     def __hash__(self):
-        return hash(self.initial_position)
+        return hash((self.initial_position, self.color))
 
     def __str__(self):
         return self.abbreviation.upper() if self.color == 'white' else self.abbreviation
@@ -130,8 +130,8 @@ class Knight(Piece):
     abbreviation = 'n'
 
     def get_actions(self, board):
-        moves = [Action(self.position, board.compute_position(self.position, delta)) for delta in self.deltas]
-        return filter(board.is_legal, moves)
+        actions = [Action(self.position, board.compute_position(self.position, delta)) for delta in self.deltas]
+        return filter(board.is_legal, actions)
 
 
 class Bishop(Piece):
@@ -168,8 +168,7 @@ class King(Piece):
 
 class Action:
     def __init__(self, current_position, new_position, special_type=None, special_params=None):
-        """Initialize a Move object.
-
+        """
         :param current_position: the starting piece position.
         :param new_position: the position to which the piece will move.
         :param special_type: what type (castling / en passant / pawn promotion) of special move, if any, this is.
@@ -188,5 +187,4 @@ class Action:
         return str(row) + str(col)
 
     def __str__(self):
-        current, new = self.chess_notation(self.current_position), self.chess_notation(self.new_position)
-        return current + " to " + new
+        return self.chess_notation(self.current_position) + " to " + self.chess_notation(self.new_position)

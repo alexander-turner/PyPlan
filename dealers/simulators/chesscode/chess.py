@@ -23,6 +23,15 @@ class Board:
         self.verify_not_checked = True  # only sim_states at 1st-level recursion should have this as False
         self.allow_king_capture = False  # used to see if moves are checking the king
 
+    def configure(self, board):
+        self.current_state = board.current_state[:]  # TODO board pointers still refer to old pieces
+        for color in self.players:
+            self.players[color].configure(board.players[color])
+        self.cached_actions = board.cached_actions[:]
+        #self.last_action, self.verify_not_checked, self.allow_king_capture = board.last_action, \
+        #                                                                     board.verify_not_checked, \
+        #                                                                     board.allow_king_capture
+
     def is_legal(self, action):
         # Check whether the destination is in-bounds
         if not self.in_bounds(action.new_position):
@@ -192,6 +201,12 @@ class Player:
         self.color = color
         self.pieces = {}
         self.king = None  # track where the king is
+
+    def configure(self, player):
+        """Copy the information from player."""
+        self.color = player.color
+        self.pieces = player.pieces.copy()
+        self.king = player.king
 
     def set_pieces(self):
         """Set the player's pieces in the correct location for their color."""

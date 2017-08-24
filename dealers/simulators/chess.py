@@ -12,7 +12,7 @@ class ChessState(abstract_state.AbstractState):
 
     def __init__(self):
         self.current_state = chess.Board()
-        self.game_outcome = None  # 0 - player1 is winner, 'draw' - draw, 1 - player2 is winner, None - game not over
+        self.game_outcome = None  # 0 - player 1 won, 'draw' - draw, 1 - player 2 won, None - game not over
 
         self.resources = {}  # sprites for pygame
 
@@ -23,7 +23,8 @@ class ChessState(abstract_state.AbstractState):
 
     def clone(self):
         new_state = copy.copy(self)
-        new_state.current_state = copy.deepcopy(self.current_state)
+        #new_state.current_state.configure(self.current_state)
+        new_state.current_state = copy.deepcopy(self.current_state)  # TODO remove deepcopy
         return new_state
 
     def set(self, state):
