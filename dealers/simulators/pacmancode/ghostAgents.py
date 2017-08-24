@@ -18,6 +18,7 @@ from game import Directions
 import random
 from util import manhattanDistance
 import util
+import numpy as np
 
 
 class GhostAgent(Agent):
@@ -64,8 +65,8 @@ class DirectionalGhost(GhostAgent):
         speed = 1
         if isScared: speed = 0.5
 
-        actionVectors = [Actions.directionToVector(a, speed) for a in legalActions]
-        newPositions = [(pos[0] + a[0], pos[1] + a[1]) for a in actionVectors]
+        actionVectors = np.array([Actions.directionToVector(a, speed) for a in legalActions])
+        newPositions = pos + actionVectors
         pacmanPosition = state.getPacmanPosition()
 
         # Select best actions given the state

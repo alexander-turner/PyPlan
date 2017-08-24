@@ -13,4 +13,4 @@ if __name__ == '__main__':
     switching_agent = policy_switching_agent.PolicySwitchingAgent(depth=3, num_pulls=15, policies=[u_ro, ss])
 
     pacman = pacman_dealer.Dealer(layout_repr='testClassic')
-    pacman.run(agents=[u_ro, ss, switching_agent], num_trials=15)
+    pacman.run(agents=[u_ro, ss, switching_agent], num_trials=1, multiprocess_mode='')

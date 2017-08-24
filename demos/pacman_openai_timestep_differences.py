@@ -2,8 +2,8 @@ from agents import *
 from dealers import pacman_dealer, openai_dealer
 
 """
-Although Pacman and Ms. Pacman are nearly identical games, the latter's simulator has a much finer grid. This multiplies
- the depth required to have the same level of lookahead.
+Although to us humans, Pacman and Ms. Pacman are nearly identical games, the latter's simulator has a much finer grid. 
+This multiplies the depth required to have the same level of lookahead.
 """
 
 if __name__ == '__main__':
