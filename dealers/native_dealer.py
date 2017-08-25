@@ -185,11 +185,11 @@ class Dealer(abstract_dealer.AbstractDealer):
             time_values[current_state.current_player].append(time.time() - move_start_time)
 
             # Take selected action
-            reward = current_state.take_action(action_to_take)  # TODO take_action doesn't simulate other player
+            reward = current_state.take_action(action_to_take)
 
             game_history.append([reward, action_to_take])
             if self.show_moves:
-                if hasattr(current_state, 'render'):  # TODO render other domains
+                if hasattr(current_state, 'render'):
                     current_state.render()
                 else:
                     print("Agent {}".format(current_state.current_player + 1))

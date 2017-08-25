@@ -23,7 +23,8 @@ class ChessState(abstract_state.AbstractState):
 
     def clone(self):
         new_state = copy.copy(self)
-        #new_state.current_state.configure(self.current_state)
+        #new_state.current_state = chess.Board()
+        #new_state.current_state.configure(self.current_state)  # TODO stop changes from back-propagating
         new_state.current_state = copy.deepcopy(self.current_state)  # TODO remove deepcopy
         return new_state
 

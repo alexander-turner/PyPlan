@@ -1,4 +1,4 @@
-import itertools
+import copy
 
 
 class Piece:
@@ -21,6 +21,11 @@ class Piece:
             self.directions += self.orthogonal
         if self.can_diagonal:
             self.directions += self.diagonal
+
+    def copy(self):
+        new_piece = copy.copy(self)
+        new_piece.position = self.position.copy()
+        return copy.deepcopy(self)#new_piece
 
     def get_actions(self, board):
         actions = []

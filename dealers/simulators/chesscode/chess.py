@@ -26,11 +26,25 @@ class Board:
     def configure(self, board):
         self.current_state = board.current_state[:]  # TODO board pointers still refer to old pieces
         for color in self.players:
-            self.players[color].configure(board.players[color])
+            self.players[color].board = self
+            self.players[color].pieces = {}
+
+        for row in range(board.height):  # recreate piece sets
+            for col in range(board.width):
+                piece = board.get_piece((row, col))
+                if isinstance(piece, pieces.Piece):
+                    new_piece = piece.copy()
+                    self.set_piece((row, col), new_piece)
+                    self.players[new_piece.color].pieces[new_piece] = new_piece
+                    if isinstance(new_piece, pieces.King):
+                        self.players[new_piece.color].king = new_piece
+                else:  # is a string
+                    self.set_piece((row, col), piece)
+
         self.cached_actions = board.cached_actions[:]
-        #self.last_action, self.verify_not_checked, self.allow_king_capture = board.last_action, \
-        #                                                                     board.verify_not_checked, \
-        #                                                                     board.allow_king_capture
+        self.last_action = board.last_action
+        self.verify_not_checked = board.verify_not_checked
+        self.allow_king_capture = board.allow_king_capture
 
     def is_legal(self, action):
         # Check whether the destination is in-bounds
@@ -201,12 +215,6 @@ class Player:
         self.color = color
         self.pieces = {}
         self.king = None  # track where the king is
-
-    def configure(self, player):
-        """Copy the information from player."""
-        self.color = player.color
-        self.pieces = player.pieces.copy()
-        self.king = player.king
 
     def set_pieces(self):
         """Set the player's pieces in the correct location for their color."""
