@@ -1,4 +1,4 @@
-import dealers.simulators.chesscode.pieces as pieces  # interfaces for the pieces
+import dealers.simulators.chesscode.pieces as pieces
 from functools import partial
 
 
@@ -54,21 +54,6 @@ class Board:
         """Generate all actions available for pieces of the given color."""
         action_lists = [piece.get_actions(self) for piece in self.get_pieces(color)]
         return [action for sublist in action_lists for action in sublist]
-
-    def configure(self, board):
-        for row in range(board.height):  # copy each piece
-            for col in range(board.width):
-                piece = board.get_piece((row, col))
-                if piece != ' ':
-                    new_piece = piece.copy()
-                    self.set_piece((row, col), new_piece)
-                    if isinstance(new_piece, pieces.King):
-                        self.kings[new_piece.color] = new_piece
-                else:
-                    self.set_piece((row, col), piece)
-
-        self.cached_actions, self.last_action = board.cached_actions, board.last_action
-        self.verify_not_checked, self.allow_king_capture = board.verify_not_checked, board.allow_king_capture
 
     def is_legal(self, action):
         # Check whether the destination is in-bounds
@@ -142,9 +127,7 @@ class Board:
                 return False
 
     def is_same_color(self, piece, new_position):
-        """Returns True if the pieces are of the same color."""
-        if not self.is_occupied(new_position):  # TODO refactor
-            return False
+        """Returns True if the pieces are of the same color. Assumes new_position is occupied by a piece."""
         return piece.color == self.get_piece(new_position).color
 
     def is_checked(self, color):
@@ -153,8 +136,8 @@ class Board:
         :param color: the king's color.
         """
         king = self.kings[color]
-
         enemy_pieces = self.get_pieces('black' if color == 'white' else 'white')
+
         partial_in_range = partial(self.in_range, new_position=king.position)
         filtered_pieces = filter(partial_in_range, enemy_pieces)
 
@@ -213,6 +196,24 @@ class Board:
     @staticmethod
     def compute_change(current_position, new_position):
         return [new_position[0] - current_position[0], new_position[1] - current_position[1]]
+
+    def __copy__(self):
+        board = Board()
+        for row in range(board.height):  # copy each piece
+            for col in range(board.width):
+                piece = self.get_piece((row, col))
+                if piece != ' ':
+                    new_piece = piece.copy()
+                    board.set_piece((row, col), new_piece)
+                    if isinstance(new_piece, pieces.King):
+                        board.kings[new_piece.color] = new_piece
+                else:
+                    board.set_piece((row, col), piece)
+
+        board.cached_actions, board.last_action = self.cached_actions, self.last_action
+        board.verify_not_checked, board.allow_king_capture = self.verify_not_checked, self.allow_king_capture
+
+        return board
 
     def __str__(self):
         board_str = ''

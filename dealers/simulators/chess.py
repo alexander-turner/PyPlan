@@ -1,6 +1,6 @@
 import copy
-import os
 import numpy as np
+import os
 import pygame
 from abstract import abstract_state
 from dealers.simulators.chesscode import chess
@@ -25,8 +25,7 @@ class ChessState(abstract_state.AbstractState):
 
     def clone(self):
         new_state = copy.copy(self)
-        new_state.current_state = chess.Board()
-        new_state.current_state.configure(self.current_state)
+        new_state.current_state = copy.copy(self.current_state)
         return new_state
 
     def set(self, state):
