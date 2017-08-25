@@ -23,6 +23,11 @@ class Piece:
         if self.can_diagonal:
             self.directions += self.diagonal
 
+    def copy(self):
+        new_piece = type(self)(self.position, self.color)
+        new_piece.has_moved = self.has_moved
+        return new_piece
+
     def get_actions(self, board):
         actions = []
         for row_change, col_change in self.directions:

@@ -6,7 +6,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     # Dealer objects
     openai = openai_dealer.Dealer()
     pacman = pacman_dealer.Dealer(layout_repr='testClassic')
-    native = native_dealer.Dealer(simulation_horizon=500)
+    native = native_dealer.Dealer(simulation_horizon=50)
 
     random = random_agent.RandomAgent()
     u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
@@ -20,7 +20,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     ss_d2 = sparse_sampling_agent.SparseSamplingAgent(depth=2, pulls_per_node=20, evaluation=evaluation)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgent(depth=5, pulls_per_node=5, evaluation=evaluation)
 
-    uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=10, c=1)
+    uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=1000, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
     fsss = fsss_agent.FSSSAgent(depth=5, pulls_per_node=20, num_trials=100)
 

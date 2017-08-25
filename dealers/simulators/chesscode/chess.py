@@ -14,7 +14,6 @@ class Board:
     def __init__(self):
         self.current_state = [[' ' for _ in range(self.width)] for _ in range(self.height)]
         self.kings = {}
-        self.set_pieces()  # set up initial piece configuration
 
         self.cached_actions = []  # should be updated by an outside simulator each time the board changes
         self.last_action = None  # the last action executed
@@ -49,8 +48,7 @@ class Board:
 
     def get_pieces(self, color):  # TODO memoize
         """Returns a list of all pieces of the given color."""
-        return [piece for row in self.current_state for piece in row
-                if isinstance(piece, pieces.Piece) and piece.color == color]
+        return [piece for row in self.current_state for piece in row if piece != ' ' and piece.color == color]
 
     def get_actions(self, color):
         """Generate all actions available for pieces of the given color."""
@@ -58,23 +56,19 @@ class Board:
         return [action for sublist in action_lists for action in sublist]
 
     def configure(self, board):
-        self.current_state = board.current_state[:]  # TODO board pointers still refer to old pieces
-
-        for row in range(board.height):  # recreate piece sets
+        for row in range(board.height):  # copy each piece
             for col in range(board.width):
                 piece = board.get_piece((row, col))
-                if isinstance(piece, pieces.Piece):
+                if piece != ' ':
                     new_piece = piece.copy()
                     self.set_piece((row, col), new_piece)
                     if isinstance(new_piece, pieces.King):
                         self.kings[new_piece.color] = new_piece
-                else:  # is a string
+                else:
                     self.set_piece((row, col), piece)
 
-        self.cached_actions = board.cached_actions
-        self.last_action = board.last_action
-        self.verify_not_checked = board.verify_not_checked
-        self.allow_king_capture = board.allow_king_capture
+        self.cached_actions, self.last_action = board.cached_actions, board.last_action
+        self.verify_not_checked, self.allow_king_capture = board.verify_not_checked, board.allow_king_capture
 
     def is_legal(self, action):
         # Check whether the destination is in-bounds
@@ -116,7 +110,7 @@ class Board:
                self.bounds['left'] <= position[1] <= self.bounds['right']
 
     def is_occupied(self, position):
-        return isinstance(self.get_piece(position), pieces.Piece)
+        return self.get_piece(position) != ' '
 
     def has_line_of_sight(self, piece, new_position):
         """Returns true if the piece has a clear line of sight to its destination."""
@@ -194,7 +188,7 @@ class Board:
 
         # Update board
         self.set_piece(action.current_position, ' ')
-        piece.position = action.new_position 
+        piece.position = action.new_position
         piece.has_moved = True
 
         if action.special_type == 'promotion':  # pawn promotion
@@ -203,7 +197,7 @@ class Board:
             reward = self.piece_values[piece.abbreviation] - self.piece_values['p']
         elif action.special_type == 'en passant':
             reward = self.piece_values[self.get_piece(self.last_action.new_position).abbreviation]
-            self.set_piece(self.last_action.new_position, ' ')  # remove the pawn TODO if we go back to old, fix this
+            self.set_piece(self.last_action.new_position, ' ')  # remove the pawn
         elif action.special_type == 'castle':
             self.move_piece(action.special_params)  # contains rook's action
 
