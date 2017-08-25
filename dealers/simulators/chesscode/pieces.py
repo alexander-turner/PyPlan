@@ -13,19 +13,15 @@ class Piece:
     abbreviation = ''  # lower-case letter that represents the piece
 
     def __init__(self, position, color):
-        self.position, self.initial_position = position, tuple(position)
+        self.position = position
         self.color = color
 
+        self.has_moved = False
         self.directions = []
         if self.can_orthogonal:
             self.directions += self.orthogonal
         if self.can_diagonal:
             self.directions += self.diagonal
-
-    def copy(self):
-        new_piece = copy.copy(self)
-        new_piece.position = self.position.copy()
-        return copy.deepcopy(self)#new_piece
 
     def get_actions(self, board):
         actions = []
@@ -39,9 +35,6 @@ class Piece:
                     break
 
         return actions
-
-    def __hash__(self):
-        return hash((self.initial_position, self.color))
 
     def __str__(self):
         return self.abbreviation.upper() if self.color == 'white' else self.abbreviation
@@ -77,7 +70,7 @@ class Pawn(Piece):
         new_position = board.compute_position(self.position, (board.movement_direction[self.color] * 2, 0))
         actions = []
 
-        if self.position == self.initial_position and not board.is_occupied(new_position) and \
+        if not self.has_moved and not board.is_occupied(new_position) and \
            board.is_legal(Action(self.position, new_position)):
             actions.append(Action(self.position, new_position))
 
@@ -114,10 +107,12 @@ class Pawn(Piece):
             if board.in_bounds(adjacent_position) and board.last_action is not None and \
                board.last_action.new_position == adjacent_position:
                 adjacent_piece = board.get_piece(adjacent_position)  # retrieve the piece next to us
-                last_action = board.last_action  # if last action was an enemy pawn moving two
+
+                # If last action was an enemy pawn moving two
                 if isinstance(adjacent_piece, Pawn) and not board.is_same_color(self, adjacent_piece.position) and \
-                   board.compute_change(last_action.current_position, last_action.new_position)[0] == 2:
-                    diagonal = (board.movement_direction[self.color], board.compute_change(self.position, adjacent_position)[1])
+                   board.compute_change(board.last_action.current_position, board.last_action.new_position)[0] == 2:
+                    diagonal = (board.movement_direction[self.color],
+                                board.compute_change(self.position, adjacent_position)[1])
                     new_position = board.compute_position(self.position, diagonal)
                     actions.append(Action(self.position, new_position, 'en passant'))
 
@@ -160,9 +155,9 @@ class King(Piece):
         actions = super().get_actions(board)  # basic moves
 
         # Check to see if we can castle
-        if self.position == self.initial_position:
-            for rook in [piece for piece in board.players[self.color].pieces if isinstance(piece, Rook)]:
-                if rook.position == rook.initial_position and board.has_line_of_sight(self, rook.position):
+        if not self.has_moved:
+            for rook in [piece for piece in board.get_pieces(self.color) if isinstance(piece, Rook)]:  # TODO implement
+                if not rook.has_moved and board.has_line_of_sight(self, rook.position):
                     side = (0, -1) if rook.position[1] < self.position[1] else (0, 1)  # if left of king
                     king_new_position = board.compute_position(self.position, (side[0], side[1]*2))
                     rook_new_position = board.compute_position(self.position, side)

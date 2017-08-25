@@ -52,7 +52,7 @@ class ChessState(abstract_state.AbstractState):
 
     def get_actions(self):
         if len(self.current_state.cached_actions) == 0:
-            self.current_state.cached_actions = self.current_state.players[self.get_current_color()].get_actions()
+            self.current_state.cached_actions = self.current_state.get_actions(self.get_current_color())
         return self.current_state.cached_actions
 
     def get_current_color(self):
@@ -86,7 +86,7 @@ class ChessState(abstract_state.AbstractState):
         pygame.event.clear()  # allows for pausing and debugging without losing rendering capability
 
         self.screen.blit(self.resources['background'], self.resources['background'].get_rect())
-        for piece in {**self.current_state.players['white'].pieces, **self.current_state.players['black'].pieces}:
+        for piece in self.current_state.get_pieces('white') + self.current_state.get_pieces('black'):  # TODO improve
             # Load the image, scale it, and put it on the correct tile
             name = piece.abbreviation + piece.color
             image = self.resources[name]
