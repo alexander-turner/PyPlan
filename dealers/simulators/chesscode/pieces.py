@@ -10,7 +10,7 @@ class Piece:
     abbreviation = ''  # lower-case letter that represents the piece
 
     def __init__(self, position, color):
-        self.position = position
+        self.position, self.initial_position = position, tuple(position)
         self.color = color
 
         self.has_moved = False
@@ -37,6 +37,9 @@ class Piece:
                     break
 
         return actions
+
+    def __hash__(self):
+        return hash(self.initial_position)
 
     def __str__(self):
         return self.abbreviation.upper() if self.color == 'white' else self.abbreviation
@@ -158,7 +161,7 @@ class King(Piece):
 
         # Check to see if we can castle
         if not self.has_moved:
-            for rook in [piece for piece in board.get_pieces(self.color) if isinstance(piece, Rook)]:  # TODO implement
+            for rook in [piece for piece in board.pieces[self.color] if isinstance(piece, Rook)]:  # TODO implement
                 if not rook.has_moved and board.has_line_of_sight(self, rook.position):
                     side = (0, -1) if rook.position[1] < self.position[1] else (0, 1)  # if left of king
                     king_new_position = board.compute_position(self.position, (side[0], side[1]*2))

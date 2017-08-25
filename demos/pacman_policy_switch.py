@@ -1,4 +1,5 @@
 from agents import *
+from agents.evaluations import rollout_evaluation
 from dealers import pacman_dealer
 
 """
@@ -9,7 +10,8 @@ policy.
 """
 if __name__ == '__main__':
     u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=1, num_pulls=100)
-    ss = sparse_sampling_agent.SparseSamplingAgent(depth=2, pulls_per_node=20)
+    evaluation = rollout_evaluation.RolloutEvaluation(width=1, depth=10)
+    ss = sparse_sampling_agent.SparseSamplingAgent(depth=2, pulls_per_node=5, evaluation=evaluation)
     switching_agent = policy_switching_agent.PolicySwitchingAgent(depth=3, num_pulls=5, policies=[u_ro, ss])
 
     pacman = pacman_dealer.Dealer(layout_repr='testClassic')

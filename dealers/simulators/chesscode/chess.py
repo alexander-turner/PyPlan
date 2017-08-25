@@ -13,6 +13,7 @@ class Board:
 
     def __init__(self):
         self.current_state = [[' ' for _ in range(self.width)] for _ in range(self.height)]
+        self.pieces = {'white': {}, 'black': {}}
         self.kings = {}
 
         self.cached_actions = []  # should be updated by an outside simulator each time the board changes
@@ -30,7 +31,9 @@ class Board:
 
             for col in range(self.width):
                 # Set the pawn row
-                self.set_piece([pawn_row, col], pieces.Pawn([pawn_row, col], color))
+                pawn = pieces.Pawn([pawn_row, col], color)
+                self.set_piece([pawn_row, col], pawn)
+                self.pieces[color][pawn] = pawn
 
                 # Set the back row
                 if col == 0 or col == 7:
@@ -45,22 +48,17 @@ class Board:
                     piece = pieces.King([back_row, col], color)
                     self.kings[color] = piece
                 self.set_piece([back_row, col], piece)
-
-    def get_pieces(self, color):  # TODO memoize
-        """Returns a list of all pieces of the given color."""
-        return [piece for row in self.current_state for piece in row if piece != ' ' and piece.color == color]
+                self.pieces[color][piece] = piece
 
     def get_actions(self, color):
         """Generate all actions available for pieces of the given color."""
-        action_lists = [piece.get_actions(self) for piece in self.get_pieces(color)]
+        action_lists = [piece.get_actions(self) for piece in self.pieces[color]]
         return [action for sublist in action_lists for action in sublist]
 
     def is_legal(self, action):
-        # Check whether the destination is in-bounds
         if not self.in_bounds(action.new_position):
             return False
 
-        # If has LOS to the new position
         piece = self.get_piece(action.current_position)
         if not self.has_line_of_sight(piece, action.new_position):
             return False
@@ -85,7 +83,8 @@ class Board:
             self.verify_not_checked = True
             self.move_piece(pieces.Action(action.new_position, action.current_position))
             self.set_piece(action.new_position, piece_to_remove)
-
+            if piece_to_remove != ' ':
+                self.pieces[piece_to_remove.color][piece_to_remove] = piece_to_remove
             return to_return
 
         return True
@@ -136,7 +135,7 @@ class Board:
         :param color: the king's color.
         """
         king = self.kings[color]
-        enemy_pieces = self.get_pieces('black' if color == 'white' else 'white')
+        enemy_pieces = self.pieces['black' if color == 'white' else 'white']
 
         partial_in_range = partial(self.in_range, new_position=king.position)
         filtered_pieces = filter(partial_in_range, enemy_pieces)
@@ -164,28 +163,36 @@ class Board:
 
     def move_piece(self, action):
         """Move the piece at action.current_position, returning the reward for capturing a piece (if applicable)."""
-        piece, reward = self.get_piece(action.current_position), 0
+        piece = self.get_piece(action.current_position)
+        reward = self.remove_piece(action.new_position)
 
-        if self.is_occupied(action.new_position):  # remove captured piece, if necessary
-            reward = self.piece_values[self.get_piece(action.new_position).abbreviation]
-
-        # Update board
+        # Update piece information
         self.set_piece(action.current_position, ' ')
         piece.position = action.new_position
         piece.has_moved = True
 
         if action.special_type == 'promotion':  # pawn promotion
             piece = action.special_params(action.current_position, piece.color)
-            # Take the difference since the new piece is more valuable than a pawn
+            self.pieces[piece.color][piece] = piece
+            # Take the difference since the promoted piece is more valuable than a pawn
             reward = self.piece_values[piece.abbreviation] - self.piece_values['p']
         elif action.special_type == 'en passant':
-            reward = self.piece_values[self.get_piece(self.last_action.new_position).abbreviation]
-            self.set_piece(self.last_action.new_position, ' ')  # remove the pawn
+            reward = self.remove_piece(self.last_action.new_position)
         elif action.special_type == 'castle':
             self.move_piece(action.special_params)  # contains rook's action
 
         self.set_piece(action.new_position, piece)
 
+        return reward
+
+    def remove_piece(self, position):
+        """Remove the piece from the corresponding piece set and return its value."""
+        reward = 0
+        if self.is_occupied(position):  # remove captured piece, if necessary
+            piece = self.get_piece(position)
+            del self.pieces[piece.color][piece]
+            reward = self.piece_values[piece.abbreviation]
+        self.set_piece(position, ' ')
         return reward
 
     @staticmethod
@@ -205,6 +212,7 @@ class Board:
                 if piece != ' ':
                     new_piece = piece.copy()
                     board.set_piece((row, col), new_piece)
+                    board.pieces[new_piece.color][new_piece] = new_piece
                     if isinstance(new_piece, pieces.King):
                         board.kings[new_piece.color] = new_piece
                 else:

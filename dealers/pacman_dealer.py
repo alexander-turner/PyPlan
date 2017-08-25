@@ -9,7 +9,7 @@ import progressbar
 
 
 class Dealer(abstract_dealer.AbstractDealer):
-    def __init__(self, layout_repr, simulation_horizon=500, multiprocess_mode='trials', show_moves=False,
+    def __init__(self, layout_repr, simulation_horizon=5000, multiprocess_mode='trials', show_moves=False,
                  use_graphics=True):
         """Initialize the given layout.
 
