@@ -1,5 +1,6 @@
 import dealers.simulators.chesscode.pieces as pieces
 from functools import partial
+from itertools import chain
 
 
 class Board:
@@ -52,8 +53,7 @@ class Board:
 
     def get_actions(self, color):
         """Generate all actions available for pieces of the given color."""
-        action_lists = [piece.get_actions(self) for piece in self.pieces[color]]
-        return [action for sublist in action_lists for action in sublist]
+        return list(chain.from_iterable(piece.get_actions(self) for piece in self.pieces[color]))
 
     def is_legal(self, action):
         if not self.in_bounds(action.new_position):
@@ -134,20 +134,17 @@ class Board:
 
         :param color: the king's color.
         """
-        king = self.kings[color]
         enemy_pieces = self.pieces['black' if color == 'white' else 'white']
-
-        partial_in_range = partial(self.in_range, new_position=king.position)
+        partial_in_range = partial(self.in_range, new_position=self.kings[color].position)
         filtered_pieces = filter(partial_in_range, enemy_pieces)
 
-        partial_has_line_of_sight = partial(self.has_line_of_sight, new_position=king.position)
+        partial_has_line_of_sight = partial(self.has_line_of_sight, new_position=self.kings[color].position)
         filtered_pieces = filter(partial_has_line_of_sight, filtered_pieces)
 
         self.allow_king_capture = True
-        action_lists = [piece.get_actions(self) for piece in filtered_pieces]
-        actions = [action for sublist in action_lists for action in sublist]
+        actions = chain.from_iterable([piece.get_actions(self) for piece in filtered_pieces])
         self.allow_king_capture = False
-        return any(action.new_position == king.position for action in actions)
+        return any(action.new_position == self.kings[color].position for action in actions)
 
     def in_range(self, piece, new_position):
         """Returns True if the piece could potentially move to the given position (i.e. within movement bounds)."""

@@ -1,3 +1,6 @@
+from itertools import chain
+
+
 class Piece:
     # Movement blueprints
     orthogonal = ((-1, 0), (0, -1), (1, 0), (0, 1))
@@ -56,8 +59,7 @@ class Pawn(Piece):
         move_functions = [self.get_actions_one_step, self.get_actions_two_step, self.get_actions_diagonal,
                           self.get_actions_promotion, self.get_actions_en_passant]
 
-        action_lists = [func(board) for func in move_functions]  # generate actions
-        return [action for sublist in action_lists for action in sublist]  # flatten lists
+        return chain.from_iterable([func(board) for func in move_functions])  # generate actions and flatten lists
 
     def get_actions_one_step(self, board):
         # Move forward one if the square isn't occupied
@@ -187,8 +189,7 @@ class Action:
     @staticmethod
     def chess_notation(position):
         """Returns the chess notation (e.g. A1) of the given position."""
-        row = 8 - position[0]
-        col = chr(97 + position[1])
+        row, col = 8 - position[0], chr(97 + position[1])
         return str(row) + str(col)
 
     def __str__(self):
