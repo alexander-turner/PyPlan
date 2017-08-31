@@ -26,7 +26,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     openai = openai_dealer.Dealer()
     pacman = pacman_dealer.Dealer(layout_repr='testClassic')
-    native = native_dealer.Dealer(simulation_horizon=50)
+    native = native_dealer.Dealer(simulation_horizon=100)
 
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='', show_moves=True, upload=False)
     #pacman.run(agents=[nested_u_ro], num_trials=6, multiprocess_mode='trials')

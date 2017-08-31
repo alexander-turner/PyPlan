@@ -21,6 +21,5 @@ if __name__ == '__main__':
     dealer.run(agents=[ss_d2, ss_d2_rollout], num_trials=30, env_name='Connect4')  # TODO print statements explaining
     dealer.run(agents=[ss_d2_rollout, ss_d3], num_trials=30, env_name='Connect4')
     dealer.run(agents=[ss_d2_rollout, uct_t1000], num_trials=30, env_name='Connect4')
-
     dealer.run(agents=[uct_t100, uct_t1000], num_trials=30, env_name='Connect4')
     dealer.run(agents=[uct_t1000, uct_t1000_halfc], num_trials=30, env_name='Connect4')

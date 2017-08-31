@@ -4,11 +4,11 @@ from dealers import pacman_dealer
 """
 It's important to consider depth and pull budget on a per-problem basis.
 
-For example, one would think that having greater rollout depth would improve the heuristic. However, run and observe.
+For example, one would think that having greater rollout depth would improve the heuristic. However, for Pacman, this 
+isn't true if the heuristic is random.
 
-Discussion: 
 Imagine that Pacman is being pursued down a narrow corridor and a ghost is on his tail. If he goes right, he dies. If 
-he goes left, he lives, and the ghost (with 0.8 probability) moves left as well. The policy then employs random 
+he goes left, he lives, and the ghost (with 0.8 probability) moves left as well. The agent then employs random 
 rollout - at each step, there is an equal probability of going right and going left. If at any point he goes right, 
 he dies. However, while Pacman is simulating random behavior, the ghosts move in his direction with 0.8
 probability. Therefore, as depth increases, it becomes multiplicatively more likely that Pacman dies in this rollout. 
