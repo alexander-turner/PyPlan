@@ -3,7 +3,7 @@ from agents.evaluations import rollout_evaluation
 from dealers import native_dealer
 
 """
-Compare the performance of Sparse Sampling and UCT (Monte-Carlo Tree Search) as we vary parameters.
+Compare the performance of Sparse Sampling and UCT as we vary parameters.
 """
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     uct_t1000_halfc = uct_agent.UCTAgent(depth=10, max_width=1, num_trials=1000, c=0.5)
 
     dealer = native_dealer.Dealer()
-    dealer.run(agents=[ss_d2, ss_d2_rollout], num_trials=30, env_name='Connect4')  # TODO print statements explaining
+    dealer.run(agents=[ss_d2, ss_d2_rollout], num_trials=30, env_name='Connect4')
     dealer.run(agents=[ss_d2_rollout, ss_d3], num_trials=30, env_name='Connect4')
     dealer.run(agents=[ss_d2_rollout, uct_t1000], num_trials=30, env_name='Connect4')
     dealer.run(agents=[uct_t100, uct_t1000], num_trials=30, env_name='Connect4')

@@ -1,6 +1,5 @@
 import heapq
 import math
-import numpy as np  # TODO integrate
 from abstract import abstract_agent
 
 

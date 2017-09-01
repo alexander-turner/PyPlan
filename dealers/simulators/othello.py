@@ -140,12 +140,6 @@ class OthelloState(abstract_state.AbstractState):
                         action = {'position': [i, j], 'value': self.current_player + 1}
                         actions_list.append(action)
 
-        # Always add null action - question: why?
-        """
-        if len(actions_list) == 0:
-            action = {'position': [-1, -1], 'value': -1}
-            actions_list.append(action)
-        """
         return actions_list
 
     def get_value_bounds(self):
