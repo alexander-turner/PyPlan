@@ -72,7 +72,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         # Calculate the results
         overall_reward = []
-        for game in range(len(results)):
+        for game in range(len(results)):  # TODO clean up
             game_reward_sum = [0] * self.player_count
 
             for move in range(len(results[game])):

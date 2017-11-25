@@ -13,7 +13,7 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     evaluation = rollout_evaluation.RolloutEvaluation(width=1, depth=10)
     ss_d2 = sparse_sampling_agent.SparseSamplingAgent(depth=2, pulls_per_node=20, evaluation=evaluation)
     ss_d5 = sparse_sampling_agent.SparseSamplingAgent(depth=5, pulls_per_node=5, evaluation=evaluation)
-    uct = uct_agent.UCTAgent(depth=2, max_width=1, num_trials=10, c=1)
+    uct = uct_agent.UCTAgent(depth=5, max_width=1, num_trials=100, c=1)
     e_root_uct = e_root_uct_agent.ERootUCTAgent(depth=10, max_width=1, num_trials=1000, c=1)
     fsss = fsss_agent.FSSSAgent(depth=3, pulls_per_node=20, num_trials=100)
 
@@ -29,5 +29,5 @@ if __name__ == '__main__':  # for multiprocessing compatibility
     native = native_dealer.Dealer()
 
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='', show_moves=True, upload=False)
-    pacman.run(agents=[u_ro, uct, fsss], num_trials=9, multiprocess_mode='trials')
-    #native.run(agents=[u_ro, fsss], num_trials=1, env_name='Chess', multiprocess_mode='trials', show_moves=True)
+    #pacman.run(agents=[uct], num_trials=6, multiprocess_mode='trials')
+    native.run(agents=[u_ro, uct], num_trials=3, env_name='Chess', multiprocess_mode='bandit', show_moves=False)

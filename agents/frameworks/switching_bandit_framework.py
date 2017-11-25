@@ -33,8 +33,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
         self.num_nodes = 1
-        (value, action) = self.estimateV(state)
-        return action
+        return self.estimateV(state)[1]  # return the best action
 
     def estimateV(self, state):
         """Returns the best expected reward and action selected by the best policy at the given state."""

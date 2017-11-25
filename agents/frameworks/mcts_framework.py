@@ -1,8 +1,9 @@
 import numpy as np
+import multiprocessing
 import random
 from abstract import abstract_agent
 from agents.bandits import uniform_bandit
-from agents.evaluations import zero_evaluation
+from agents.evaluations.zero_evaluation import ZeroEvaluation
 
 
 class MCTSFramework(abstract_agent.AbstractAgent):
@@ -10,20 +11,22 @@ class MCTSFramework(abstract_agent.AbstractAgent):
     name = "MCTS Agent"
 
     def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_class=None, bandit_parameters=None,
-                 root_bandit_class=None, root_bandit_parameters=None):
+                 root_bandit_class=None, root_bandit_parameters=None, multiprocess=False):
         self.num_nodes = 1
 
         self.depth = depth
         self.max_width = max_width
         self.num_trials = num_trials
 
-        self.evaluation = evaluation if evaluation else zero_evaluation.ZeroEvaluation()
+        self.evaluation = evaluation if evaluation else ZeroEvaluation
 
         self.bandit_class = bandit_class if bandit_class else uniform_bandit.UniformBandit
         self.bandit_parameters = bandit_parameters
 
         self.root_bandit_class = root_bandit_class if root_bandit_class else self.bandit_class
         self.root_bandit_parameters = root_bandit_parameters
+
+        self.multiprocess = multiprocess
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -40,8 +43,16 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         root_node = BanditNode(state, 0, actions, bandit)
 
-        for _ in range(self.num_trials):
-            self.run_trial(root_node, self.depth)
+        if self.multiprocess:
+            with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
+                remaining = self.num_trials
+                while remaining > 0:
+                    pulls_to_use = min(pool._processes, remaining)
+                    pool.starmap(self.run_trial, [[root_node, self.depth]] * pulls_to_use)
+                    remaining -= pulls_to_use
+        else:
+            for _ in range(self.num_trials):
+                self.run_trial(root_node, self.depth)
 
         return root_node.action_list[root_node.bandit.select_best_arm()]
 

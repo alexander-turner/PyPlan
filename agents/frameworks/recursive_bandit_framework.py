@@ -1,9 +1,8 @@
-import copy
 import multiprocessing
 import numpy as np
 from abstract import abstract_agent
 from agents.bandits import uniform_bandit
-from agents.evaluations import zero_evaluation
+from agents.evaluations.zero_evaluation import ZeroEvaluation
 
 
 class RecursiveBanditFramework(abstract_agent.AbstractAgent):
@@ -11,13 +10,13 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
     name = "Recursive Bandit"
 
     def __init__(self, depth, pulls_per_node, evaluation=None, bandit_class=None, bandit_parameters=None,
-                 multiprocess=False):
+                 multiprocess=False):  # TODO standardize part of init
         self.num_nodes = 1
 
         self.depth = depth
         self.pulls_per_node = pulls_per_node
 
-        self.evaluation = zero_evaluation.ZeroEvaluation() if evaluation is None else copy.deepcopy(evaluation)
+        self.evaluation = evaluation if evaluation else ZeroEvaluation
 
         self.bandit_class = uniform_bandit.UniformBandit if bandit_class is None else bandit_class
         self.bandit_parameters = bandit_parameters
@@ -27,8 +26,7 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
         self.num_nodes = 1
-        (value, action) = self.estimateV(state, self.depth)
-        return action
+        return self.estimateV(state, self.depth)[1]  # return the best action
 
     def estimateV(self, state, depth):
         """Returns the best expected reward and best action at the given state.
