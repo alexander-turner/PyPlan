@@ -1,4 +1,5 @@
 import multiprocessing
+import numpy as np
 import progressbar
 import random
 import statistics
@@ -71,25 +72,23 @@ class Dealer(abstract_dealer.AbstractDealer):
         results, winner_list, avg_times = self.simulation_history, self.game_winner_list, self.avg_move_time
 
         # Calculate the results
-        overall_reward = []
-        for game in range(len(results)):  # TODO clean up
-            game_reward_sum = [0] * self.player_count
-
-            for move in range(len(results[game])):
-                game_reward_sum = [x + y for x, y in zip(game_reward_sum, results[game][move][0])]
-
-            overall_reward.append(game_reward_sum)
-
-        overall_avg_reward = [0] * self.player_count
+        game_rewards = []
         for game in range(len(results)):
-            overall_avg_reward = [x + y for x, y in zip(overall_avg_reward, overall_reward[game])]
-        overall_avg_reward = [avg / num_trials for avg in overall_avg_reward]
+            game_reward = np.array([0.0] * self.player_count)
+            for move in range(len(results[game])):
+                game_reward += results[game][move][0]
+            game_rewards.append(game_reward)
+
+        overall_avg_reward = np.array([0.0] * self.player_count)
+        for game in game_rewards:
+            overall_avg_reward += game
+        overall_avg_reward /= num_trials
 
         # Tabulate win counts
-        win_counts = [0] * self.player_count
+        win_counts = np.array([0] * self.player_count)
         for val in winner_list:
             if val == 'draw':
-                win_counts = list(map(sum, zip(win_counts, (.5, .5))))
+                win_counts += (.5, .5)
             elif val is not None:
                 win_counts[val] += 1
 
@@ -104,7 +103,7 @@ class Dealer(abstract_dealer.AbstractDealer):
             multiprocessing_str = "No"
 
         for agent_idx, agent in enumerate(agents):
-            agent_rewards = [r[agent_idx] for r in overall_reward]
+            agent_rewards = [r[agent_idx] for r in game_rewards]
             table.append([agent.name,  # agent name
                           overall_avg_reward[agent_idx],  # average final reward
                           statistics.variance(agent_rewards, overall_avg_reward[agent_idx]) if self.num_trials > 1 else 0.0,
