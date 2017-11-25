@@ -1,5 +1,5 @@
 from agents import mcts_framework
-from agents.bandits import ucb_bandit
+from agents.bandits.ucb_bandit import UCBBandit
 from agents.evaluations import rollout_evaluation
 
 
@@ -12,7 +12,7 @@ class UCTAgent(mcts_framework.MCTSFramework):
 
         mcts_framework.MCTSFramework.__init__(self, depth=depth, max_width=max_width, num_trials=num_trials,
                                               evaluation=evaluation,
-                                              bandit_class=ucb_bandit.UCBBandit, bandit_parameters=c)
+                                              bandit_class=UCBBandit, bandit_parameters=c)
 
         self.name = self.base_name + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth,
                                                                                              max_width,

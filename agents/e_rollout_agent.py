@@ -1,5 +1,5 @@
 from agents import rollout_agent
-from agents.bandits import e_bandit
+from agents.bandits.e_bandit import EBandit
 
 
 class ERolloutAgent(rollout_agent.RolloutAgent):
@@ -7,9 +7,7 @@ class ERolloutAgent(rollout_agent.RolloutAgent):
 
     def __init__(self, depth, num_pulls, epsilon=0.5, policy=None):
         rollout_agent.RolloutAgent.__init__(self, depth=depth, num_pulls=num_pulls,
-                                            policy=policy,
-                                            bandit_class=e_bandit.EBandit,
-                                            bandit_parameters=epsilon)
+                                            policy=policy, bandit_class=EBandit, bandit_parameters=epsilon)
 
         if policy:  # if policy isn't random, it's a nested agent
             self.name = "Nested " + self.base_name

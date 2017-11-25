@@ -173,16 +173,17 @@ class Dealer(abstract_dealer.AbstractDealer):
         if current_state.num_players > 1 and self.env_name != 'Chess':
             current_state.current_player = random.randrange(self.player_count)
 
-        game_history, time_values = [], [[] for _ in range(current_state.num_players)]
+        game_history, time_totals = [], [0] * current_state.num_players
 
         for h in range(self.simulation_horizon):
             if current_state.is_terminal():
+                winner = current_state.game_outcome
                 break
 
             # Get an action from the agent, tracking time taken
             move_start_time = time.time()
             action_to_take = self.agents[current_state.current_player].select_action(current_state)
-            time_values[current_state.current_player].append(time.time() - move_start_time)
+            time_totals[current_state.current_player] += time.time() - move_start_time
 
             # Take selected action
             reward = current_state.take_action(action_to_take)
@@ -195,21 +196,14 @@ class Dealer(abstract_dealer.AbstractDealer):
                     print("Agent {}".format(current_state.current_player + 1))
                     print(current_state)
 
-        time.sleep(0.1)
-
-        # Game statistics
         total_reward = [0.0] * self.player_count
         for turn in range(len(game_history)):
             total_reward = [x + y for x, y in zip(total_reward, game_history[turn][0])]
-
-        if h == self.simulation_horizon:  # game is not terminal
+        if h == self.simulation_horizon:  # game is not terminal - simulation horizon reached
             winner, _ = max(enumerate(total_reward), key=lambda x: x[1])  # index of highest score = player index
-        else:
-            winner = current_state.game_outcome
 
         # Calculate average time per move
-        moves_per_player = float(h / self.player_count)
-        time_avg = [sum(time_values[player]) / moves_per_player for player in range(current_state.num_players)]
+        time_avg = [time_totals[player] / (h / self.player_count) for player in range(current_state.num_players)]
 
         return {'winner': winner, 'game history': game_history, 'average move times': time_avg}
 

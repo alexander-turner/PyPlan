@@ -2,7 +2,7 @@ import numpy as np
 import multiprocessing
 import random
 from abstract import abstract_agent
-from agents.bandits import uniform_bandit
+from agents.bandits.uniform_bandit import UniformBandit
 from agents.evaluations.zero_evaluation import ZeroEvaluation
 
 
@@ -20,7 +20,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         self.evaluation = evaluation if evaluation else ZeroEvaluation
 
-        self.bandit_class = bandit_class if bandit_class else uniform_bandit.UniformBandit
+        self.bandit_class = bandit_class if bandit_class else UniformBandit
         self.bandit_parameters = bandit_parameters
 
         self.root_bandit_class = root_bandit_class if root_bandit_class else self.bandit_class

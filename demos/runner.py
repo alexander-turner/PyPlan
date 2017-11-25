@@ -3,7 +3,7 @@ from agents.evaluations import *
 from dealers import *
 
 
-if __name__ == '__main__':  # for multiprocessing compatibility
+if __name__ == '__main__':  # for multiprocessing compatibility  TODO unit tests
     random = random_agent.RandomAgent()
     u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
@@ -30,4 +30,4 @@ if __name__ == '__main__':  # for multiprocessing compatibility
 
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='', show_moves=True, upload=False)
     #pacman.run(agents=[uct], num_trials=6, multiprocess_mode='trials')
-    native.run(agents=[u_ro, uct], num_trials=3, env_name='Chess', multiprocess_mode='bandit', show_moves=False)
+    native.run(agents=[u_ro, u_ro], num_trials=9, env_name='Connect4', multiprocess_mode='', show_moves=False)

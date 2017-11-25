@@ -1,7 +1,7 @@
 import multiprocessing
 import numpy as np
 from abstract import abstract_agent
-from agents.bandits import uniform_bandit
+from agents.bandits.uniform_bandit import UniformBandit
 from agents.evaluations.zero_evaluation import ZeroEvaluation
 
 
@@ -11,14 +11,14 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
     def __init__(self, depth, pulls_per_node, evaluation=None, bandit_class=None, bandit_parameters=None,
                  multiprocess=False):  # TODO standardize part of init
-        self.num_nodes = 1
+        self.num_nodes = 1  # TODO remove
 
         self.depth = depth
         self.pulls_per_node = pulls_per_node
 
         self.evaluation = evaluation if evaluation else ZeroEvaluation
 
-        self.bandit_class = uniform_bandit.UniformBandit if bandit_class is None else bandit_class
+        self.bandit_class = UniformBandit if bandit_class is None else bandit_class
         self.bandit_parameters = bandit_parameters
 
         self.multiprocess = multiprocess

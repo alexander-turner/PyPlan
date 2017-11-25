@@ -1,5 +1,6 @@
 from agents import mcts_framework
-from agents.bandits import ucb_bandit, e_bandit
+from agents.bandits.ucb_bandit import UCBBandit
+from agents.bandits.e_bandit import EBandit
 from agents.evaluations import rollout_evaluation
 
 
@@ -12,9 +13,8 @@ class ERootUCTAgent(mcts_framework.MCTSFramework):
 
         mcts_framework.MCTSFramework.__init__(self, depth=depth, max_width=max_width, num_trials=num_trials,
                                               evaluation=evaluation,
-                                              bandit_class=ucb_bandit.UCBBandit, bandit_parameters=c,
-                                              root_bandit_class=e_bandit.EBandit,
-                                              root_bandit_parameters=0.5)
+                                              bandit_class=UCBBandit, bandit_parameters=c,
+                                              root_bandit_class=EBandit, root_bandit_parameters=0.5)
 
         self.name = self.base_name + " (d={}, w={}, trials={}, c={}, base policy={})".format(depth, max_width,
                                                                                              num_trials, c,

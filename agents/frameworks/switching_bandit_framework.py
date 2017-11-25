@@ -1,7 +1,7 @@
 import numpy as np
 import multiprocessing
 from abstract import abstract_agent
-from agents.bandits import uniform_bandit
+from agents.bandits.uniform_bandit import UniformBandit
 
 
 class SwitchingBanditFramework(abstract_agent.AbstractAgent):
@@ -17,7 +17,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
         self.policies = policies
 
-        self.bandit_class = bandit_class if bandit_class else uniform_bandit.UniformBandit
+        self.bandit_class = bandit_class if bandit_class else UniformBandit
         self.bandit_parameters = bandit_parameters
 
         self.set_multiprocess(multiprocess)

@@ -10,7 +10,7 @@ minimize cumulative regret instead of simple regret.
 """
 
 if __name__ == '__main__':
-    bandits = [uniform_bandit.UniformBandit, e_bandit.EBandit, ucb_bandit.UCBBandit]
+    bandits = [UniformBandit, EBandit, UCBBandit]
 
     """
     Here, we define three slot machines:

@@ -1,5 +1,5 @@
 from agents import switching_bandit_framework
-from agents.bandits import e_bandit
+from agents.bandits.e_bandit import EBandit
 
 
 class EPolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework):
@@ -9,7 +9,7 @@ class EPolicySwitchingAgent(switching_bandit_framework.SwitchingBanditFramework)
         switching_bandit_framework.SwitchingBanditFramework.__init__(self, depth=depth,
                                                                      pulls_per_node=num_pulls,
                                                                      policies=policies,
-                                                                     bandit_class=e_bandit.EBandit,
+                                                                     bandit_class=EBandit,
                                                                      bandit_parameters=0.5)
 
         self.name = self.base_name + " (d={}, n={}, e=0.5, policies={})".format(depth, num_pulls,
