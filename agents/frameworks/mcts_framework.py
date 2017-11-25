@@ -11,14 +11,14 @@ class MCTSFramework(abstract_agent.AbstractAgent):
     name = "MCTS Agent"
 
     def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_class=None, bandit_parameters=None,
-                 root_bandit_class=None, root_bandit_parameters=None, multiprocess=False):
+                 root_bandit_class=None, root_bandit_parameters=None):
         self.num_nodes = 1
 
         self.depth = depth
         self.max_width = max_width
         self.num_trials = num_trials
 
-        self.evaluation = evaluation if evaluation else ZeroEvaluation
+        self.evaluation = evaluation if evaluation else ZeroEvaluation()
 
         self.bandit_class = bandit_class if bandit_class else UniformBandit
         self.bandit_parameters = bandit_parameters
@@ -26,7 +26,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         self.root_bandit_class = root_bandit_class if root_bandit_class else self.bandit_class
         self.root_bandit_parameters = root_bandit_parameters
 
-        self.multiprocess = multiprocess
+        self.multiprocess = False
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -43,7 +43,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         root_node = BanditNode(state, 0, actions, bandit)
 
-        if self.multiprocess:
+        if self.multiprocess and __name__ == '__main__':
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
                 remaining = self.num_trials
                 while remaining > 0:
@@ -73,7 +73,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
             # Each key is a state
             keys = list(node.children[action_index].keys())
             counts = np.array([node.children[action_index][k][1] for k in keys])
-            counts = counts / counts.sum()  # list of counts proportional to total number of samples
+            counts /= counts.sum()  # list of counts proportional to total number of samples
 
             successor_index = multinomial(counts)  # randomly sample from polynomial counts - greater counts more likely
             successor_node = node.children[action_index][keys[successor_index]][0]
@@ -83,7 +83,6 @@ class MCTSFramework(abstract_agent.AbstractAgent):
             successor_state = node.state.clone()
             # reward for taking selected action at this node
             immediate_reward = successor_state.take_action(node.action_list[action_index])
-            successor_actions = successor_state.get_actions()
 
             # if the successor state is already a child
             if successor_state in node.children[action_index]:
@@ -93,6 +92,8 @@ class MCTSFramework(abstract_agent.AbstractAgent):
                 # recurse downwards into the constructed tree
                 total_reward = immediate_reward + self.run_trial(successor_node, depth - 1)
             else:
+                successor_actions = successor_state.get_actions()
+
                 if successor_state.is_terminal() or depth == 1:  # indicate it's time to use the evaluation fn
                     successor_bandit = None
                 elif self.bandit_parameters is None:  # create a bandit according to how many actions are available

@@ -5,9 +5,9 @@ from dealers import *
 
 if __name__ == '__main__':  # for multiprocessing compatibility  TODO unit tests
     random = random_agent.RandomAgent()
-    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=0, num_pulls=100)
+    u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=5, num_pulls=100)
     nested_u_ro = uniform_rollout_agent.UniformRolloutAgent(depth=2, num_pulls=10, policy=u_ro)
-    e_ro = e_rollout_agent.ERolloutAgent(depth=1, num_pulls=10)
+    e_ro = e_rollout_agent.ERolloutAgent(depth=5, num_pulls=100)
     ucb_ro = ucb_rollout_agent.UCBRolloutAgent(depth=1, num_pulls=100, c=1.0)
 
     evaluation = rollout_evaluation.RolloutEvaluation(width=1, depth=10)
@@ -30,4 +30,4 @@ if __name__ == '__main__':  # for multiprocessing compatibility  TODO unit tests
 
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='', show_moves=True, upload=False)
     #pacman.run(agents=[uct], num_trials=6, multiprocess_mode='trials')
-    native.run(agents=[u_ro, u_ro], num_trials=9, env_name='Connect4', multiprocess_mode='', show_moves=False)
+    native.run(agents=[e_ro, switch_agent], num_trials=1, env_name='Chess', multiprocess_mode='bandit', show_moves=False)

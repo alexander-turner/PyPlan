@@ -7,7 +7,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, num_trials, evaluation, discount=.5):
+    def __init__(self, depth, pulls_per_node, num_trials, evaluation, discount=.5):  # TODO multiprocess
         self.depth = depth
         if depth < 1:
             raise Exception("Depth must be at least 1.")
@@ -199,7 +199,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
 
 class Node:
-    """Stores information on a state, reward for reaching the state, and the actions available"""
+    """Stores information on a state, reward for reaching the state, and the actions available."""
 
     def __init__(self, state, transition_reward):
         """Contains the state, reward obtained by reaching the state, actions at the state, children, and bounds."""

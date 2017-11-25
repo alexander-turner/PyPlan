@@ -9,19 +9,19 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
     """The agent blueprint."""
     name = "Recursive Bandit"
 
-    def __init__(self, depth, pulls_per_node, evaluation=None, bandit_class=None, bandit_parameters=None,
-                 multiprocess=False):  # TODO standardize part of init
-        self.num_nodes = 1  # TODO remove
+    def __init__(self, depth, pulls_per_node, evaluation=None, bandit_class=None, bandit_parameters=None):
+        # TODO standardize part of init
+        self.num_nodes = 1  # TODO remove?
 
         self.depth = depth
         self.pulls_per_node = pulls_per_node
 
-        self.evaluation = evaluation if evaluation else ZeroEvaluation
+        self.evaluation = evaluation if evaluation else ZeroEvaluation()
 
         self.bandit_class = UniformBandit if bandit_class is None else bandit_class
         self.bandit_parameters = bandit_parameters
 
-        self.multiprocess = multiprocess
+        self.multiprocess = False
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -46,7 +46,7 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
                  else self.bandit_class(num_actions, self.bandit_parameters)
 
         q_values = np.array([[0.0] * state.num_players] * num_actions)  # q-value for each action and each player
-        if self.multiprocess and depth == self.depth:
+        if self.multiprocess and __name__ == '__main__':
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
                 remaining = self.pulls_per_node
                 while remaining > 0:

@@ -141,9 +141,8 @@ class Dealer(abstract_dealer.AbstractDealer):
             if multiprocess_mode == 'bandit':
                 old_configs = [False] * len(self.agents)
                 for agent_idx, agent in enumerate(self.agents):  # enable arm-based multiprocessing
-                    if hasattr(agent, 'set_multiprocess'):
-                        old_configs[agent_idx] = agent.multiprocess
-                        agent.set_multiprocess(True)
+                    if hasattr(agent, 'multiprocess'):
+                        old_configs[agent_idx], agent.multiprocess = agent.multiprocess, True
 
             for _ in bar(range(self.num_trials)):
                 game_outputs.append(self.run_trial())
@@ -151,8 +150,8 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             if multiprocess_mode == 'bandit':
                 for agent_idx, agent in enumerate(self.agents):  # reset their multiprocess information
-                    if hasattr(agent, 'set_multiprocess'):
-                        agent.set_multiprocess(old_configs[agent_idx])
+                    if hasattr(agent, 'multiprocess'):
+                        agent.multiprocess = old_configs[agent_idx]
 
         for output in game_outputs:
             self.game_winner_list.append(output['winner'])
@@ -176,7 +175,6 @@ class Dealer(abstract_dealer.AbstractDealer):
 
         for h in range(self.simulation_horizon):
             if current_state.is_terminal():
-                winner = current_state.game_outcome
                 break
 
             # Get an action from the agent, tracking time taken
@@ -189,7 +187,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             game_history.append([reward, action_to_take])
             if self.show_moves:
-                if hasattr(current_state, 'render'):
+                if hasattr(current_state, 'render'):  # TODO fix multiprocess render
                     current_state.render()
                 else:
                     print("Agent {}".format(current_state.current_player + 1))
@@ -198,8 +196,9 @@ class Dealer(abstract_dealer.AbstractDealer):
         total_reward = [0.0] * self.player_count
         for turn in range(len(game_history)):
             total_reward = [x + y for x, y in zip(total_reward, game_history[turn][0])]
-        if h == self.simulation_horizon:  # game is not terminal - simulation horizon reached
-            winner, _ = max(enumerate(total_reward), key=lambda x: x[1])  # index of highest score = player index
+        # Game is not terminal - simulation horizon reached
+        winner = max(enumerate(total_reward), key=lambda x: x[1])[0] if h == self.simulation_horizon \
+            else current_state.game_outcome  # index of highest score = player index
 
         # Calculate average time per move
         time_avg = [time_totals[player] / (h / self.player_count) for player in range(current_state.num_players)]

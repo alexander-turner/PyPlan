@@ -8,7 +8,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
     """An agent that takes a list of policies and returns the value of the best one at a given state."""
     name = "Policy-Switching Bandit Agent"
 
-    def __init__(self, depth, pulls_per_node, policies, bandit_class=None, bandit_parameters=None, multiprocess=False):
+    def __init__(self, depth, pulls_per_node, policies, bandit_class=None, bandit_parameters=None):
         """Initialize a policy-switching bandit that follows each selected policy for depth steps per trajectory."""
         self.num_nodes = 1
 
@@ -20,15 +20,15 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         self.bandit_class = bandit_class if bandit_class else UniformBandit
         self.bandit_parameters = bandit_parameters
 
-        self.set_multiprocess(multiprocess)
+        self.set_multiprocess(False)
 
     def set_multiprocess(self, multiprocess):
-        """Change the multiprocess parameter."""
+        """Preclude nested multiprocessing."""
         self.multiprocess = multiprocess
         if self.multiprocess:
             for policy in self.policies:
-                if hasattr(policy, 'set_multiprocess'):
-                        policy.set_multiprocess(False)
+                if hasattr(policy, 'multiprocess'):
+                        policy.multiprocess = False
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
@@ -46,7 +46,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
         # For each policy, for each player, initialize a q-value
         q_values = np.array([[0.0] * state.num_players for _ in range(num_policies)])
 
-        if self.multiprocess:
+        if self.multiprocess and __name__ == '__main__':
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
                 remaining = self.pulls_per_node
                 while remaining > 0:
@@ -54,8 +54,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
                     outputs = pool.starmap(self.run_pull, [[state, bandit]] * pulls_to_use)
                     remaining -= pulls_to_use
 
-                    for arm_data in outputs:
-                        policy_idx, total_reward = arm_data
+                    for policy_idx, total_reward in outputs:
                         q_values[policy_idx] += total_reward
                         bandit.update(policy_idx, total_reward[state.current_player])
         else:
