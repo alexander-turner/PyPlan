@@ -1,5 +1,6 @@
 import heapq
 import math
+import multiprocessing
 from abstract import abstract_agent
 
 
@@ -23,6 +24,8 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         self.minimums = [float('-inf') for _ in range(self.depth + 1)]
         self.evaluate_bounds = False  # whether we have a per-state bound evaluation function
 
+        self.multiprocess = False
+
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
         if state.is_terminal():  # there's nothing left to do
@@ -34,9 +37,16 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
         root_node = Node(state, 0)
 
+        if self.multiprocess and __name__ == '__main__':
+            with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
+                remaining = self.num_trials
+                while remaining > 0 and not root_node.is_done():
+                    pulls_to_use = min(pool._processes, remaining)
+                    pool.starmap(self.run_trial, [[root_node, self.depth]] * pulls_to_use)
+                    remaining -= pulls_to_use
         for _ in range(self.num_trials):
             self.run_trial(root_node, self.depth)
-            if self.is_done(root_node):
+            if root_node.is_done():
                 break
 
         best_lower_action_idx = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])[0][2]
@@ -111,7 +121,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
             for action_idx in range(node.num_actions):
                 heapq.heappush(node.bounds, (-1 * self.maximums[depth], -1 * self.minimums[depth], action_idx))
 
-        best_action = self.get_best_action(node)
+        best_action = node.get_best_action()
         best_action_idx = node.action_list.index(best_action)
 
         if node.action_expansions[best_action_idx] < self.pulls_per_node:
@@ -173,30 +183,6 @@ class FSSSFramework(abstract_agent.AbstractAgent):
 
         return new_upper, new_lower
 
-    @staticmethod
-    def is_done(root_node):
-        """Returns whether we've found the best action at the root state.
-
-        Specifically, this is the case when the lower bound for the best action is greater than the upper bounds of all
-            non-best actions.
-        """
-        if root_node.num_actions == 1:  # if there's only one action, not much of a choice to make!
-            return True
-        best_upper = heapq.nsmallest(2, root_node.bounds)  # two largest (after inversion) upper bounds
-        best_lower = heapq.nsmallest(1, root_node.bounds, key=lambda x: x[1])  # largest (after inversion) lower bound
-        if best_lower[0][2] == best_upper[0][2]:  # don't want to compare best_lower with its own upper bound
-            return best_lower[0][1] <= best_upper[1][0]  # compare to second-best
-        else:
-            return best_lower[0][1] <= best_upper[0][0]
-
-    @staticmethod
-    def get_best_action(node):
-        """Returns the action with the maximal upper bound for the given node.state and depth.
-
-        If we can't guarantee the node is closed and need to get an approximately-best action, use best lower bound.
-        """
-        return node.action_list[node.bounds[0][2]]  # [access largest heap element][access action index]
-
 
 class Node:
     """Stores information on a state, reward for reaching the state, and the actions available."""
@@ -229,3 +215,25 @@ class Node:
 
         # action_expansions[action_idx] = how many times we've sampled the given action
         self.action_expansions = [0] * self.num_actions
+
+    def is_done(self):
+        """Returns whether we've found the best action for this Node.
+
+        Specifically, this is the case when the lower bound for the best action is greater than the upper bounds of all
+            non-best actions.
+        """
+        if self.num_actions == 1:  # if there's only one action, not much of a choice to make!
+            return True
+        best_upper = heapq.nsmallest(2, self.bounds)  # two largest (after inversion) upper bounds
+        best_lower = heapq.nsmallest(1, self.bounds, key=lambda x: x[1])  # largest (after inversion) lower bound
+        if best_lower[0][2] == best_upper[0][2]:  # don't want to compare best_lower with its own upper bound
+            return best_lower[0][1] <= best_upper[1][0]  # compare to second-best
+        else:
+            return best_lower[0][1] <= best_upper[0][0]
+
+    def get_best_action(self):
+        """Returns the action with the maximal upper bound for the given node.state and depth.
+
+        If we can't guarantee the node is closed and need to get an approximately-best action, use best lower bound.
+        """
+        return self.action_list[self.bounds[0][2]]  # [access largest heap element][access action index]

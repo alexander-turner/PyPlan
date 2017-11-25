@@ -39,13 +39,12 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
             return self.evaluation.evaluate(state), None  # no more depth, so default to the evaluation fn
 
         action_list = state.get_actions()
-        num_actions = len(action_list)
 
         # Create a bandit according to how many actions are available at the current state
-        bandit = self.bandit_class(num_actions) if self.bandit_parameters is None \
-                 else self.bandit_class(num_actions, self.bandit_parameters)
+        bandit = self.bandit_class(len(action_list)) if self.bandit_parameters is None \
+            else self.bandit_class(len(action_list), self.bandit_parameters)
 
-        q_values = np.array([[0.0] * state.num_players] * num_actions)  # q-value for each action and each player
+        q_values = np.array([[0.0] * state.num_players] *len(action_list))  # q-value for each action and each player
         if self.multiprocess and __name__ == '__main__':
             with multiprocessing.Pool(processes=multiprocessing.cpu_count() - 1) as pool:
                 remaining = self.pulls_per_node

@@ -85,7 +85,7 @@ class Dealer(abstract_dealer.AbstractDealer):
         overall_avg_reward /= num_trials
 
         # Tabulate win counts
-        win_counts = np.array([0] * self.player_count)
+        win_counts = np.array([0.0] * self.player_count)
         for val in winner_list:
             if val == 'draw':
                 win_counts += (.5, .5)
@@ -187,7 +187,7 @@ class Dealer(abstract_dealer.AbstractDealer):
 
             game_history.append([reward, action_to_take])
             if self.show_moves:
-                if hasattr(current_state, 'render'):  # TODO fix multiprocess render
+                if hasattr(current_state, 'render'):
                     current_state.render()
                 else:
                     print("Agent {}".format(current_state.current_player + 1))
@@ -196,7 +196,8 @@ class Dealer(abstract_dealer.AbstractDealer):
         total_reward = [0.0] * self.player_count
         for turn in range(len(game_history)):
             total_reward = [x + y for x, y in zip(total_reward, game_history[turn][0])]
-        # Game is not terminal - simulation horizon reached
+
+        # Check simulation horizon reached
         winner = max(enumerate(total_reward), key=lambda x: x[1])[0] if h == self.simulation_horizon \
             else current_state.game_outcome  # index of highest score = player index
 

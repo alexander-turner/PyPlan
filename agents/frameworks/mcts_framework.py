@@ -73,7 +73,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
             # Each key is a state
             keys = list(node.children[action_index].keys())
             counts = np.array([node.children[action_index][k][1] for k in keys])
-            counts /= counts.sum()  # list of counts proportional to total number of samples
+            counts = counts / counts.sum()  # list of counts proportional to total number of samples
 
             successor_index = multinomial(counts)  # randomly sample from polynomial counts - greater counts more likely
             successor_node = node.children[action_index][keys[successor_index]][0]
