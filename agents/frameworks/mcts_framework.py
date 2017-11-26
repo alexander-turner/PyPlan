@@ -12,8 +12,6 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
     def __init__(self, depth, max_width, num_trials, evaluation=None, bandit_class=None, bandit_parameters=None,
                  root_bandit_class=None, root_bandit_parameters=None):
-        self.num_nodes = 1
-
         self.depth = depth
         self.max_width = max_width
         self.num_trials = num_trials
@@ -32,8 +30,6 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         """Selects the highest-valued action for the given state."""
         if self.depth == 0 or state.is_terminal():  # there's nothing left to do
             return None
-
-        self.num_nodes = 1
 
         actions = state.get_actions()
 
@@ -68,7 +64,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         action_index = node.bandit.select_pull_arm()
 
-        # if we reach max children nodes then select randomly among children
+        # If we reach max children nodes then select randomly among children
         if len(node.children[action_index]) >= self.max_width:
             # Each key is a state
             keys = list(node.children[action_index].keys())
@@ -81,15 +77,15 @@ class MCTSFramework(abstract_agent.AbstractAgent):
             total_reward = successor_node.transition_reward + self.run_trial(successor_node, depth - 1)
         else:  # generate a new successor node
             successor_state = node.state.clone()
-            # reward for taking selected action at this node
+            # Reward for taking selected action at this node
             immediate_reward = successor_state.take_action(node.action_list[action_index])
 
-            # if the successor state is already a child
+            # If the successor state is already a child
             if successor_state in node.children[action_index]:
                 successor_node = node.children[action_index][successor_state][0]
-                # increment how many times successor_state has been sampled
+                # Increment how many times successor_state has been sampled
                 node.children[action_index][successor_node.state][1] += 1
-                # recurse downwards into the constructed tree
+                # Recurse downwards into the constructed tree
                 total_reward = immediate_reward + self.run_trial(successor_node, depth - 1)
             else:
                 successor_actions = successor_state.get_actions()
@@ -103,7 +99,6 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
                 successor_node = BanditNode(successor_state, immediate_reward, successor_actions, successor_bandit)
                 node.children[action_index][successor_node.state] = [successor_node, 1]
-                self.num_nodes += 1  # we've made a new BanditNode
 
                 total_reward = immediate_reward + self.evaluation.evaluate(successor_state)
 
@@ -118,8 +113,6 @@ class BanditNode:
         self.transition_reward = transition_reward
         self.action_list = action_list
         self.bandit = bandit
-
-        self.num_nodes = 0
 
         """
         Each action is associated with a dictionary that stores successor bandits/states.

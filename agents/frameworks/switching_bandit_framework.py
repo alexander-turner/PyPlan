@@ -10,8 +10,6 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
     def __init__(self, depth, pulls_per_node, policies, bandit_class=None, bandit_parameters=None):
         """Initialize a policy-switching bandit that follows each selected policy for depth steps per trajectory."""
-        self.num_nodes = 1
-
         self.depth = depth
         self.pulls_per_node = pulls_per_node
 
@@ -32,13 +30,10 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
-        self.num_nodes = 1
         return self.estimateV(state)[1]  # return the best action
 
     def estimateV(self, state):
         """Returns the best expected reward and action selected by the best policy at the given state."""
-        self.num_nodes += 1
-
         num_policies = len(self.policies)
         bandit = self.bandit_class(num_policies, self.bandit_parameters) if self.bandit_parameters \
             else self.bandit_class(num_policies)
@@ -59,10 +54,8 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
                         bandit.update(policy_idx, total_reward[state.current_player])
         else:
             for _ in range(self.pulls_per_node):  # use pull budget
-                arm_data = self.run_pull(state, bandit)
-
                 # Integrate total reward with current q_values
-                policy_idx, total_reward = arm_data
+                policy_idx, total_reward = self.run_pull(state, bandit)
                 q_values[policy_idx] += total_reward
                 bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
 
@@ -74,17 +67,15 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
 
     def run_pull(self, state, bandit):
         """Choose an arm to pull, execute the action, and return the chosen arm and total reward received."""
-        # Select a policy
         policy_idx = bandit.select_pull_arm()
-        policy = self.policies[policy_idx]
 
         sim_state = state.clone()
         total_reward = np.array([0.0] * state.num_players)  # calculate discounted total rewards
         for _ in range(self.depth):
             if sim_state.is_terminal():
                 break
-            action = policy.select_action(sim_state)
+            action = self.policies[policy_idx].select_action(sim_state)
             total_reward += sim_state.take_action(action)
 
-        return [policy_idx, total_reward]
+        return policy_idx, total_reward
 

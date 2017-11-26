@@ -11,8 +11,6 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
     def __init__(self, depth, pulls_per_node, evaluation=None, bandit_class=None, bandit_parameters=None):
         # TODO standardize part of init
-        self.num_nodes = 1  # TODO remove?
-
         self.depth = depth
         self.pulls_per_node = pulls_per_node
 
@@ -25,7 +23,6 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
     def select_action(self, state):
         """Selects the highest-valued action for the given state."""
-        self.num_nodes = 1
         return self.estimateV(state, self.depth)[1]  # return the best action
 
     def estimateV(self, state, depth):
@@ -33,8 +30,6 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
 
         :param depth: indicates how many more states for which the bandit algorithm will be run.
         """
-        self.num_nodes += 1
-
         if depth == 0 or state.is_terminal():
             return self.evaluation.evaluate(state), None  # no more depth, so default to the evaluation fn
 

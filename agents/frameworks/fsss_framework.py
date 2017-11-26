@@ -8,7 +8,7 @@ class FSSSFramework(abstract_agent.AbstractAgent):
     """A Forward Search Sparse Sampling agent, as described by Walsh et al."""
     name = "FSSS Agent"
 
-    def __init__(self, depth, pulls_per_node, num_trials, evaluation, discount=.5):  # TODO multiprocess
+    def __init__(self, depth, pulls_per_node, num_trials, evaluation, discount=.5):
         self.depth = depth
         if depth < 1:
             raise Exception("Depth must be at least 1.")
@@ -17,7 +17,6 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         self.num_trials = num_trials
         self.evaluation = evaluation
 
-        self.num_nodes = 1
         self.env_name = ""  # the name of the environment for which the value bounds are configured
 
         self.maximums = [float('inf') for _ in range(self.depth + 1)]  # the maximum value for the given depth
@@ -31,7 +30,6 @@ class FSSSFramework(abstract_agent.AbstractAgent):
         if state.is_terminal():  # there's nothing left to do
             return None
 
-        self.num_nodes = 1
         if self.env_name != state.env_name:  # if we haven't already initialized bounds for this simulator
             self.set_min_max_bounds(state)
 
@@ -133,7 +131,6 @@ class FSSSFramework(abstract_agent.AbstractAgent):
                 new_node.upper_state, new_node.lower_state = self.maximums[depth-1], self.minimums[depth-1]
 
                 node.children[best_action_idx][sim_state] = new_node
-                self.num_nodes += 1  # we've made a new Node
             node.children[best_action_idx][sim_state].times_sampled += 1
             node.action_expansions[best_action_idx] += 1
 
@@ -194,7 +191,6 @@ class Node:
         self.action_list = state.get_actions()
         self.num_actions = len(self.action_list)
 
-        self.num_nodes = 0
         self.times_visited = 0  # whether the node's bounds have been set
         self.times_sampled = 0  # times sampled in the pull budget - indicator of weight
 
@@ -213,7 +209,7 @@ class Node:
         # Bounds on the state value
         self.upper_state, self.lower_state = float('inf'), float('-inf')
 
-        # action_expansions[action_idx] = how many times we've sampled the given action
+        # action_expansions[action_idx] := how many times we've sampled the given action
         self.action_expansions = [0] * self.num_actions
 
     def is_done(self):

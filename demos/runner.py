@@ -29,5 +29,5 @@ if __name__ == '__main__':  # for multiprocessing compatibility  TODO unit tests
     native = native_dealer.Dealer()
 
     #openai.run(agents=[uct], num_trials=10, env_name='FrozenLake-v0', multiprocess_mode='', show_moves=True, upload=False)
-    #pacman.run(agents=[uct], num_trials=6, multiprocess_mode='trials')
-    native.run(agents=[u_ro, fsss], num_trials=9, env_name='Chess', multiprocess_mode='trials', show_moves=False)
+    pacman.run(agents=[uct, switch_agent], num_trials=6, multiprocess_mode='bandit')
+    #native.run(agents=[u_ro, fsss], num_trials=9, env_name='Chess', multiprocess_mode='bandit', show_moves=False)
