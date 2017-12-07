@@ -8,13 +8,12 @@ class RolloutEvaluation(abstract_evaluation.AbstractEvaluation):
     name = "Rollout Evaluation"
 
     def __init__(self, width=1, depth=10, rollout_policy=None):
-        self.width = width
-        self.depth = depth
+        super().__init__(width=width, depth=depth)
         # If no policy is provided, initialize a random agent
         self.rollout_policy = rollout_policy if rollout_policy else random_agent.RandomAgent()
 
     def evaluate(self, state):
-        """Evaluate the state using the parameters of the rollout policy."""
+        """Evaluate the state using width, depth, and the rollout policy."""
         total_rewards = np.array([0.0] * state.num_players)
         for _ in range(self.width):  # for each of width simulations
             total_rewards += self.run_rollout(state)

@@ -22,7 +22,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
         self.bandit_parameters = bandit_parameters
 
         self.root_bandit_class = root_bandit_class if root_bandit_class else self.bandit_class
-        self.root_bandit_parameters = root_bandit_parameters
+        self.root_bandit_parameters = root_bandit_parameters  # TODO needed?
 
         self.multiprocess = False
 
@@ -33,7 +33,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         actions = state.get_actions()
 
-        # create a bandit according to how many actions are available at the current state
+        # Create a bandit according to how many actions are available at the current state
         bandit = self.root_bandit_class(len(actions), self.root_bandit_parameters) if self.root_bandit_parameters \
             else self.root_bandit_class(len(actions))
 
@@ -64,7 +64,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
 
         action_index = node.bandit.select_pull_arm()
 
-        # If we reach max children nodes then select randomly among children
+        # If we reach max child nodes, then select randomly among children
         if len(node.children[action_index]) >= self.max_width:
             # Each key is a state
             keys = list(node.children[action_index].keys())
@@ -98,7 +98,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
                     successor_bandit = self.bandit_class(len(successor_actions), self.bandit_parameters)
 
                 successor_node = BanditNode(successor_state, immediate_reward, successor_actions, successor_bandit)
-                node.children[action_index][successor_node.state] = [successor_node, 1]
+                node.children[action_index][successor_state] = [successor_node, 1]
 
                 total_reward = immediate_reward + self.evaluation.evaluate(successor_state)
 
