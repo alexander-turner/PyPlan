@@ -50,7 +50,7 @@ class MCTSFramework(abstract_agent.AbstractAgent):
             for _ in range(self.num_trials):
                 self.run_trial(root_node, self.depth)
 
-        return root_node.action_list[root_node.bandit.select_best_arm()]
+        return root_node.action_list[root_node.bandit.get_best_arm()]
 
     def run_trial(self, node, depth):
         """Using agent parameters, recurse up to depth layers from node in the constructed tree.

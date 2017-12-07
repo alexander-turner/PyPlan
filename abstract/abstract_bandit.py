@@ -19,12 +19,12 @@ class AbstractBandit:
         self.total_pulls = 0
 
     def update(self, arm, reward):
-        """Update the arm's pull count, total pull count, and average reward (using online mean updating)."""
+        """Update the arm's pull count, its average reward, and the total pull count."""
         self.num_pulls[arm] += 1
         self.average_reward[arm] = (self.average_reward[arm] * (self.num_pulls[arm] - 1) + reward) / self.num_pulls[arm]
         self.total_pulls += 1
 
-    def select_best_arm(self):
+    def get_best_arm(self):
         """Returns arm with the best average reward."""
         return self.average_reward.argmax()
 

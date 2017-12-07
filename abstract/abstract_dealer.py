@@ -2,6 +2,7 @@ import abc
 from abc import ABCMeta
 
 
+# TODO standardize further?
 class AbstractDealer:
     """Dealers facilitate simulation and display results in an easy-to-read format.
 

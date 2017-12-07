@@ -20,7 +20,7 @@ class EBandit(abstract_bandit.AbstractBandit):
             return 0
 
         if self.total_pulls >= self.num_arms:  # if we've pulled each arm at least once
-            best_arm = self.select_best_arm()
+            best_arm = self.get_best_arm()
             rand_val = random.random()
             if rand_val < self.epsilon:
                 non_best = list(range(self.num_arms))

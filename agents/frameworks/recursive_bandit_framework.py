@@ -55,7 +55,7 @@ class RecursiveBanditFramework(abstract_agent.AbstractAgent):
                 arm_data = self.run_pull(state, bandit, depth)
                 self.update_bandit(q_values, arm_data, state.current_player, bandit)
 
-        best_arm_index = bandit.select_best_arm()
+        best_arm_index = bandit.get_best_arm()
 
         return q_values[best_arm_index] / bandit.num_pulls[best_arm_index], action_list[best_arm_index]
 

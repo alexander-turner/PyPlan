@@ -60,7 +60,7 @@ class SwitchingBanditFramework(abstract_agent.AbstractAgent):
                 bandit.update(policy_idx, total_reward[state.current_player])  # update the reward for the given arm
 
         # Get most-selected action of highest-valued policy (useful for stochastic environments)
-        best_policy_idx = bandit.select_best_arm()
+        best_policy_idx = bandit.get_best_arm()
         best_action_select = self.policies[best_policy_idx].select_action(state)
 
         return q_values[best_policy_idx] / bandit.num_pulls[best_policy_idx], best_action_select
