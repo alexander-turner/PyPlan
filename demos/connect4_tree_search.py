@@ -18,8 +18,8 @@ if __name__ == '__main__':
     uct_t1000_halfc = uct_agent.UCTAgent(depth=10, max_width=1, num_trials=1000, c=0.5)
 
     dealer = native_dealer.Dealer()
-    dealer.run(agents=[ss_d2, ss_d2_rollout], num_trials=30, env_name='Connect4')
-    dealer.run(agents=[ss_d2_rollout, ss_d3], num_trials=30, env_name='Connect4')
-    dealer.run(agents=[ss_d2_rollout, uct_t1000], num_trials=30, env_name='Connect4')
-    dealer.run(agents=[uct_t100, uct_t1000], num_trials=30, env_name='Connect4')
-    dealer.run(agents=[uct_t1000, uct_t1000_halfc], num_trials=30, env_name='Connect4')
+    dealer.run(agents=[ss_d2, ss_d2_rollout], num_trials=12, env_name='Connect4')
+    dealer.run(agents=[ss_d2_rollout, ss_d3], num_trials=12, env_name='Connect4')
+    dealer.run(agents=[ss_d2_rollout, uct_t1000], num_trials=12, env_name='Connect4')
+    dealer.run(agents=[uct_t100, uct_t1000], num_trials=12, env_name='Connect4')
+    dealer.run(agents=[uct_t1000, uct_t1000_halfc], num_trials=12, env_name='Connect4')
